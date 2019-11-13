@@ -407,7 +407,7 @@ module.exports = class notificationsHelper {
                             let notificationCreatedDate = moment(item.created_at);
                             let dateDifference = currentDate.diff(notificationCreatedDate, 'days');
 
-                            if (item.is_read === false && dateDifference >= 90) { // jUst for testing purpose
+                            if (item.is_read === false ) { // jUst for testing purpose
                                 return item
                             }
                         })
