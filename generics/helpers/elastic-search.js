@@ -97,7 +97,7 @@ var updateNotificationData = function (userId = "", notificatonNumber = 0, notif
       if(appName && appName=="unnati"){
         indexName = unnatiIndexName
       }
-      let userNotificationDocument = await getNotificationData(userId,notificationData.appName)
+      let userNotificationDocument = await getNotificationData(userId,appName)
      
 
       if (userNotificationDocument.body.error && userNotificationDocument.statusCode == 404) {
