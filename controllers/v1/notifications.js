@@ -110,7 +110,6 @@ module.exports = class Notifications {
             try {
 
 
-                console.log("query",req.query.appName);
                 await notificationsHelper.markItRead(req.userDetails.id, req.params._id,(req.query.appName && req.query.appName !="")?req.query.appName:"")
 
                 return resolve({
