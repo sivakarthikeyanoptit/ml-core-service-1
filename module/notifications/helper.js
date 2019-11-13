@@ -365,7 +365,7 @@ module.exports = class notificationsHelper {
                             let notificationCreatedDate = moment(item.created_at);
                             let dateDifference = currentDate.diff(notificationCreatedDate, 'days');
 
-                            if (item.is_read === true && dateDifference >= 30) {
+                            if (item.is_read === true) {
                                 return item
                             }
                         })
