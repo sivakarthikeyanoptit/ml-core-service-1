@@ -37,6 +37,7 @@ module.exports = class notificationsHelper {
     static markItRead(userDetails, notificatonNumber,appName ="") {
         return new Promise(async (resolve, reject) => {
             try {
+
                 let updateNotificationDocument = await elasticSearchHelper.updateNotificationData(userDetails, notificatonNumber, { is_read: true },appName)
 
                 return resolve(updateNotificationDocument)
@@ -46,7 +47,7 @@ module.exports = class notificationsHelper {
         })
     }
 
-    static unReadCount(userDetails,appName) {
+    static unReadCount(userDetails,appName="") {
         return new Promise(async (resolve, reject) => {
             try {
 
