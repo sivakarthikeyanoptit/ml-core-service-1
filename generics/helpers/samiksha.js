@@ -40,7 +40,7 @@ var pendingAssessments = function () {
 
 var pendingObservations = function () {
 
-    const samikshaServiceUrl = process.env.APPLICATION_BASE_HOST + process.env.SAMIKSHA_BASE_URL + "api/v1/entityAssessors/pendingObservations"
+    const samikshaServiceUrl = process.env.APPLICATION_BASE_HOST + process.env.SAMIKSHA_BASE_URL + "api/v1/observations/pendingObservations"
 
     return new Promise((resolve, reject) => {
         try {
@@ -98,7 +98,7 @@ var completedAssessments = function () {
 
 var completedObservations = function () {
 
-    const samikshaServiceUrl = process.env.APPLICATION_BASE_HOST + process.env.SAMIKSHA_BASE_URL + "api/v1/entityAssessors/completedObservations"
+    const samikshaServiceUrl = process.env.APPLICATION_BASE_HOST + process.env.SAMIKSHA_BASE_URL + "api/v1/observations/completedObservations"
 
     return new Promise((resolve, reject) => {
         try {

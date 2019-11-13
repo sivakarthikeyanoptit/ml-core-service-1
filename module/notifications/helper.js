@@ -139,14 +139,19 @@ module.exports = class notificationsHelper {
 
                             if (existingNotification !== undefined) {
                                 let dateDifference = currentDate.diff(existingNotification.created_at, 'days')
+
                                 if (dateDifference >= 14) {
                                     await elasticSearchHelper.deleteNotificationData(pendingData[pointerToPendingAssessments].userId, existingNotification.id)
+                                    await elasticSearchHelper.pushNotificationData(pendingData[pointerToPendingAssessments].userId, assessment)
                                 }
+                            } else{
+                                await elasticSearchHelper.pushNotificationData(pendingData[pointerToPendingAssessments].userId, assessment)
                             }
 
+                        } else{
+                            await elasticSearchHelper.pushNotificationData(pendingData[pointerToPendingAssessments].userId, assessment)
                         }
 
-                        await elasticSearchHelper.pushNotificationData(pendingData[pointerToPendingAssessments].userId, assessment)
 
                     }
                 }
@@ -214,12 +219,16 @@ module.exports = class notificationsHelper {
                                 let dateDifference = currentDate.diff(existingNotification.created_at, 'days')
                                 if (dateDifference >= 14) { // dateDifference>=14 
                                     await elasticSearchHelper.deleteNotificationData(pendingObservationData[pointerToPendingAssessments].userId, existingNotification.id)
+                                    await elasticSearchHelper.pushNotificationData(pendingObservationData[pointerToPendingAssessments].userId, observation)
                                 }
+                            } else{
+                                await elasticSearchHelper.pushNotificationData(pendingObservationData[pointerToPendingAssessments].userId, observation)
                             }
 
+                        } else{
+                            await elasticSearchHelper.pushNotificationData(pendingObservationData[pointerToPendingAssessments].userId, observation)
                         }
 
-                        await elasticSearchHelper.pushNotificationData(pendingObservationData[pointerToPendingAssessments].userId, observation)
 
                     }
                 }
