@@ -9,7 +9,7 @@ var request = require('request');
 
 var pendingAssessments = function () {
 
-    const samikshaServiceUrl = process.env.SAMIKSHA_BASE_HOST + "/api/v1/entityAssessors/pendingAssessments"
+    const samikshaServiceUrl = process.env.APPLICATION_HOST + process.env.SAMIKSHA_BASE_URL + "api/v1/entityAssessors/pendingAssessments"
 
     return new Promise((resolve, reject) => {
         try {
@@ -38,7 +38,7 @@ var pendingAssessments = function () {
 
 var pendingObservations = function () {
 
-    const samikshaServiceUrl = process.env.SAMIKSHA_BASE_HOST + "/api/v1/entityAssessors/pendingObservations"
+    const samikshaServiceUrl = process.env.APPLICATION_HOST + process.env.SAMIKSHA_BASE_URL + "api/v1/entityAssessors/pendingObservations"
 
     return new Promise((resolve, reject) => {
         try {
@@ -67,7 +67,7 @@ var pendingObservations = function () {
 
 var completedAssessments = function () {
 
-    const samikshaServiceUrl = process.env.SAMIKSHA_BASE_HOST + "/api/v1/entityAssessors/completedAssessments"
+    const samikshaServiceUrl = process.env.APPLICATION_HOST + process.env.SAMIKSHA_BASE_URL + "api/v1/entityAssessors/completedAssessments"
 
     return new Promise((resolve, reject) => {
         try {
@@ -96,7 +96,7 @@ var completedAssessments = function () {
 
 var completedObservations = function () {
 
-    const samikshaServiceUrl = process.env.SAMIKSHA_BASE_HOST + "/api/v1/entityAssessors/completedObservations"
+    const samikshaServiceUrl = process.env.APPLICATION_HOST + process.env.SAMIKSHA_BASE_URL + "api/v1/entityAssessors/completedObservations"
 
     return new Promise((resolve, reject) => {
         try {
