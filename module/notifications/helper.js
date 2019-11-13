@@ -3,11 +3,11 @@ let moment = require("moment-timezone")
 
 module.exports = class notificationsHelper {
 
-    static list(userDetails, pageSize, pageNo) {
+    static list(userDetails, pageSize, pageNo,appName = "") {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let getNotificationDocument = await elasticSearchHelper.getNotificationData(userDetails)
+                let getNotificationDocument = await elasticSearchHelper.getNotificationData(userDetails,appName)
 
                 if (getNotificationDocument.statusCode !== 200) {
                     return resolve({
@@ -34,10 +34,10 @@ module.exports = class notificationsHelper {
         })
     }
 
-    static markItRead(userDetails, notificatonNumber) {
+    static markItRead(userDetails, notificatonNumber,appName ="") {
         return new Promise(async (resolve, reject) => {
             try {
-                let updateNotificationDocument = await elasticSearchHelper.updateNotificationData(userDetails, notificatonNumber, { is_read: true })
+                let updateNotificationDocument = await elasticSearchHelper.updateNotificationData(userDetails, notificatonNumber, { is_read: true },appName)
 
                 return resolve(updateNotificationDocument)
             } catch (error) {
@@ -46,11 +46,11 @@ module.exports = class notificationsHelper {
         })
     }
 
-    static unReadCount(userDetails) {
+    static unReadCount(userDetails,appName) {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let getNotificationDocument = await elasticSearchHelper.getNotificationData(userDetails)
+                let getNotificationDocument = await elasticSearchHelper.getNotificationData(userDetails,appName)
 
                 if (getNotificationDocument.statusCode !== 200) {
                     return resolve({

@@ -1,5 +1,7 @@
 const samikshaIndexName = (process.env.ELASTICSEARCH_SAMIKSHA_INDEX && process.env.ELASTICSEARCH_SAMIKSHA_INDEX != "") ? process.env.ELASTICSEARCH_SAMIKSHA_INDEX : "samiksha"
 const samikshaNotificationTypeName = (process.env.ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE && process.env.ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE != "") ? process.env.ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE : "user-notification"
+const unnatiIndexName = (process.env.ELASTICSEARCH_UNNATI_INDEX && process.env.ELASTICSEARCH_UNNATI_INDEX != "") ? process.env.ELASTICSEARCH_UNNATI_INDEX : "unnati"
+
 
 var pushNotificationData = function (userId = "", notificatonData = {}) {
 
@@ -7,8 +9,13 @@ var pushNotificationData = function (userId = "", notificatonData = {}) {
     try {
 
       if (userId == "") throw "Invalid user id."
+      
+      let indexName = samikshaIndexName;
+      if(notificatonData.appName && notificatonData.appName=="unnati"){
+        indexName = unnatiIndexName
+      }
+      let userNotificationDocument = await getNotificationData(userId,notificatonData.appName);
 
-      let userNotificationDocument = await getNotificationData(userId)
 
       if (userNotificationDocument.statusCode == 404) {
 
@@ -16,7 +23,7 @@ var pushNotificationData = function (userId = "", notificatonData = {}) {
 
         const userNotificationDocCreation = await elasticsearch.client.create({
           id: userId,
-          index: samikshaIndexName,
+          index: indexName,
           type: samikshaNotificationTypeName,
           body: {
             notificationCount: 1,
@@ -48,7 +55,7 @@ var pushNotificationData = function (userId = "", notificatonData = {}) {
 
         const userNotificationDocUpdation = await elasticsearch.client.update({
           id: userId,
-          index: samikshaIndexName,
+          index: indexName,
           type: samikshaNotificationTypeName,
           body: {
             doc: {
@@ -85,7 +92,12 @@ var updateNotificationData = function (userId = "", notificatonNumber = 0, notif
 
       if (userId == "") throw "Invalid user id."
 
-      let userNotificationDocument = await getNotificationData(userId)
+      let indexName = samikshaIndexName;
+      if(notificatonData.appName && notificatonData.appName=="unnati"){
+        indexName = unnatiIndexName
+      }
+      let userNotificationDocument = await getNotificationData(userId,notificatonData.appName)
+     
 
       if (userNotificationDocument.body.error && userNotificationDocument.statusCode == 404) {
 
@@ -104,7 +116,7 @@ var updateNotificationData = function (userId = "", notificatonNumber = 0, notif
 
         const userNotificationDocUpdation = await elasticsearch.client.update({
           id: userId,
-          index: samikshaIndexName,
+          index: indexName,
           type: samikshaNotificationTypeName,
           body: {
             doc: {
@@ -134,7 +146,7 @@ var updateNotificationData = function (userId = "", notificatonNumber = 0, notif
   });
 };
 
-var getNotificationData = function (userId = "") {
+var getNotificationData = function (userId = "",appName = "") {
 
   return new Promise(async function (resolve, reject) {
     try {
@@ -143,9 +155,15 @@ var getNotificationData = function (userId = "") {
 
       if (userId == "") throw "Invalid user id."
 
+
+      let indexName= samikshaIndexName;
+      if(appName && appName == "unnati"){
+        indexName = unnatiIndexName;
+      }
+
       const userNotificationDocument = await elasticsearch.client.get({
         id: userId,
-        index: samikshaIndexName,
+        index: indexName,
         type: samikshaNotificationTypeName
       }, {
           ignore: [404],
