@@ -93,10 +93,10 @@ var updateNotificationData = function (userId = "", notificatonNumber = 0, notif
       if (userId == "") throw "Invalid user id."
 
       let indexName = samikshaIndexName;
-      if(notificatonData.appName && notificatonData.appName=="unnati"){
+      if(notificationData.appName && notificationData.appName=="unnati"){
         indexName = unnatiIndexName
       }
-      let userNotificationDocument = await getNotificationData(userId,notificatonData.appName)
+      let userNotificationDocument = await getNotificationData(userId,notificationData.appName)
      
 
       if (userNotificationDocument.body.error && userNotificationDocument.statusCode == 404) {
