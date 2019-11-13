@@ -114,7 +114,7 @@ module.exports = class notificationsHelper {
                         title: "Pending Assessment!",
                         text: "You have a Pending Assessment",
                         type: "Information",
-                        created_at: moment(new Date()).format("YYYY-MM-DD")
+                        created_at: new Date()
                     }
 
                     for (let pointerToPendingAssessments = 0; pointerToPendingAssessments < pendingData.length; pointerToPendingAssessments++) {
@@ -187,7 +187,7 @@ module.exports = class notificationsHelper {
                         title: "Pending Observation!",
                         text: "You have a Pending Observation",
                         type: "Information",
-                        created_at: moment(new Date()).format("YYYY-MM-DD")
+                        created_at: new Date()
                     }
 
                     for (let pointerToPendingAssessments = 0; pointerToPendingAssessments < pendingObservationData.length; pointerToPendingAssessments++) {
@@ -247,7 +247,7 @@ module.exports = class notificationsHelper {
                     internal: false,
                     title: "Congratulations!",
                     type: "Information",
-                    "created_at": moment(new Date()).format("YYYY-MM-DD")
+                    "created_at": new Date()
                 }
 
                 let userDetails = {}
@@ -299,7 +299,7 @@ module.exports = class notificationsHelper {
                     internal: false,
                     title: "Congratulations!",
                     type: "Information",
-                    "created_at": moment(new Date()).format("YYYY-MM-DD")
+                    "created_at": new Date()
                 }
 
                 let userDetails = {}
