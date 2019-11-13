@@ -115,7 +115,7 @@ module.exports = class notificationsHelper {
                         title: "Pending Assessment!",
                         text: "You have a Pending Assessment",
                         type: "Information",
-                        created_at: moment(new Date()).format("YYYY-MM-DD")
+                        created_at: new Date()
                     }
 
                     for (let pointerToPendingAssessments = 0; pointerToPendingAssessments < pendingData.length; pointerToPendingAssessments++) {
@@ -140,14 +140,19 @@ module.exports = class notificationsHelper {
 
                             if (existingNotification !== undefined) {
                                 let dateDifference = currentDate.diff(existingNotification.created_at, 'days')
+
                                 if (dateDifference >= 14) {
                                     await elasticSearchHelper.deleteNotificationData(pendingData[pointerToPendingAssessments].userId, existingNotification.id)
+                                    await elasticSearchHelper.pushNotificationData(pendingData[pointerToPendingAssessments].userId, assessment)
                                 }
+                            } else{
+                                await elasticSearchHelper.pushNotificationData(pendingData[pointerToPendingAssessments].userId, assessment)
                             }
 
+                        } else{
+                            await elasticSearchHelper.pushNotificationData(pendingData[pointerToPendingAssessments].userId, assessment)
                         }
 
-                        await elasticSearchHelper.pushNotificationData(pendingData[pointerToPendingAssessments].userId, assessment)
 
                     }
                 }
@@ -188,7 +193,7 @@ module.exports = class notificationsHelper {
                         title: "Pending Observation!",
                         text: "You have a Pending Observation",
                         type: "Information",
-                        created_at: moment(new Date()).format("YYYY-MM-DD")
+                        created_at: new Date()
                     }
 
                     for (let pointerToPendingAssessments = 0; pointerToPendingAssessments < pendingObservationData.length; pointerToPendingAssessments++) {
@@ -215,12 +220,16 @@ module.exports = class notificationsHelper {
                                 let dateDifference = currentDate.diff(existingNotification.created_at, 'days')
                                 if (dateDifference >= 14) { // dateDifference>=14 
                                     await elasticSearchHelper.deleteNotificationData(pendingObservationData[pointerToPendingAssessments].userId, existingNotification.id)
+                                    await elasticSearchHelper.pushNotificationData(pendingObservationData[pointerToPendingAssessments].userId, observation)
                                 }
+                            } else{
+                                await elasticSearchHelper.pushNotificationData(pendingObservationData[pointerToPendingAssessments].userId, observation)
                             }
 
+                        } else{
+                            await elasticSearchHelper.pushNotificationData(pendingObservationData[pointerToPendingAssessments].userId, observation)
                         }
 
-                        await elasticSearchHelper.pushNotificationData(pendingObservationData[pointerToPendingAssessments].userId, observation)
 
                     }
                 }
@@ -248,7 +257,7 @@ module.exports = class notificationsHelper {
                     internal: false,
                     title: "Congratulations!",
                     type: "Information",
-                    "created_at": moment(new Date()).format("YYYY-MM-DD")
+                    "created_at": new Date()
                 }
 
                 let userDetails = {}
@@ -300,7 +309,7 @@ module.exports = class notificationsHelper {
                     internal: false,
                     title: "Congratulations!",
                     type: "Information",
-                    "created_at": moment(new Date()).format("YYYY-MM-DD")
+                    "created_at": new Date()
                 }
 
                 let userDetails = {}
@@ -357,7 +366,7 @@ module.exports = class notificationsHelper {
                             let notificationCreatedDate = moment(item.created_at);
                             let dateDifference = currentDate.diff(notificationCreatedDate, 'days');
 
-                            if (item.is_read === true && dateDifference >= 30) {
+                            if (item.is_read === true) {
                                 return item
                             }
                         })
