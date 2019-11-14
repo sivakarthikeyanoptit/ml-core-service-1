@@ -85,18 +85,19 @@ var pushNotificationData = function (userId = "", notificatonData = {}) {
   });
 };
 
-var updateNotificationData = function (userId = "", notificatonNumber = 0, notificationData = {}) {
+var updateNotificationData = function (userId = "", notificatonNumber = 0, notificationData = {},appName="") {
 
   return new Promise(async function (resolve, reject) {
     try {
 
       if (userId == "") throw "Invalid user id."
 
+      console.log("notificationData",notificationData);
       let indexName = samikshaIndexName;
-      if(notificationData.appName && notificationData.appName=="unnati"){
+      if(appName && appName=="unnati"){
         indexName = unnatiIndexName
       }
-      let userNotificationDocument = await getNotificationData(userId,notificationData.appName)
+      let userNotificationDocument = await getNotificationData(userId,appName)
      
 
       if (userNotificationDocument.body.error && userNotificationDocument.statusCode == 404) {

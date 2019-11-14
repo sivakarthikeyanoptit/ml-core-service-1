@@ -81,8 +81,7 @@ module.exports = class Notifications {
                     message: req.t('unreadNotifocation'),
                     status: httpStatusCode.ok.status,
                     result: {
-                        count: unReadCountDocument.count,
-                        data: unReadCountDocument.result
+                        count: unReadCountDocument.count
                     }
                 })
 
@@ -109,6 +108,7 @@ module.exports = class Notifications {
         return new Promise(async (resolve, reject) => {
 
             try {
+
 
                 await notificationsHelper.markItRead(req.userDetails.id, req.params._id,(req.query.appName && req.query.appName !="")?req.query.appName:"")
 
