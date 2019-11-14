@@ -101,7 +101,7 @@ module.exports = class notificationsHelper {
                     //     return eachPendingData;
                     // }
 
-                    return eachPendingData;
+                    return eachPendingData
 
                 })
 
@@ -128,6 +128,7 @@ module.exports = class notificationsHelper {
                         assessment.payload["submission_id"] = pendingData[pointerToPendingAssessments]._id;
                         assessment.payload["entity_id"] = pendingData[pointerToPendingAssessments].entityId;
                         assessment.payload["program_id"] = pendingData[pointerToPendingAssessments].programId;
+                        assessment.payload["entity_name"] = pendingData[pointerToPendingAssessments].entityName;
 
                         if (getNotificationDocument.statusCode !== 404) {
 
@@ -208,6 +209,7 @@ module.exports = class notificationsHelper {
                         observation.payload["submission_id"] = pendingObservationData[pointerToPendingAssessments]._id;
                         observation.payload["entity_id"] = pendingObservationData[pointerToPendingAssessments].entityId;
                         observation.payload["observation_id"] = pendingObservationData[pointerToPendingAssessments].observationId;
+                        observation.payload["entity_name"] = pendingObservationData[pointerToPendingAssessments].entityName;
 
                         if (getNotificationDocument.statusCode !== 404) {
 
@@ -376,6 +378,7 @@ module.exports = class notificationsHelper {
                         })
 
                         if (getFilteredNotifications.length > 0) {
+                            console.log("here")
                             for (let pointerToNotifications = 0; pointerToNotifications < getFilteredNotifications.length; pointerToNotifications++) {
                                 await elasticSearchHelper.deleteNotificationData(userId, getFilteredNotifications[pointerToNotifications].id)
                             }
