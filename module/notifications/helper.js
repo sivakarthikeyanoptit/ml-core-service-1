@@ -245,7 +245,7 @@ module.exports = class notificationsHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let currentDate = moment("2019-01-02").format("YYYY-MM-DD");
+                let currentDate = moment(new Date())
 
                 let completedAssessments = {
                     is_read: false,
@@ -297,7 +297,7 @@ module.exports = class notificationsHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let currentDate = moment(new Date()).format("YYYY-MM-DD");
+                let currentDate = moment(new Date())
 
                 let completedObservations = {
                     is_read: false,
@@ -365,7 +365,7 @@ module.exports = class notificationsHelper {
                             let notificationCreatedDate = moment(item.created_at);
                             let dateDifference = currentDate.diff(notificationCreatedDate, 'days');
 
-                            if (item.is_read === true) {
+                            if (item.is_read === true && dateDifference >= 30) {
                                 return item
                             }
                         })
