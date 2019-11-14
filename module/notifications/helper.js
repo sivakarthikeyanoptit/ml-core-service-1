@@ -145,7 +145,7 @@ module.exports = class notificationsHelper {
                                 let dateDifference = currentDate.diff(existingNotification.created_at, 'days')
 
                                 // if (dateDifference >= 14) {
-                                    await elasticSearchHelper.updateNotificationData(pendingData[pointerToPendingAssessments].userId, Number(existingNotification.id), { createdAt: new Date() })
+                                    await elasticSearchHelper.updateNotificationData(pendingData[pointerToPendingAssessments].userId, Number(existingNotification.id), { created_at: new Date(),is_read:false })
                                     // await elasticSearchHelper.deleteNotificationData(pendingData[pointerToPendingAssessments].userId, existingNotification.id)
                                     // await elasticSearchHelper.pushNotificationData(pendingData[pointerToPendingAssessments].userId, assessment)
                                 // }
