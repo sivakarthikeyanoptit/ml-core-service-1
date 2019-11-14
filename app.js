@@ -278,7 +278,50 @@ schedule.scheduleJob(process.env.SCHEDULE_FOR_UNREAD_NOTIFICATION, () => {
   })
 
 });
+
+
+//Delete Read Notification for unnati
+
+schedule.scheduleJob(process.env.SCHEDULE_FOR_READ_NOTIFICATION_UNNATI, () => {
+
+  console.log("<-----  Delete Read Notification for unnati cron started ---- >", new Date());
+
+  let notificationHelpers = require(ROOT_PATH + "/module/notifications/helper");
+
+  return new Promise(async (resolve, reject) => {
+
+    await notificationHelpers.customDeleteReadNotification("unnati")
+    console.log("<-----  Delete Read Notification for unnati cron stopped ---- >", new Date());
+    resolve()
+
+  })
+
+});
+
+
+// Delete UnRead Notification for unnati
+
+schedule.scheduleJob(process.env.SCHEDULE_FOR_UNREAD_NOTIFICATION_UNNATI, () => {
+
+  console.log("<-----  Delete UnRead Notification for Unnati cron started ---- >", new Date());
+
+  let notificationHelpers = require(ROOT_PATH + "/module/notifications/helper");
+
+  return new Promise(async (resolve, reject) => {
+
+    await notificationHelpers.customdeleteUnReadNotification("unnati")
+
+    console.log("<-----  Delete UnRead Notification for Unnati cron stopped ---- >", new Date());
+    resolve()
+
+  })
+
+});
+
+
 // Scheduler ends here
+
+
 
 
 //add routing

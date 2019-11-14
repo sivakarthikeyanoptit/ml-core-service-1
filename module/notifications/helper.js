@@ -443,4 +443,90 @@ module.exports = class notificationsHelper {
             }
         })
     }
+
+
+    static customDeleteReadNotification(appName="",days="") {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let currentDate = moment(new Date());
+
+                let getAllIndexData = await elasticSearchHelper.getAllIndexData(appName)
+
+                if (getAllIndexData.result.length > 0) {
+
+                    for (let pointerToIndexData = 0; pointerToIndexData < getAllIndexData.result.length; pointerToIndexData++) {
+
+                        let currentIndexData = getAllIndexData.result[pointerToIndexData]
+                        let userId = currentIndexData.userId;
+
+                        let getFilteredNotifications = currentIndexData.notifications.filter(item => {
+
+                            let notificationCreatedDate = moment(item.created_at);
+                            let dateDifference = currentDate.diff(notificationCreatedDate, 'days');
+
+                            if (item.is_read === true) {
+                                return item
+                            }
+                        })
+
+                        if (getFilteredNotifications.length > 0) {
+                            for (let pointerToNotifications = 0; pointerToNotifications < getFilteredNotifications.length; pointerToNotifications++) {
+                                await elasticSearchHelper.deleteNotificationData(userId, getFilteredNotifications[pointerToNotifications].id,appName)
+                            }
+                        }
+                    }
+                }
+
+                return resolve();
+            }
+            catch (error) {
+                return reject(error)
+            }
+        })
+    }
+
+
+    static customdeleteUnReadNotification(appName="",days="") {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let currentDate = moment(new Date());
+
+                let getAllIndexData = await elasticSearchHelper.getAllIndexData(appName)
+
+                if (getAllIndexData.result.length > 0) {
+
+                    for (let pointerToIndexData = 0; pointerToIndexData < getAllIndexData.result.length; pointerToIndexData++) {
+
+                        let currentIndexData = getAllIndexData.result[pointerToIndexData]
+                        let userId = currentIndexData.userId;
+
+                        let getFilteredNotifications = currentIndexData.notifications.filter(item => {
+
+                            let notificationCreatedDate = moment(item.created_at);
+                            let dateDifference = currentDate.diff(notificationCreatedDate, 'days');
+
+                            if (item.is_read === false ) { // jUst for testing purpose
+                                return item
+                            }
+                        })
+
+                        if (getFilteredNotifications.length > 0) {
+                            for (let pointerToNotifications = 0; pointerToNotifications < getFilteredNotifications.length; pointerToNotifications++) {
+                                await elasticSearchHelper.deleteNotificationData(userId, getFilteredNotifications[pointerToNotifications].id,appName)
+                            }
+                        }
+                    }
+                }
+
+                return resolve();
+            }
+            catch (error) {
+                return reject(error)
+            }
+        })
+    }
+    
+
 };

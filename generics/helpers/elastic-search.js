@@ -179,18 +179,25 @@ var getNotificationData = function (userId = "",appName = "") {
   });
 };
 
-var getAllIndexData = function () {
+var getAllIndexData = function (appName="") {
   return new Promise(async function (resolve, reject) {
     try {
 
       if (!elasticsearch.client) throw "Elastic search is down."
 
+
+      let indexName = samikshaIndexName;
+      if(appName && appName=="unnati"){
+        indexName = unnatiIndexName
+      }
+
+
       const checkIndexExistsOrNot = await elasticsearch.client.indices.exists({
-        index: samikshaIndexName
+        index: indexName
       })
 
       const checkTypeExistsOrNot = await elasticsearch.client.indices.existsType({
-        index: samikshaIndexName,
+        index: indexName,
         type: samikshaNotificationTypeName
       })
 
@@ -199,7 +206,7 @@ var getAllIndexData = function () {
       if (checkIndexExistsOrNot.statusCode !== 404 && checkTypeExistsOrNot.statusCode !== 404) {
 
         const userNotificationDocument = await elasticsearch.client.search({
-          index: samikshaIndexName,
+          index: indexName,
           type: samikshaNotificationTypeName
         })
 
@@ -230,14 +237,21 @@ var getAllIndexData = function () {
   })
 }
 
-var deleteNotificationData = function (userId = "", notificatonNumber = 0) {
+var deleteNotificationData = function (userId = "", notificatonNumber = 0,appName = "") {
 
   return new Promise(async function (resolve, reject) {
     try {
 
       if (userId == "") throw "Invalid user id."
 
-      let userNotificationDocument = await getNotificationData(userId)
+
+      let indexName = samikshaIndexName;
+      if(appName && appName=="unnati"){
+        indexName = unnatiIndexName
+      }
+
+
+      let userNotificationDocument = await getNotificationData(userId,appName)
 
       if (userNotificationDocument.statusCode == 404) {
 
@@ -260,7 +274,7 @@ var deleteNotificationData = function (userId = "", notificatonNumber = 0) {
 
           userNotificationDocDeletion = await elasticsearch.client.update({
             id: userId,
-            index: samikshaIndexName,
+            index: indexName,
             type: samikshaNotificationTypeName,
             body: {
               doc: {
@@ -274,7 +288,7 @@ var deleteNotificationData = function (userId = "", notificatonNumber = 0) {
 
           userNotificationDocDeletion = await elasticsearch.client.delete({
             id: userId,
-            index: samikshaIndexName,
+            index: indexName,
             type: samikshaNotificationTypeName
           })
 
