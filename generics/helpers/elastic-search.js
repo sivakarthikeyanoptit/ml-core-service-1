@@ -199,18 +199,19 @@ var getAllIndexData = function () {
       if (checkIndexExistsOrNot.statusCode !== 404 && checkTypeExistsOrNot.statusCode !== 404) {
 
         const userNotificationDocument = await elasticsearch.client.search({
-          index: samikshaIndexName,
-          type: samikshaNotificationTypeName
+            index: samikshaIndexName,
+            type: samikshaNotificationTypeName,
+            size:1000
         })
 
         let allIndexData = [];
-
 
         if (userNotificationDocument.statusCode === 200 && userNotificationDocument.body.hits.hits.length > 0) {
 
           userNotificationDocument.body.hits.hits.forEach(eachUserNotification => {
             let userNotification = _.merge({ userId: eachUserNotification._id }, eachUserNotification._source)
 
+            console.log(eachUserNotification._id)
             allIndexData.push(userNotification)
 
           })
