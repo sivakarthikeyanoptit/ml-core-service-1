@@ -6,6 +6,8 @@
  */
 
 const notificationsHelper = require(ROOT_PATH + "/module/notifications/helper");
+const samikshaIndexName = (process.env.ELASTICSEARCH_SAMIKSHA_INDEX && process.env.ELASTICSEARCH_SAMIKSHA_INDEX != "") ? process.env.ELASTICSEARCH_SAMIKSHA_INDEX : "samiksha"
+
 
 module.exports = class Notifications {
 
@@ -155,7 +157,7 @@ module.exports = class Notifications {
         return new Promise(async (resolve, reject) => {
             try {
                 const userNotificationDocCreation = await elasticsearch.client.indices.delete({
-                    index: '_all'
+                    index: samikshaIndexName
                 })
 
                 return resolve({

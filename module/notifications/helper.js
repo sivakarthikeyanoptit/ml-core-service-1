@@ -38,7 +38,7 @@ module.exports = class notificationsHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let updateNotificationDocument = await elasticSearchHelper.updateNotificationData(userDetails, notificatonNumber, { is_read: true },appName)
+                let updateNotificationDocument = await elasticSearchHelper.updateNotificationData(userDetails, Number(notificatonNumber), { is_read: true },appName)
 
                 return resolve(updateNotificationDocument)
             } catch (error) {
@@ -97,9 +97,11 @@ module.exports = class notificationsHelper {
                     let createdAtDate = moment(eachPendingData.createdAt)
                     let dateDifference = currentDate.diff(createdAtDate, 'days')
 
-                    if (dateDifference >= 14) {
-                        return eachPendingData;
-                    }
+                    // if (dateDifference >= 14) {
+                    //     return eachPendingData;
+                    // }
+
+                    return eachPendingData
 
                 })
 
@@ -126,6 +128,7 @@ module.exports = class notificationsHelper {
                         assessment.payload["submission_id"] = pendingData[pointerToPendingAssessments]._id;
                         assessment.payload["entity_id"] = pendingData[pointerToPendingAssessments].entityId;
                         assessment.payload["program_id"] = pendingData[pointerToPendingAssessments].programId;
+                        assessment.payload["entity_name"] = pendingData[pointerToPendingAssessments].entityName;
 
                         if (getNotificationDocument.statusCode !== 404) {
 
@@ -141,10 +144,11 @@ module.exports = class notificationsHelper {
                             if (existingNotification !== undefined) {
                                 let dateDifference = currentDate.diff(existingNotification.created_at, 'days')
 
-                                if (dateDifference >= 14) {
-                                    await elasticSearchHelper.deleteNotificationData(pendingData[pointerToPendingAssessments].userId, existingNotification.id)
-                                    await elasticSearchHelper.pushNotificationData(pendingData[pointerToPendingAssessments].userId, assessment)
-                                }
+                                // if (dateDifference >= 14) {
+                                    await elasticSearchHelper.updateNotificationData(pendingData[pointerToPendingAssessments].userId, Number(existingNotification.id), { created_at: new Date(),is_read:false })
+                                    // await elasticSearchHelper.deleteNotificationData(pendingData[pointerToPendingAssessments].userId, existingNotification.id)
+                                    // await elasticSearchHelper.pushNotificationData(pendingData[pointerToPendingAssessments].userId, assessment)
+                                // }
                             } else{
                                 await elasticSearchHelper.pushNotificationData(pendingData[pointerToPendingAssessments].userId, assessment)
                             }
@@ -175,9 +179,11 @@ module.exports = class notificationsHelper {
                     let createdAtDate = moment(eachPendingData.createdAt)
                     let dateDifference = currentDate.diff(createdAtDate, 'days')
 
-                    if (dateDifference >= 14) {
-                        return eachPendingData;
-                    }
+                    // if (dateDifference >= 14) {
+                    //     return eachPendingData;
+                    // }
+
+                    return eachPendingData;
 
                 })
 
@@ -204,6 +210,7 @@ module.exports = class notificationsHelper {
                         observation.payload["submission_id"] = pendingObservationData[pointerToPendingAssessments]._id;
                         observation.payload["entity_id"] = pendingObservationData[pointerToPendingAssessments].entityId;
                         observation.payload["observation_id"] = pendingObservationData[pointerToPendingAssessments].observationId;
+                        observation.payload["entity_name"] = pendingObservationData[pointerToPendingAssessments].entityName;
 
                         if (getNotificationDocument.statusCode !== 404) {
 
@@ -219,8 +226,7 @@ module.exports = class notificationsHelper {
                             if (existingNotification !== undefined) {
                                 let dateDifference = currentDate.diff(existingNotification.created_at, 'days')
                                 if (dateDifference >= 14) { // dateDifference>=14 
-                                    await elasticSearchHelper.deleteNotificationData(pendingObservationData[pointerToPendingAssessments].userId, existingNotification.id)
-                                    await elasticSearchHelper.pushNotificationData(pendingObservationData[pointerToPendingAssessments].userId, observation)
+                                    await elasticSearchHelper.updateNotificationData(pendingObservationData[pointerToPendingAssessments].userId, Number(existingNotification.id), { created_at: new Date(),is_read:false })
                                 }
                             } else{
                                 await elasticSearchHelper.pushNotificationData(pendingObservationData[pointerToPendingAssessments].userId, observation)
@@ -246,7 +252,7 @@ module.exports = class notificationsHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let currentDate = moment("2019-01-02").format("YYYY-MM-DD");
+                let currentDate = moment(new Date())
 
                 let completedAssessments = {
                     is_read: false,
@@ -298,7 +304,7 @@ module.exports = class notificationsHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let currentDate = moment(new Date()).format("YYYY-MM-DD");
+                let currentDate = moment(new Date())
 
                 let completedObservations = {
                     is_read: false,
@@ -372,6 +378,7 @@ module.exports = class notificationsHelper {
                         })
 
                         if (getFilteredNotifications.length > 0) {
+                            console.log("here")
                             for (let pointerToNotifications = 0; pointerToNotifications < getFilteredNotifications.length; pointerToNotifications++) {
                                 await elasticSearchHelper.deleteNotificationData(userId, getFilteredNotifications[pointerToNotifications].id)
                             }

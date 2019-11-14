@@ -97,6 +97,7 @@ var updateNotificationData = function (userId = "", notificatonNumber = 0, notif
       if(appName && appName=="unnati"){
         indexName = unnatiIndexName
       }
+      
       let userNotificationDocument = await getNotificationData(userId,appName)
      
 
@@ -207,17 +208,18 @@ var getAllIndexData = function (appName="") {
 
         const userNotificationDocument = await elasticsearch.client.search({
           index: indexName,
-          type: samikshaNotificationTypeName
+          type: samikshaNotificationTypeName,
+          size:1000
         })
 
         let allIndexData = [];
-
 
         if (userNotificationDocument.statusCode === 200 && userNotificationDocument.body.hits.hits.length > 0) {
 
           userNotificationDocument.body.hits.hits.forEach(eachUserNotification => {
             let userNotification = _.merge({ userId: eachUserNotification._id }, eachUserNotification._source)
 
+            console.log(eachUserNotification._id)
             allIndexData.push(userNotification)
 
           })
