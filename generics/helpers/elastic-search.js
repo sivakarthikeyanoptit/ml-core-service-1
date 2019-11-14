@@ -1,5 +1,7 @@
 const samikshaIndexName = (process.env.ELASTICSEARCH_SAMIKSHA_INDEX && process.env.ELASTICSEARCH_SAMIKSHA_INDEX != "") ? process.env.ELASTICSEARCH_SAMIKSHA_INDEX : "samiksha"
 const samikshaNotificationTypeName = (process.env.ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE && process.env.ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE != "") ? process.env.ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE : "user-notification"
+const unnatiIndexName = (process.env.ELASTICSEARCH_UNNATI_INDEX && process.env.ELASTICSEARCH_UNNATI_INDEX != "") ? process.env.ELASTICSEARCH_UNNATI_INDEX : "unnati"
+
 
 var pushNotificationData = function (userId = "", notificatonData = {}) {
 
@@ -7,8 +9,13 @@ var pushNotificationData = function (userId = "", notificatonData = {}) {
     try {
 
       if (userId == "") throw "Invalid user id."
+      
+      let indexName = samikshaIndexName;
+      if(notificatonData.appName && notificatonData.appName=="unnati"){
+        indexName = unnatiIndexName
+      }
+      let userNotificationDocument = await getNotificationData(userId,notificatonData.appName);
 
-      let userNotificationDocument = await getNotificationData(userId)
 
       if (userNotificationDocument.statusCode == 404) {
 
@@ -16,7 +23,7 @@ var pushNotificationData = function (userId = "", notificatonData = {}) {
 
         const userNotificationDocCreation = await elasticsearch.client.create({
           id: userId,
-          index: samikshaIndexName,
+          index: indexName,
           type: samikshaNotificationTypeName,
           body: {
             notificationCount: 1,
@@ -48,7 +55,7 @@ var pushNotificationData = function (userId = "", notificatonData = {}) {
 
         const userNotificationDocUpdation = await elasticsearch.client.update({
           id: userId,
-          index: samikshaIndexName,
+          index: indexName,
           type: samikshaNotificationTypeName,
           body: {
             doc: {
@@ -78,14 +85,21 @@ var pushNotificationData = function (userId = "", notificatonData = {}) {
   });
 };
 
-var updateNotificationData = function (userId = "", notificatonNumber = 0, notificationData = {}) {
+var updateNotificationData = function (userId = "", notificatonNumber = 0, notificationData = {},appName="") {
 
   return new Promise(async function (resolve, reject) {
     try {
 
       if (userId == "") throw "Invalid user id."
 
-      let userNotificationDocument = await getNotificationData(userId)
+      console.log("notificationData",notificationData);
+      let indexName = samikshaIndexName;
+      if(appName && appName=="unnati"){
+        indexName = unnatiIndexName
+      }
+      
+      let userNotificationDocument = await getNotificationData(userId,appName)
+     
 
       if (userNotificationDocument.body.error && userNotificationDocument.statusCode == 404) {
 
@@ -104,7 +118,7 @@ var updateNotificationData = function (userId = "", notificatonNumber = 0, notif
 
         const userNotificationDocUpdation = await elasticsearch.client.update({
           id: userId,
-          index: samikshaIndexName,
+          index: indexName,
           type: samikshaNotificationTypeName,
           body: {
             doc: {
@@ -134,7 +148,7 @@ var updateNotificationData = function (userId = "", notificatonNumber = 0, notif
   });
 };
 
-var getNotificationData = function (userId = "") {
+var getNotificationData = function (userId = "",appName = "") {
 
   return new Promise(async function (resolve, reject) {
     try {
@@ -143,9 +157,15 @@ var getNotificationData = function (userId = "") {
 
       if (userId == "") throw "Invalid user id."
 
+
+      let indexName= samikshaIndexName;
+      if(appName && appName == "unnati"){
+        indexName = unnatiIndexName;
+      }
+
       const userNotificationDocument = await elasticsearch.client.get({
         id: userId,
-        index: samikshaIndexName,
+        index: indexName,
         type: samikshaNotificationTypeName
       }, {
           ignore: [404],
@@ -160,18 +180,25 @@ var getNotificationData = function (userId = "") {
   });
 };
 
-var getAllIndexData = function () {
+var getAllIndexData = function (appName="") {
   return new Promise(async function (resolve, reject) {
     try {
 
       if (!elasticsearch.client) throw "Elastic search is down."
 
+
+      let indexName = samikshaIndexName;
+      if(appName && appName=="unnati"){
+        indexName = unnatiIndexName
+      }
+
+
       const checkIndexExistsOrNot = await elasticsearch.client.indices.exists({
-        index: samikshaIndexName
+        index: indexName
       })
 
       const checkTypeExistsOrNot = await elasticsearch.client.indices.existsType({
-        index: samikshaIndexName,
+        index: indexName,
         type: samikshaNotificationTypeName
       })
 
@@ -180,18 +207,19 @@ var getAllIndexData = function () {
       if (checkIndexExistsOrNot.statusCode !== 404 && checkTypeExistsOrNot.statusCode !== 404) {
 
         const userNotificationDocument = await elasticsearch.client.search({
-          index: samikshaIndexName,
-          type: samikshaNotificationTypeName
+          index: indexName,
+          type: samikshaNotificationTypeName,
+          size:1000
         })
 
         let allIndexData = [];
-
 
         if (userNotificationDocument.statusCode === 200 && userNotificationDocument.body.hits.hits.length > 0) {
 
           userNotificationDocument.body.hits.hits.forEach(eachUserNotification => {
             let userNotification = _.merge({ userId: eachUserNotification._id }, eachUserNotification._source)
 
+            console.log(eachUserNotification._id)
             allIndexData.push(userNotification)
 
           })
@@ -211,14 +239,21 @@ var getAllIndexData = function () {
   })
 }
 
-var deleteNotificationData = function (userId = "", notificatonNumber = 0) {
+var deleteNotificationData = function (userId = "", notificatonNumber = 0,appName = "") {
 
   return new Promise(async function (resolve, reject) {
     try {
 
       if (userId == "") throw "Invalid user id."
 
-      let userNotificationDocument = await getNotificationData(userId)
+
+      let indexName = samikshaIndexName;
+      if(appName && appName=="unnati"){
+        indexName = unnatiIndexName
+      }
+
+
+      let userNotificationDocument = await getNotificationData(userId,appName)
 
       if (userNotificationDocument.statusCode == 404) {
 
@@ -241,7 +276,7 @@ var deleteNotificationData = function (userId = "", notificatonNumber = 0) {
 
           userNotificationDocDeletion = await elasticsearch.client.update({
             id: userId,
-            index: samikshaIndexName,
+            index: indexName,
             type: samikshaNotificationTypeName,
             body: {
               doc: {
@@ -255,7 +290,7 @@ var deleteNotificationData = function (userId = "", notificatonNumber = 0) {
 
           userNotificationDocDeletion = await elasticsearch.client.delete({
             id: userId,
-            index: samikshaIndexName,
+            index: indexName,
             type: samikshaNotificationTypeName
           })
 
