@@ -97,9 +97,11 @@ module.exports = class notificationsHelper {
                     let createdAtDate = moment(eachPendingData.createdAt)
                     let dateDifference = currentDate.diff(createdAtDate, 'days')
 
-                    if (dateDifference >= 14) {
-                        return eachPendingData;
-                    }
+                    // if (dateDifference >= 14) {
+                    //     return eachPendingData;
+                    // }
+
+                    return eachPendingData;
 
                 })
 
@@ -175,9 +177,11 @@ module.exports = class notificationsHelper {
                     let createdAtDate = moment(eachPendingData.createdAt)
                     let dateDifference = currentDate.diff(createdAtDate, 'days')
 
-                    if (dateDifference >= 14) {
-                        return eachPendingData;
-                    }
+                    // if (dateDifference >= 14) {
+                    //     return eachPendingData;
+                    // }
+
+                    return eachPendingData;
 
                 })
 
@@ -366,7 +370,7 @@ module.exports = class notificationsHelper {
                             let notificationCreatedDate = moment(item.created_at);
                             let dateDifference = currentDate.diff(notificationCreatedDate, 'days');
 
-                            if (item.is_read === true && dateDifference >= 30) {
+                            if (item.is_read === true) {
                                 return item
                             }
                         })
