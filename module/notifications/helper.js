@@ -38,7 +38,7 @@ module.exports = class notificationsHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let updateNotificationDocument = await elasticSearchHelper.updateNotificationData(userDetails, notificatonNumber, { is_read: true },appName)
+                let updateNotificationDocument = await elasticSearchHelper.updateNotificationData(userDetails, Number(notificatonNumber), { is_read: true },appName)
 
                 return resolve(updateNotificationDocument)
             } catch (error) {
