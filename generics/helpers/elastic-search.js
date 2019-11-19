@@ -281,7 +281,7 @@ var deleteReadOrUnReadNotificationData = function (users = "all", notificationDa
 
           // && dateDifferenceFromTheCreatedDate >= notificationData.condition.dateDifference
           if (currentNotificationData.is_read === notificationData.condition.is_read) {
-            await deleteNotificationData(userId, currentNotificationData.id)
+            await deleteNotificationData(userId, currentNotificationData.id, appIndex)
           }
         }
       }
@@ -293,10 +293,10 @@ var deleteReadOrUnReadNotificationData = function (users = "all", notificationDa
   });
 };
 
-var deleteNotificationData = function (userId, notificationId) {
+var deleteNotificationData = function (userId, notificationId, appIndex) {
   return new Promise(async function (resolve, reject) {
     try {
-      let userNotificationDocument = await getNotificationData(userId)
+      let userNotificationDocument = await getNotificationData(userId, appIndex)
 
       if (userNotificationDocument.statusCode == 404) {
 
@@ -306,6 +306,8 @@ var deleteNotificationData = function (userId, notificationId) {
         })
 
       } else if (userNotificationDocument.statusCode == 200) {
+
+        let indexName = appIndex !== "" ? appIndex : samikshaIndexName;
 
         let notificationObject = userNotificationDocument.body._source
 
