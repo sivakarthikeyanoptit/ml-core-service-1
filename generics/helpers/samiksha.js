@@ -6,6 +6,7 @@
  */
 
 var request = require('request');
+let slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
 
 var pendingAssessments = function () {
 
@@ -17,12 +18,16 @@ var pendingAssessments = function () {
 
             const samikshaCallBack = function (err, response) {
                 if (err) {
-                    throw "Failed to connect to samiksha service."
-                    // Throw error to Slack. -> Dirty FIx 
+
+                    let errorObject = {
+                        message: `Samiksha service is down for address ${err.address}`
+                    }
+
+                    slackClient.samikshaErrorAlert(errorObject)
+                    console.log("Failed to connect to samiksha service.")
                 } else {
                     let pendingAssessments = JSON.parse(response.body);
                     return resolve(pendingAssessments)
-
                 }
             }
 
@@ -46,8 +51,12 @@ var pendingObservations = function () {
         try {
             const samikshaCallBack = function (err, response) {
                 if (err) {
-                    throw "Failed to connect to samiksha service."
-                    // Throw error to Slack. -> Dirty FIx 
+                    let errorObject = {
+                        message: `Samiksha service is down for address ${err.address}`
+                    }
+
+                    slackClient.samikshaErrorAlert(errorObject)
+                    console.log("Failed to connect to samiksha service.")
                 } else {
                     let pendingObservations = JSON.parse(response.body);
                     return resolve(pendingObservations)
@@ -75,8 +84,13 @@ var completedAssessments = function () {
         try {
             const samikshaCallBack = function (err, response) {
                 if (err) {
-                    throw "Failed to connect to samiksha service."
-                    // Throw error to Slack. -> Dirty FIx 
+                    let errorObject = {
+                        message: `Samiksha service is down for address ${err.address}`
+                    }
+
+                    slackClient.samikshaErrorAlert(errorObject)
+                    console.log("Failed to connect to samiksha service.")
+
                 } else {
                     let completedAssessments = JSON.parse(response.body);
                     return resolve(completedAssessments)
@@ -104,8 +118,14 @@ var completedObservations = function () {
         try {
             const samikshaCallBack = function (err, response) {
                 if (err) {
-                    throw "Failed to connect to samiksha service."
-                    // Throw error to Slack. -> Dirty FIx 
+
+                    let errorObject = {
+                        message: `Samiksha service is down for address ${err.address}`
+                    }
+
+                    slackClient.samikshaErrorAlert(errorObject)
+                    console.log("Failed to connect to samiksha service.")
+
                 } else {
                     let completedObservations = JSON.parse(response.body);
                     return resolve(completedObservations)

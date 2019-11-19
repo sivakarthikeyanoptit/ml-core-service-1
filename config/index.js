@@ -58,7 +58,7 @@ const configuration = {
     }
   },
   Kafka_Config: {
-    host: process.env.KAFKA_URL || "10.160.0.8:9092",
+    host: process.env.KAFKA_URL,
     topics: {
       notificationsTopic: process.env.NOTIFICATIONS_TOPIC || "sl-notifications-dev"
     }
