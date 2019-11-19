@@ -19,7 +19,6 @@ let completedObservation = function () {
       if (completedObservations.result.length > 0) {
 
         await notificationHelpers.completedAssessmentsOrObservations(completedObservations.result, true)
-
       }
 
       console.log("<---- Completed Observations cron stopped --->", new Date());

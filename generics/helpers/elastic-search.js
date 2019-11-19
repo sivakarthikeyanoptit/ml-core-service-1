@@ -279,8 +279,7 @@ var deleteReadOrUnReadNotificationData = function (users = "all", notificationDa
           let notificationCreatedDate = moment(currentNotificationData.created_at);
           let dateDifferenceFromTheCreatedDate = currentDate.diff(notificationCreatedDate, 'days');
 
-          // && dateDifferenceFromTheCreatedDate >= notificationData.condition.dateDifference
-          if (currentNotificationData.is_read === notificationData.condition.is_read) {
+          if (currentNotificationData.is_read === notificationData.condition.is_read && dateDifferenceFromTheCreatedDate >= notificationData.condition.dateDifference) {
             await deleteNotificationData(userId, currentNotificationData.id, appIndex)
           }
         }
