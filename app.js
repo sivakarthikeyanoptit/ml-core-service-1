@@ -141,7 +141,6 @@ app.all("*", (req, res, next) => {
   next();
 });
 
-
 //add routing
 router(app);
 

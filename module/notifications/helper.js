@@ -242,4 +242,5 @@ module.exports = class notificationsHelper {
             }
         })
     }
+
 };

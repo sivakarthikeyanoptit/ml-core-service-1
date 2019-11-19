@@ -18,7 +18,7 @@ let deleteReadNotification = function () {
       try {
 
         let sendReadNotificationToBeDeletedToKafka = {
-          "users": ["e97b5582-471c-4649-8401-3cc4249359bb"],
+          "users": "all",
           "internal": true,
           "action": "deletion",
           "condition": {

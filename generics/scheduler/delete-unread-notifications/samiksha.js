@@ -17,25 +17,27 @@ let deleteUnReadNotifications = function () {
 
       try {
 
-        let deletionOfUnReadNotificationToKafka = {
-          "users": "all",
-          "internal": true,
-          "action": "deletion",
-          "condition": {
-            is_read: false,
-            dateDifference: 90
-          }
-        }
+        console.log("Delete unread notifications for samiksha is closed")
 
-        let pushDeleteUnReadNotificationsToKafka = await kafkaCommunication.pushDeletionNotificationsToKafka(deletionOfUnReadNotificationToKafka);
+        // let deletionOfUnReadNotificationToKafka = {
+        //   "users": "all",
+        //   "internal": true,
+        //   "action": "deletion",
+        //   "condition": {
+        //     is_read: false,
+        //     dateDifference: 90
+        //   }
+        // }
 
-        if (pushDeleteUnReadNotificationsToKafka.status != "success") {
-          let errorObject = {
-            message: `Failed to push unRead notifications to kafka`,
-          }
-          slackClient.kafkaErrorAlert(errorObject)
-          return;
-        }
+        // let pushDeleteUnReadNotificationsToKafka = await kafkaCommunication.pushDeletionNotificationsToKafka(deletionOfUnReadNotificationToKafka);
+
+        // if (pushDeleteUnReadNotificationsToKafka.status != "success") {
+        //   let errorObject = {
+        //     message: `Failed to push unRead notifications to kafka`,
+        //   }
+        //   slackClient.kafkaErrorAlert(errorObject)
+        //   return;
+        // }
 
         console.log("<-----  Delete UnRead Notification cron stopped ---- >", new Date());
         return resolve()
