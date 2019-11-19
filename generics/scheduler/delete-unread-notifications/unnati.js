@@ -4,7 +4,7 @@ let slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
 
 
 let deleteUnReadNotificationsForUnnati = function () {
-    schedule.scheduleJob(process.env.SCHEDULE_FOR_UNREAD_NOTIFICATION_UNNATI, () => {
+    nodeScheduler.scheduleJob(process.env.SCHEDULE_FOR_UNREAD_NOTIFICATION_UNNATI, () => {
 
         console.log("<-----  Delete UnRead Notification for Unnati cron started ---- >", new Date());
 
