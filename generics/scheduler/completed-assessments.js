@@ -1,5 +1,5 @@
 /**
- * name : pending-observations.js
+ * name : completed-assessments.js
  * author : Aman Jung Karki
  * Date : 15-Nov-2019
  * Description : All Completed Assessments notifications of samiksha should be showned once in a month.

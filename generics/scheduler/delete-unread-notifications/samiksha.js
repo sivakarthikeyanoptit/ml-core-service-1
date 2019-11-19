@@ -1,8 +1,8 @@
 /**
- * name : delete-unread-notifications.js
+ * name : delete-unread-notifications/samiksha.js
  * author : Aman Jung Karki
  * Date : 15-Nov-2019
- * Description : Delete all unread notifications in every 3 month.
+ * Description : Delete all unread notifications every 3 month in samiksha.
  */
 
 const kafkaCommunication = require(ROOT_PATH + "/generics/helpers/kafka-communications")

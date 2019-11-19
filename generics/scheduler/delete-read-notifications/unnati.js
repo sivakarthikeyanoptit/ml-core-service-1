@@ -1,3 +1,11 @@
+/**
+ * name : delete-read-notifications in unnati.js
+ * author : Rakesh
+ * Date : 
+ * Description : Delete all read notifications every month for unnati app.
+ */
+
+
 const kafkaCommunication = require(ROOT_PATH + "/generics/helpers/kafka-communications");
 let slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
 

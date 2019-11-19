@@ -1,8 +1,8 @@
 /**
- * name : delete-read-notifications.js
+ * name : delete-read-notifications/samiksha.js
  * author : Aman Jung Karki
  * Date : 15-Nov-2019
- * Description : Delete all read notifications in every month.
+ * Description : Delete all read notifications every month for samiksha.
  */
 
 const kafkaCommunication = require(ROOT_PATH + "/generics/helpers/kafka-communications");
@@ -11,7 +11,7 @@ let slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
 let deleteReadNotification = function () {
   nodeScheduler.scheduleJob(process.env.SCHEDULE_FOR_READ_NOTIFICATION, () => {
 
-    console.log("<-----  Delete Read Notification cron started ---- >", new Date());
+    console.log("<-----  Delete Read Notification For Samiksha cron started ---- >", new Date());
 
     return new Promise(async (resolve, reject) => {
 
@@ -37,7 +37,7 @@ let deleteReadNotification = function () {
           return;
         }
 
-        console.log("<-----  Delete Read Notification cron stopped ---- >", new Date());
+        console.log("<-----  Delete Read Notification For Samiksha cron stopped ---- >", new Date());
         return resolve()
 
       } catch (error) {

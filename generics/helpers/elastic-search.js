@@ -191,7 +191,7 @@ var getAllIndexData = function (appName = "") {
 
 
       let indexName = samikshaIndexName;
-      if (appName && appName == "unnati") {
+      if (appName && appName === "unnati") {
         indexName = unnatiIndexName
       }
 
@@ -244,7 +244,14 @@ var deleteReadOrUnReadNotificationData = function (users = "all", notificationDa
   return new Promise(async function (resolve, reject) {
     try {
 
-      let allIndexedData = await getAllIndexData();
+      let appIndex = "";
+
+      if (notificationData.condition.index && notificationData.condition.index !== "") {
+        appIndex = notificationData.condition.index
+      }
+
+      let allIndexedData = await getAllIndexData(appIndex);
+
       let currentDate = moment(new Date());
       let allUserData;
 

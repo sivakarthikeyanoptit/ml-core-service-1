@@ -1,5 +1,5 @@
 /**
- * name : pending-observations.js
+ * name : completed-observations.js
  * author : Aman Jung Karki
  * Date : 15-Nov-2019
  * Description : All Completed Observations notifications of samiksha should be showned once in a month.
@@ -18,7 +18,7 @@ let completedObservation = function () {
 
       if (completedObservations.result.length > 0) {
 
-        await notificationHelpers.completedAssessmentsOrObservations(completedObservations.result)
+        await notificationHelpers.completedAssessmentsOrObservations(completedObservations.result, true)
 
       }
 

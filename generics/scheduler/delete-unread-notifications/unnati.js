@@ -1,4 +1,11 @@
 
+/**
+ * name : delete-unread-notifications/unnati.js
+ * author : Rakesh
+ * Date :
+ * Description : Delete all unread notifications every 3 month in unnati.
+ */
+
 const kafkaCommunication = require(ROOT_PATH + "/generics/helpers/kafka-communications")
 let slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
 
