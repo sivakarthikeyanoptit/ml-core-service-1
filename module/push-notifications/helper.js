@@ -149,18 +149,6 @@ module.exports = class notificationsHelper {
             }
         })
 
-
-        // Send a message to devices subscribed to the provided topic.
-
-        // fcm.send(message, function (err, response) {
-        //     if (err) {
-        //         console.log('error::: ', err);
-        //         return "ERROR";
-        //     } else {
-        //         console.log('response::: ', response);
-        //         return response;
-        //     }
-        // });
     }
 
 };

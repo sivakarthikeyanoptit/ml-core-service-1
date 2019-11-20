@@ -46,7 +46,7 @@ module.exports = class Notifications {
 
             try {
 
-                let notificationDocument = await notificationsHelper.list((req.params._id && req.params._id != "") ? req.params._id : req.userDetails.id, req.pageSize, req.pageNo,(req.query.appName && req.query.appName !="")?req.query.appName:"")
+                let notificationDocument = await notificationsHelper.list((req.params._id && req.params._id != "") ? req.params._id : req.userDetails.id, req.pageSize, req.pageNo, (req.query.appName && req.query.appName != "") ? req.query.appName : "")
 
                 return resolve({
                     result: notificationDocument,
@@ -77,7 +77,7 @@ module.exports = class Notifications {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let unReadCountDocument = await notificationsHelper.unReadCount(req.userDetails.id,(req.query.appName && req.query.appName !="")?req.query.appName:"")
+                let unReadCountDocument = await notificationsHelper.unReadCount(req.userDetails.id, (req.query.appName && req.query.appName != "") ? req.query.appName : "")
 
                 return resolve({
                     message: req.t('unreadNotifocation'),
@@ -112,7 +112,7 @@ module.exports = class Notifications {
             try {
 
 
-                await notificationsHelper.markItRead(req.userDetails.id, req.params._id,(req.query.appName && req.query.appName !="")?req.query.appName:"")
+                await notificationsHelper.markItRead(req.userDetails.id, req.params._id, (req.query.appName && req.query.appName != "") ? req.query.appName : "")
 
                 return resolve({
                     message: req.t('markItReadNotification'),
@@ -203,35 +203,11 @@ module.exports = class Notifications {
 
             try {
 
-                let userData = await csv().fromString(req.files.userData.data.toString());
-                
-                await Promise.all(userData.map(async element => {
-
-                      let userProfile = await userExtensionHelper.profileWithEntityDetails({
-                        userId: userData.userId,
-                        status: "active",
-                        isDeleted: false
-                      })
-                      
-                      let devices = userProfile.devices;
-                      
-                      let notificationResult = await pushNotificationsHelper.pushToDeviceId(element);
-
-                }))
-
-                return resolve({
-                    message: "successfully sent notifications to users",
-                  });
-        
-              } catch (error) {
-        
-                return reject({
-                  status: error.status || 500,
-                  message: error.message || "Oops! something went wrong.",
-                  errorObject: error
-                })
-        
-              }
+                return resolve({ result: searchData })
+            }
+            catch (error) {
+                reject(error)
+            }
         })
 
     }
