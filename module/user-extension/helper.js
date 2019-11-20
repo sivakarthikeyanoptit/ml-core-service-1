@@ -87,11 +87,10 @@ module.exports = class userExtensionHelper {
 
     }
 
-    static updateNotificationStatus(deviceData) {
+
+    static updateDeviceStatus(deviceData, deviceArray) {
 
         return new Promise(async (resolve, reject) => {
-
-            let deviceArray = userExtensionData.devices;
 
             deviceArray.forEach(async devices => {
 
@@ -104,6 +103,11 @@ module.exports = class userExtensionHelper {
                     { $set: { "devices": deviceArray } }
                 );
 
+                return resolve({
+                    success: true,
+                    message: "successfuly updated the status to inactive"
+                });
+
             });
 
         })
@@ -111,3 +115,7 @@ module.exports = class userExtensionHelper {
 
 
 };
+
+
+
+
