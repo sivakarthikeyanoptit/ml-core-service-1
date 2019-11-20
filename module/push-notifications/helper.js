@@ -134,21 +134,24 @@ module.exports = class notificationsHelper {
                 FCM.send(notificationInformation, (err, response) => {
 
                     let success;
+                    let message = "";
                     if (err) {
-                        //  console.log('error::: ', err)
+                        if (err.errorInfo && err.errorInfo.message) {
+                            if (err.errorInfo.message == "The registration token is not a valid FCM registration token") {
+                                message = err.errorInfo.message;
+                            }
+                        }
 
-                         success = false;
+                        success = false;
                         // throw "Failed to push the notification"
                     } else {
-                        console.log('In push notification')
-                        console.log('response::: ', response)
-
+                      
                         success = true
-                       
                     }
 
                     return resolve({
-                        success: success
+                        success: success,
+                        message: message
                     })
                 });
 

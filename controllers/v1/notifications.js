@@ -233,7 +233,11 @@ module.exports = class Notifications {
                             }
 
 
-                            if (notificationResult !== undefined && notificationResult.success === false) {
+                            if (notificationResult !== undefined && notificationResult.message != "") {
+
+                                device.userId = element.userId;
+                                let updateStatus = await userExtensionHelper.updateDeviceStatus(device,deviceArray)
+
                                 message= "Failed to send the notification";
                             } else {
                                 message= "successfully sent notifications to users";
