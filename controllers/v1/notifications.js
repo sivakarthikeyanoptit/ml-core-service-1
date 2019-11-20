@@ -157,7 +157,7 @@ module.exports = class Notifications {
         return new Promise(async (resolve, reject) => {
             try {
                 const userNotificationDocCreation = await elasticsearch.client.indices.delete({
-                    index: samikshaIndexName
+                    index: "sl-languages-dev"
                 })
 
                 return resolve({

@@ -1,6 +1,8 @@
 const samikshaIndexName = (process.env.ELASTICSEARCH_SAMIKSHA_INDEX && process.env.ELASTICSEARCH_SAMIKSHA_INDEX != "") ? process.env.ELASTICSEARCH_SAMIKSHA_INDEX : "samiksha"
 const samikshaNotificationTypeName = (process.env.ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE && process.env.ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE != "") ? process.env.ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE : "user-notification"
 const unnatiIndexName = (process.env.ELASTICSEARCH_UNNATI_INDEX && process.env.ELASTICSEARCH_UNNATI_INDEX != "") ? process.env.ELASTICSEARCH_UNNATI_INDEX : "unnati";
+const languageIndex = (process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX && process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX != "") ? process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX : "shikshalokam";
+const languageTypeName = (process.env.ELASTICSEARCH_SHIKSHALOKAM_TYPE && process.env.ELASTICSEARCH_SHIKSHALOKAM_TYPE != "") ? process.env.ELASTICSEARCH_SHIKSHALOKAM_TYPE : "i18next";
 let moment = require("moment-timezone")
 
 
@@ -164,6 +166,8 @@ var getNotificationData = function (userId = "", appName = "") {
       let indexName = samikshaIndexName;
       if (appName && appName == "unnati") {
         indexName = unnatiIndexName;
+      } else if (appName && appName == "language") {
+        indexName = languageIndex
       }
 
       const userNotificationDocument = await elasticsearch.client.get({
@@ -351,11 +355,146 @@ var deleteNotificationData = function (userId, notificationId, appIndex) {
   })
 }
 
+var pushLanguageData = function (languageId = "", languageData = {}) {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (languageId == "") throw "Invalid user id."
+
+      let languageDocument = await getNotificationData(languageId, "language");
+
+      if (languageDocument.statusCode == 404) {
+
+        const languageDocCreation = await elasticsearch.client.create({
+          id: languageId,
+          index: languageIndex,
+          type: languageTypeName,
+          body: {
+            // label: "",
+            translate: languageData
+          }
+        })
+
+        if (!(languageDocCreation.statusCode == 200 || languageDocCreation.statusCode == 201)) {
+          throw new Error("Failed to create push notification for user in elastic search.")
+        }
+
+      } else if (languageDocument.statusCode == 200) {
+
+        const languageDocUpdation = await elasticsearch.client.update({
+          id: languageId,
+          index: languageIndex,
+          type: languageTypeName,
+          body: {
+            doc: {
+              translate: languageData
+            }
+          }
+        })
+
+        if (languageDocUpdation.statusCode !== 200 || languageDocUpdation.body.result !== "updated") {
+          throw new Error("Failed to push notification to elastic search.")
+        }
+
+      } else {
+        throw "Something went wrong!"
+      }
+
+      return resolve({
+        success: true,
+        message: "Notification successfully pushed to elastic search."
+      })
+
+    } catch (error) {
+      return reject(error);
+    }
+  });
+};
+
+var getLanguageData = function (languageId = "") {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (!elasticsearch.client) throw "Elastic search is down."
+
+      if (languageId == "") throw "Invalid language id."
+
+      const languageDocument = await elasticsearch.client.get({
+        id: languageId,
+        index: languageIndex,
+        type: languageTypeName
+      }, {
+          ignore: [404],
+          maxRetries: 3
+        })
+
+      return resolve(languageDocument)
+
+    } catch (error) {
+      return reject(error);
+    }
+  });
+};
+
+var getAllLanguagesData = function () {
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (!elasticsearch.client) throw "Elastic search is down."
+
+      const checkIndexExistsOrNot = await elasticsearch.client.indices.exists({
+        index: languageIndex
+      })
+
+      const checkTypeExistsOrNot = await elasticsearch.client.indices.existsType({
+        index: languageIndex,
+        type: languageTypeName
+      })
+
+      let response = [];
+
+      if (checkIndexExistsOrNot.statusCode !== 404 && checkTypeExistsOrNot.statusCode !== 404) {
+
+        const userNotificationDocument = await elasticsearch.client.search({
+          index: languageIndex,
+          type: languageTypeName,
+          size: 1000
+        })
+
+        let allIndexData = [];
+
+        if (userNotificationDocument.statusCode === 200 && userNotificationDocument.body.hits.hits.length > 0) {
+
+          userNotificationDocument.body.hits.hits.forEach(eachUserNotification => {
+            let userNotification = _.merge({ id: eachUserNotification._id }, eachUserNotification._source)
+
+            allIndexData.push(userNotification)
+
+          })
+
+          response = allIndexData
+
+        }
+      }
+
+      return resolve(response)
+
+    } catch (error) {
+      return reject(error);
+    }
+  })
+}
+
 module.exports = {
   pushNotificationData: pushNotificationData,
   getNotificationData: getNotificationData,
   updateNotificationData: updateNotificationData,
   getAllIndexData: getAllIndexData,
   deleteReadOrUnReadNotificationData: deleteReadOrUnReadNotificationData,
-  deleteNotificationData: deleteNotificationData
+  deleteNotificationData: deleteNotificationData,
+  pushLanguageData: pushLanguageData,
+  getLanguageData: getLanguageData,
+  getAllLanguagesData: getAllLanguagesData
 };

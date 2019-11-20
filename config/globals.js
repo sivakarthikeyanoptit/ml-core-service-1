@@ -35,7 +35,7 @@ module.exports = function () {
   //load base v1 controllers
   fs.readdirSync(ROOT_PATH + '/controllers/v1/').forEach(function (file) {
     if (file.match(/\.js$/) !== null) {
-      var name = file.replace('Controller.js', '');
+      var name = file.replace('.js', '');
       global[name + 'BaseController'] = require(ROOT_PATH + '/controllers/v1/' + file);
     }
   });
