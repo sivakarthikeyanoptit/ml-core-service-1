@@ -130,9 +130,9 @@ module.exports = class Notifications {
 
 
     /**
-     * @api {post} /kendra/api/v1/notifications/registerDevice
+     * @api {post} /kendra/api/v1/notifications/registerDevice Register a Device Id
      * @apiVersion 1.0.0
-     * @apiName Register a device id
+     * @apiName Register a Device Id
      * @apiGroup Notifications
      * @apiParamExample {json} Request-Body:
      * 
