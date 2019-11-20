@@ -186,27 +186,78 @@ module.exports = class Notifications {
 
 
     /**
-     * @api {post} /kendra/api/v1/notifications/pushToUsers
+     * @api {post} /kendra/api/v1/notifications/pushToUsers  Push Notifications To Users
      * @apiVersion 1.0.0
-     * @apiName push notification to users
+     * @apiName Push Notifications To Users
      * @apiGroup Notifications
      * @apiHeader {String} X-authenticated-user-token Authenticity token
-     * @apiHeader {String} app
-     * @apiHeader {String} os
      * @apiSampleRequest /kendra/api/v1/notifications/pushToUsers
      * @apiUse successBody
      * @apiUse errorBody
      */
 
     async pushToUsers(req) {
+
         return new Promise(async (resolve, reject) => {
 
             try {
 
-                return resolve({ result: searchData })
-            }
-            catch (error) {
-                reject(error)
+                let userData = await csv().fromString(req.files.userData.data.toString());
+
+                await Promise.all(userData.map(async element => {
+
+                    let userProfile = await userExtensionHelper.profileWithEntityDetails({
+                        userId: element.userId,
+                        status: "active",
+                        isDeleted: false
+                    })
+                   
+                    let deviceArray = userProfile.devices;
+
+                    await Promise.all(deviceArray.map(async device => {
+
+                        if (device.app == element.appName && device.status != "inactive") {
+
+                            let message;
+                            let notificationResult;
+
+                            if (device.os == "android") {
+
+                                device.message = element.message;
+                                notificationResult = await pushNotificationsHelper.createNotificationInAndroid(device);
+
+                            } else if (device.os == "ios") {
+
+                                device.message = element.message;
+                                notificationResult = await pushNotificationsHelper.createNotificationInIos(device);
+                            }
+
+
+                            if (notificationResult !== undefined && notificationResult.success === false) {
+                                message= "Failed to send the notification";
+                            } else {
+                                message= "successfully sent notifications to users";
+                            }
+
+                            return resolve({
+                                message :message
+                            })
+
+
+                        }
+
+                    }));
+                }))
+
+
+            } catch (error) {
+
+                return reject({
+                    status: error.status || 500,
+                    message: error.message || "Oops! something went wrong.",
+                    errorObject: error
+                })
+
             }
         })
 
