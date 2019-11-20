@@ -3,6 +3,7 @@ const kafkaCommunication = require(ROOT_PATH + "/generics/helpers/kafka-communic
 let moment = require("moment-timezone")
 let currentDate = moment(new Date());
 let slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
+const userExtensionHelper = require(ROOT_PATH + "/module/user-extension/helper");
 
 module.exports = class notificationsHelper {
 
@@ -238,6 +239,22 @@ module.exports = class notificationsHelper {
                 })
             }
             catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+    static pushNotificationMessageToDevice(userId, notificationMessage) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let getAllDevices = await userExtensionHelper.profileWithEntityDetails({
+                    userId: userId,
+                    status: "active",
+                    isDeleted: false
+                })
+
+            } catch (error) {
                 return reject(error);
             }
         })

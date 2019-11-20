@@ -37,19 +37,19 @@ module.exports = class notificationsHelper {
     static createNotificationInAndroid(notificationData) {
         return new Promise(async (resolve, reject) => {
             try {
-                
+
                 let pushNotificationRelatedInformation = {
-                    //  android: {
-                        // ttl: 3600 * 1000, // 1 hour in milliseconds
-                        // priority: 'high',
-                        data : {},
+                    android: {
+                        ttl: 3600 * 1000, // 1 hour in milliseconds
+                        priority: 'high',
+                        data: {},
                         notification: {
                             title: 'kendra service',
-                            body: notificationData.message
-                            // icon: 'stock_ticker_update',
-                            // olor: '#f45342'
+                            body: notificationData.message,
+                            icon: 'stock_ticker_update',
+                            color: '#f45342'
                         },
-                    //  },
+                    },
                     token: notificationData.deviceId
                 }
 
@@ -137,14 +137,14 @@ module.exports = class notificationsHelper {
                     if (err) {
                         //  console.log('error::: ', err)
 
-                         success = false;
+                        success = false;
                         // throw "Failed to push the notification"
                     } else {
                         console.log('In push notification')
                         console.log('response::: ', response)
 
                         success = true
-                       
+
                     }
 
                     return resolve({
