@@ -371,7 +371,6 @@ var pushLanguageData = function (languageId = "", languageData = {}) {
           index: languageIndex,
           type: languageTypeName,
           body: {
-            // label: "",
             translate: languageData
           }
         })

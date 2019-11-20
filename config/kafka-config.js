@@ -25,34 +25,12 @@ var connect = function (config) {
 
   Consumer = kafka.Consumer
 
-  // if (config.topics["notificationsTopic"] && config.topics["notificationsTopic"] != "") {
-
-  //   let consumer = new Consumer(
-  //     client,
-  //     [
-  //       { topic: config.topics["notificationsTopic"], offset: 0, partition: 0 }
-  //     ],
-  //     {
-  //       autoCommit: true
-  //     }
-  //   );
-
-  //   consumer.on('message', async function (message) {
-  //     notificationsConsumer.messageReceived(message)
-  //   });
-
-  //   consumer.on('error', async function (error) {
-  //     notificationsConsumer.errorTriggered(error)
-  //   });
-
-  // }
-
-  if (config.topics["languagesTopic"] && config.topics["languagesTopic"] != "") {
+  if (config.topics["notificationsTopic"] && config.topics["notificationsTopic"] != "") {
 
     let consumer = new Consumer(
       client,
       [
-        { topic: config.topics["languagesTopic"], offset: 0, partition: 0 }
+        { topic: config.topics["notificationsTopic"], offset: 0, partition: 0 }
       ],
       {
         autoCommit: true
@@ -64,6 +42,28 @@ var connect = function (config) {
     });
 
     consumer.on('error', async function (error) {
+      notificationsConsumer.errorTriggered(error)
+    });
+
+  }
+
+  if (config.topics["languagesTopic"] && config.topics["languagesTopic"] != "") {
+
+    let languageConsumer = new Consumer(
+      client,
+      [
+        { topic: config.topics["languagesTopic"], offset: 0, partition: 0 }
+      ],
+      {
+        autoCommit: true
+      }
+    );
+
+    languageConsumer.on('message', async function (message) {
+      notificationsConsumer.messageReceived(message)
+    });
+
+    languageConsumer.on('error', async function (error) {
       notificationsConsumer.errorTriggered(error)
     });
 

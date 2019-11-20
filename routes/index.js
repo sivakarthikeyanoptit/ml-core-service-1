@@ -20,8 +20,6 @@ module.exports = function (app) {
       req.i18n.changeLanguage(listOfLanguages[req.translationLanguage]);
     }
 
-    // req.params.controller = (req.params.controller).toLowerCase();
-    // req.params.controller += "Controller";
     if (!req.params.version) next();
     else if (!controllers[req.params.version]) next();
     else if (!controllers[req.params.version][req.params.controller]) next();
