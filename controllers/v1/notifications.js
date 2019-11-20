@@ -164,7 +164,7 @@ module.exports = class Notifications {
                      os : req.headers.os
                 }
 
-                let result = await userExtensionHelper.bulkCreateOrUpdate(deviceData, req.userDetails);
+                let result = await userExtensionHelper.createOrUpdate(deviceData, req.userDetails);
 
         
                 return resolve({
@@ -190,6 +190,9 @@ module.exports = class Notifications {
      * @apiVersion 1.0.0
      * @apiName push notification to users
      * @apiGroup Notifications
+     * @apiHeader {String} X-authenticated-user-token Authenticity token
+     * @apiHeader {String} app
+     * @apiHeader {String} os
      * @apiSampleRequest /kendra/api/v1/notifications/pushToUsers
      * @apiUse successBody
      * @apiUse errorBody
@@ -209,9 +212,9 @@ module.exports = class Notifications {
                         status: "active",
                         isDeleted: false
                       })
-
                       
-
+                      let devices = userProfile.devices;
+                      
                       let notificationResult = await pushNotificationsHelper.pushToDeviceId(element);
 
                 }))

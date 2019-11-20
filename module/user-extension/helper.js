@@ -17,10 +17,11 @@ module.exports = class userExtensionHelper {
 
     }
 
-    static bulkCreateOrUpdate(deviceData, userDetails) {
+    static createOrUpdate(deviceData, userDetails) {
 
         return new Promise(async (resolve, reject) => {
             try {   
+                
                 let deviceArray = [];  
                 let userId = userDetails.userId;         
                  
@@ -35,8 +36,9 @@ module.exports = class userExtensionHelper {
                     deviceArray = userExtensionData.devices;
 
                     if (deviceArray.some(e => e.deviceId === deviceData.deviceId)) {
-                    }
-                    else {
+                        
+                    } else {
+
                         deviceArray.push(deviceData);
 
                         let deviceUpdate = await database.models.userExtension.findOneAndUpdate(
