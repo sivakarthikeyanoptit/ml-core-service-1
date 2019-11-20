@@ -1,4 +1,5 @@
 let fcmNotification = require('fcm-notification'); // load firebase notification
+// const fcm = new fcmNotification(ROOT_PATH + process.env.PRIVATE_KEY); //read firebase token from the file
 // let fcm = new fcmNotification(ROOT_PATH + process.env.FIREBASE_KEYSTORE);
 
 module.exports = class notificationsHelper {
@@ -93,17 +94,18 @@ module.exports = class notificationsHelper {
         })
     }
 
-    static pushToDeviceId(fcm_token) {
+
+    static pushToDeviceId(notificationData) {
         return new Promise(async (resolve, reject) => {
             try {
 
-                var token = fcm_token;
+                var token = notificationData.deviceId;
 
                 let pushNotificationRelatedInformation = {
                     token: token,
                     notification: {
                         title: "Kendra Service",
-                        body: "This is a Kendra service"
+                        body: notificationData.message
                     },
                     data: {
                         welcomeMsg: "Welcome to Kendra "

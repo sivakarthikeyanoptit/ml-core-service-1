@@ -24,13 +24,13 @@ module.exports = function () {
   global.REQUEST_TIMEOUT_FOR_REPORTS = process.env.REQUEST_TIMEOUT_FOR_REPORTS || 120000;
 
   // boostrap all models
-  // global.models = requireAll({
-  //   dirname: ROOT_PATH + "/models",
-  //   filter: /(.+)\.js$/,
-  //   resolve: function (Model) {
-  //     return Model;
-  //   }
-  // });
+  global.models = requireAll({
+    dirname: ROOT_PATH + "/models",
+    filter: /(.+)\.js$/,
+    resolve: function (Model) {
+      return Model;
+    }
+  });
 
   //load base v1 controllers
   fs.readdirSync(ROOT_PATH + '/controllers/v1/').forEach(function (file) {
@@ -41,12 +41,13 @@ module.exports = function () {
   });
 
   //load schema files
-  // fs.readdirSync(ROOT_PATH + '/models/').forEach(function (file) {
-  //   if (file.match(/\.js$/) !== null) {
-  //     var name = file.replace('.js', '');
-  //     global[name + 'Schema'] = require(ROOT_PATH + '/models/' + file);
-  //   }
-  // });
+  global.schemas = new Array
+  fs.readdirSync(ROOT_PATH + '/models/').forEach(function (file) {
+    if (file.match(/\.js$/) !== null) {
+      var name = file.replace('.js', '');
+      global.schemas[name] = require(ROOT_PATH + '/models/' + file);
+    }
+  });
 
   // boostrap all controllers
   global.controllers = requireAll({
