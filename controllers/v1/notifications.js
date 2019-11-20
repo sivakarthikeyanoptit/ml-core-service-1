@@ -203,9 +203,13 @@ module.exports = class Notifications {
 
             try {
 
+                if (!req.files || !req.files.userData) {
+                    throw { message: "Missing file of type userData" }
+                }
+
                 let userData = await csv().fromString(req.files.userData.data.toString());
 
-                const fileName = `status`;
+                const fileName = `push-to-device`;
                 let fileStream = new FileStream(fileName);
                 let input = fileStream.initStream();
 
@@ -223,7 +227,7 @@ module.exports = class Notifications {
                         userId: element.userId,
                         status: "active",
                         isDeleted: false
-                    })
+                    }, { devices: 1 })
 
                     let deviceArray = userProfile.devices;
 
@@ -231,7 +235,7 @@ module.exports = class Notifications {
 
                         if (device.app == element.appName && device.status != "inactive") {
 
-                            let message;
+                            // let message;
                             let notificationResult;
 
                             if (device.os == "android") {
@@ -246,16 +250,18 @@ module.exports = class Notifications {
                             }
 
 
-                            if (notificationResult !== undefined && notificationResult.message != "") {
+                            if (notificationResult !== undefined && notificationResult.success) {
 
-                                device.userId = element.userId;
-                                let updateStatus = await userExtensionHelper.updateDeviceStatus(device,deviceArray)
-
-                                message= "Failed to send the notification";
-                            } else {
                                 element.status = "success"
-                                input.push(element);
+
+                            } else {
+                                device.userId = element.userId;
+
+                                element.status = "Fail"
+                                await userExtensionHelper.updateDeviceStatus(device, deviceArray)
                             }
+
+                            input.push(element);
                         }
 
                     }));
@@ -293,17 +299,41 @@ module.exports = class Notifications {
 
             try {
 
-                let userData = await csv().fromString(req.files.userData.data.toString());
+                if (!req.files || !req.files.pushToTopic) {
+                    throw { message: "Missing file of type pushToTopic" }
+                }
 
-                await Promise.all(userData.map(async element => {
+                let topicData = await csv().fromString(req.files.pushToTopic.data.toString());
 
-                    let notificationResult = await pushNotificationsHelper.pushToDeviceId(element);
+                const fileName = `push-to-topic`;
+                let fileStream = new FileStream(fileName);
+                let input = fileStream.initStream();
+
+                (async function () {
+                    await fileStream.getProcessorPromise();
+                    return resolve({
+                        isResponseAStream: true,
+                        fileNameWithPath: fileStream.fileNameWithPath()
+                    });
+                })();
+
+                await Promise.all(topicData.map(async element => {
+
+                    let topicResult = await pushNotificationsHelper.pushToTopic(element);
+
+                    if (topicResult !== undefined && topicResult.success) {
+
+                        element.status = "success"
+
+                    } else {
+                        element.status = "Fail"
+                    }
+
+                    input.push(element)
 
                 }))
 
-                return resolve({
-                    message: "successfully sent notifications to users",
-                });
+                input.push(null)
 
             } catch (error) {
 
@@ -357,6 +387,37 @@ module.exports = class Notifications {
             }
         })
 
+    }
+
+    async pushNotificationMessageToDevice(req) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                await notificationsHelper.pushNotificationMessageToDevice(req.userDetails.id, {
+                    "is_read": false,
+                    "internal": false,
+                    "payload": {
+                        "submission_id": "5d7640a02788a2413a359cd1",
+                        "entity_name": "Shri Shiv Middle School, Shiv Kutti, Teliwara, Delhi",
+                        "observation_id": "5d663d63d7277c09376e786d",
+                        "type": "observation",
+                        "entity_id": "5bfe53ea1d0c350d61b78d0f",
+                        "solution_id": "5d0a0cf11e724f059a0d8f11"
+                    },
+                    "action": "pending",
+                    "created_at": "2019-11-20T08:47:00.109Z",
+                    "text": "You have a Pending Observation",
+                    "id": 66,
+                    "type": "Information",
+                    "title": "Pending Observation!"
+                })
+            }
+            catch (error) {
+                return reject({
+                    status: error
+                })
+            }
+        })
     }
 
 };

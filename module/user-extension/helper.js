@@ -1,11 +1,11 @@
 
 module.exports = class userExtensionHelper {
 
-    static profileWithEntityDetails(filterQueryObject) {
+    static profileWithEntityDetails(filterQueryObject, projection = {}) {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let userExtensionData = await database.models.userExtension.findOne(filterQueryObject, { devices: 1 }).lean()
+                let userExtensionData = await database.models.userExtension.findOne(filterQueryObject, projection).lean()
 
                 return resolve(userExtensionData)
 

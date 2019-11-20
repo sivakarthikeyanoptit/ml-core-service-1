@@ -4,35 +4,30 @@ let FCM = new fcmNotification(fcm_token_path);
 
 module.exports = class notificationsHelper {
 
-    static createNotificationForAllUser(req) {
+    static pushToTopic(element) {
         return new Promise(async (resolve, reject) => {
             try {
 
                 let pushNotificationRelatedInformation = {
-                    topic: "allUsers",
+                    topic: element.topicName,
                     notification: {
                         title: "Kendra Service",
                         body: "This is a Kendra service"
                     },
                     data: {
-                        welcomeMsg: "Welcome to Kendra "
+                        welcomeMsg: element.message
                     }
                 }
 
                 let pushToTopicData = await this.sendMessage(pushNotificationRelatedInformation)
 
-                if (pushToTopicData.success) {
-                    return resolve({
-                        message: req.t('pushNotificationSuccess')
-                    })
-                }
+                return resolve(pushToTopicData)
 
             } catch (error) {
                 return reject(error);
             }
         })
     }
-
 
     static createNotificationInAndroid(notificationData) {
         return new Promise(async (resolve, reject) => {
@@ -42,9 +37,9 @@ module.exports = class notificationsHelper {
                     android: {
                         ttl: 3600 * 1000, // 1 hour in milliseconds
                         priority: 'high',
-                        data: {},
+                        data: notificationData.data ? notificationData.data : {},
                         notification: {
-                            title: 'kendra service',
+                            title: notificationData.title ? notificationData.title : 'kendra service',
                             body: notificationData.message,
                             icon: 'stock_ticker_update',
                             color: '#f45342'
@@ -53,9 +48,9 @@ module.exports = class notificationsHelper {
                     token: notificationData.deviceId
                 }
 
-                let pushToTopicData = await this.sendMessage(pushNotificationRelatedInformation);
+                let pushToDevice = await this.sendMessage(pushNotificationRelatedInformation);
 
-                return resolve(pushToTopicData)
+                return resolve(pushToDevice)
 
             } catch (error) {
                 return reject(error);
@@ -93,7 +88,6 @@ module.exports = class notificationsHelper {
             }
         })
     }
-
 
     static pushToDeviceId(notificationData) {
         return new Promise(async (resolve, reject) => {
@@ -136,26 +130,21 @@ module.exports = class notificationsHelper {
                     let success;
                     let message = "";
                     if (err) {
-                        if (err.errorInfo && err.errorInfo.message) {
-                            if (err.errorInfo.message == "The registration token is not a valid FCM registration token") {
-                                message = err.errorInfo.message;
-                            }
-                        }
+                        // if (err.errorInfo && err.errorInfo.message) {
+                        //     if (err.errorInfo.message == "The registration token is not a valid FCM registration token") {
+                        //         message = err.errorInfo.message;
+                        //     }
+                        // }
 
                         success = false;
                         // throw "Failed to push the notification"
                     } else {
-                      
-                        success = true
-<<<<<<< HEAD
 
-=======
->>>>>>> 449f564da0b8837335633ef5a29744d74f1a652a
+                        success = true
                     }
 
                     return resolve({
-                        success: success,
-                        message: message
+                        success: success
                     })
                 });
 
