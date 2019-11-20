@@ -8,6 +8,7 @@ const csv = require('csvtojson');
 const notificationsHelper = require(ROOT_PATH + "/module/notifications/helper");
 const userExtensionHelper = require(ROOT_PATH + "/module/user-extension/helper");
 const pushNotificationsHelper = require(ROOT_PATH + "/module/push-notifications/helper");
+const FileStream = require(ROOT_PATH + "/generics/file-stream");
 
 module.exports = class Notifications {
 
@@ -157,29 +158,29 @@ module.exports = class Notifications {
         return new Promise(async (resolve, reject) => {
 
             try {
-                
+
                 let deviceData = {
-                     deviceId : req.body.deviceId,
-                     app : req.headers.app,
-                     os : req.headers.os
+                    deviceId: req.body.deviceId,
+                    app: req.headers.app,
+                    os: req.headers.os
                 }
 
                 let result = await userExtensionHelper.createOrUpdate(deviceData, req.userDetails);
 
-        
+
                 return resolve({
-                  message: "successfully registered device id",
+                    message: "successfully registered device id",
                 });
-        
-                } catch (error) {
-        
+
+            } catch (error) {
+
                 return reject({
-                  status: error.status || 500,
-                  message: error.message || "Oops! something went wrong.",
-                  errorObject: error
+                    status: error.status || 500,
+                    message: error.message || "Oops! something went wrong.",
+                    errorObject: error
                 })
-        
-              }
+
+            }
         })
 
     }
@@ -204,6 +205,18 @@ module.exports = class Notifications {
 
                 let userData = await csv().fromString(req.files.userData.data.toString());
 
+                const fileName = `status`;
+                let fileStream = new FileStream(fileName);
+                let input = fileStream.initStream();
+
+                (async function () {
+                    await fileStream.getProcessorPromise();
+                    return resolve({
+                        isResponseAStream: true,
+                        fileNameWithPath: fileStream.fileNameWithPath()
+                    });
+                })();
+
                 await Promise.all(userData.map(async element => {
 
                     let userProfile = await userExtensionHelper.profileWithEntityDetails({
@@ -211,7 +224,7 @@ module.exports = class Notifications {
                         status: "active",
                         isDeleted: false
                     })
-                   
+
                     let deviceArray = userProfile.devices;
 
                     await Promise.all(deviceArray.map(async device => {
@@ -240,18 +253,15 @@ module.exports = class Notifications {
 
                                 message= "Failed to send the notification";
                             } else {
-                                message= "successfully sent notifications to users";
+                                element.status = "success"
+                                input.push(element);
                             }
-
-                            return resolve({
-                                message :message
-                            })
-
-
                         }
 
                     }));
                 }))
+
+                input.push(null)
 
 
             } catch (error) {
@@ -268,15 +278,15 @@ module.exports = class Notifications {
     }
 
 
-     /**
-     * @api {post} /kendra/api/v1/notifications/pushToTopic
-     * @apiVersion 1.0.0
-     * @apiName push notification to topic
-     * @apiGroup Notifications
-     * @apiSampleRequest /kendra/api/v1/notifications/pushToTopic
-     * @apiUse successBody
-     * @apiUse errorBody
-     */
+    /**
+    * @api {post} /kendra/api/v1/notifications/pushToTopic
+    * @apiVersion 1.0.0
+    * @apiName push notification to topic
+    * @apiGroup Notifications
+    * @apiSampleRequest /kendra/api/v1/notifications/pushToTopic
+    * @apiUse successBody
+    * @apiUse errorBody
+    */
 
     async pushToTopic(req) {
         return new Promise(async (resolve, reject) => {
@@ -284,40 +294,40 @@ module.exports = class Notifications {
             try {
 
                 let userData = await csv().fromString(req.files.userData.data.toString());
-                
+
                 await Promise.all(userData.map(async element => {
 
-                       let notificationResult = await pushNotificationsHelper.pushToDeviceId(element);
+                    let notificationResult = await pushNotificationsHelper.pushToDeviceId(element);
 
                 }))
 
                 return resolve({
                     message: "successfully sent notifications to users",
-                  });
-        
-              } catch (error) {
-        
+                });
+
+            } catch (error) {
+
                 return reject({
-                  status: error.status || 500,
-                  message: error.message || "Oops! something went wrong.",
-                  errorObject: error
+                    status: error.status || 500,
+                    message: error.message || "Oops! something went wrong.",
+                    errorObject: error
                 })
-        
-              }
+
+            }
         })
 
     }
 
 
-     /**
-     * @api {post} /kendra/api/v1/notifications/pushToAllUsers
-     * @apiVersion 1.0.0
-     * @apiName push notification to all users
-     * @apiGroup Notifications
-     * @apiSampleRequest /kendra/api/v1/notifications/pushToAllUsers
-     * @apiUse successBody
-     * @apiUse errorBody
-     */
+    /**
+    * @api {post} /kendra/api/v1/notifications/pushToAllUsers
+    * @apiVersion 1.0.0
+    * @apiName push notification to all users
+    * @apiGroup Notifications
+    * @apiSampleRequest /kendra/api/v1/notifications/pushToAllUsers
+    * @apiUse successBody
+    * @apiUse errorBody
+    */
 
     async pushToAllUsers(req) {
         return new Promise(async (resolve, reject) => {
@@ -325,26 +335,26 @@ module.exports = class Notifications {
             try {
 
                 let userData = await csv().fromString(req.files.userData.data.toString());
-                
+
                 await Promise.all(userData.map(async element => {
 
-                       let notificationResult = await pushNotificationsHelper.pushToDeviceId(element);
+                    let notificationResult = await pushNotificationsHelper.pushToDeviceId(element);
 
                 }))
 
                 return resolve({
                     message: "successfully sent notifications to users",
-                  });
-        
-              } catch (error) {
-        
+                });
+
+            } catch (error) {
+
                 return reject({
-                  status: error.status || 500,
-                  message: error.message || "Oops! something went wrong.",
-                  errorObject: error
+                    status: error.status || 500,
+                    message: error.message || "Oops! something went wrong.",
+                    errorObject: error
                 })
-        
-              }
+
+            }
         })
 
     }
