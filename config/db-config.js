@@ -31,8 +31,8 @@ var DB = function (config) {
 
     // apply Plugins
     schema.plugin(mongoose_timestamp, {
-      createdAt: "created_at",
-      updatedAt: "updated_at"
+      createdAt: "createdAt",
+      updatedAt: "updatedAt"
     });
     schema.plugin(mongoose_autopopulate);
     schema.plugin(mongoose_delete, { overrideMethods: true, deletedAt: true });
