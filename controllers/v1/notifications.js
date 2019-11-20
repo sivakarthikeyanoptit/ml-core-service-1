@@ -222,7 +222,6 @@ module.exports = class Notifications {
                 })();
 
                 await Promise.all(userData.map(async element => {
-
                     let userProfile = await userExtensionHelper.profileWithEntityDetails({
                         userId: element.userId,
                         status: "active",
@@ -237,18 +236,10 @@ module.exports = class Notifications {
 
                             // let message;
                             let notificationResult;
+                            let status;
 
-                            if (device.os == "android") {
-
-                                device.message = element.message;
-                                notificationResult = await pushNotificationsHelper.createNotificationInAndroid(device);
-
-                            } else if (device.os == "ios") {
-
-                                device.message = element.message;
-                                notificationResult = await pushNotificationsHelper.createNotificationInIos(device);
-                            }
-
+                            device.message = element.message;
+                            notificationResult = await pushNotificationsHelper.createNotificationInAndroid(device);
 
                             if (notificationResult !== undefined && notificationResult.success) {
 
@@ -264,161 +255,180 @@ module.exports = class Notifications {
                             input.push(element);
                         }
 
-                    }));
-                }))
+                    } 
+                            else {
+                            status = 200
+                                message= "succesfully sent notification";
+                        }
 
-                input.push(null)
-
-
-            } catch (error) {
-
-                return reject({
-                    status: error.status || 500,
-                    message: error.message || "Oops! something went wrong.",
-                    errorObject: error
-                })
-
-            }
-        })
-
-    }
-
-
-    /**
-    * @api {post} /kendra/api/v1/notifications/pushToTopic
-    * @apiVersion 1.0.0
-    * @apiName push notification to topic
-    * @apiGroup Notifications
-    * @apiSampleRequest /kendra/api/v1/notifications/pushToTopic
-    * @apiUse successBody
-    * @apiUse errorBody
-    */
-
-    async pushToTopic(req) {
-        return new Promise(async (resolve, reject) => {
-
-            try {
-
-                if (!req.files || !req.files.pushToTopic) {
-                    throw { message: "Missing file of type pushToTopic" }
+                            return resolve({
+                            status: status,
+                            message: message
+                        })
                 }
 
-                let topicData = await csv().fromString(req.files.pushToTopic.data.toString());
-
-                const fileName = `push-to-topic`;
-                let fileStream = new FileStream(fileName);
-                let input = fileStream.initStream();
-
-                (async function () {
-                    await fileStream.getProcessorPromise();
-                    return resolve({
-                        isResponseAStream: true,
-                        fileNameWithPath: fileStream.fileNameWithPath()
-                    });
-                })();
-
-                await Promise.all(topicData.map(async element => {
-
-                    let topicResult = await pushNotificationsHelper.pushToTopic(element);
-
-                    if (topicResult !== undefined && topicResult.success) {
-
-                        element.status = "success"
-
-                    } else {
-                        element.status = "Fail"
+                        else {
+                        return resolve({
+                            status: 500,
+                            message: "invalid device id"
+                        })
                     }
 
-                    input.push(element)
+                    }));
 
-                }))
+    }
 
-                input.push(null)
-
+}))
+                 
             } catch (error) {
 
-                return reject({
-                    status: error.status || 500,
-                    message: error.message || "Oops! something went wrong.",
-                    errorObject: error
-                })
+    return reject({
+        status: error.status || 500,
+        message: error.message || "Oops! something went wrong.",
+        errorObject: error
+    })
 
-            }
+}
         })
 
     }
 
 
-    /**
-    * @api {post} /kendra/api/v1/notifications/pushToAllUsers
-    * @apiVersion 1.0.0
-    * @apiName push notification to all users
-    * @apiGroup Notifications
-    * @apiSampleRequest /kendra/api/v1/notifications/pushToAllUsers
-    * @apiUse successBody
-    * @apiUse errorBody
-    */
+/**
+* @api {post} /kendra/api/v1/notifications/pushToTopic
+* @apiVersion 1.0.0
+* @apiName push notification to topic
+* @apiGroup Notifications
+* @apiSampleRequest /kendra/api/v1/notifications/pushToTopic
+* @apiUse successBody
+* @apiUse errorBody
+*/
 
-    async pushToAllUsers(req) {
-        return new Promise(async (resolve, reject) => {
+async pushToTopic(req) {
+    return new Promise(async (resolve, reject) => {
 
-            try {
+        try {
 
-                let userData = await csv().fromString(req.files.userData.data.toString());
+            if (!req.files || !req.files.pushToTopic) {
+                throw { message: "Missing file of type pushToTopic" }
+            }
 
-                await Promise.all(userData.map(async element => {
+            let topicData = await csv().fromString(req.files.pushToTopic.data.toString());
 
-                    let notificationResult = await pushNotificationsHelper.pushToDeviceId(element);
+            const fileName = `push-to-topic`;
+            let fileStream = new FileStream(fileName);
+            let input = fileStream.initStream();
 
-                }))
-
+            (async function () {
+                await fileStream.getProcessorPromise();
                 return resolve({
-                    message: "successfully sent notifications to users",
+                    isResponseAStream: true,
+                    fileNameWithPath: fileStream.fileNameWithPath()
                 });
+            })();
 
-            } catch (error) {
+            await Promise.all(topicData.map(async element => {
 
-                return reject({
-                    status: error.status || 500,
-                    message: error.message || "Oops! something went wrong.",
-                    errorObject: error
-                })
+                let topicResult = await pushNotificationsHelper.pushToTopic(element);
 
-            }
-        })
+                if (topicResult !== undefined && topicResult.success) {
 
-    }
+                    element.status = "success"
 
-    async pushNotificationMessageToDevice(req) {
-        return new Promise(async (resolve, reject) => {
-            try {
+                } else {
+                    element.status = "Fail"
+                }
 
-                await notificationsHelper.pushNotificationMessageToDevice(req.userDetails.id, {
-                    "is_read": false,
-                    "internal": false,
-                    "payload": {
-                        "submission_id": "5d7640a02788a2413a359cd1",
-                        "entity_name": "Shri Shiv Middle School, Shiv Kutti, Teliwara, Delhi",
-                        "observation_id": "5d663d63d7277c09376e786d",
-                        "type": "observation",
-                        "entity_id": "5bfe53ea1d0c350d61b78d0f",
-                        "solution_id": "5d0a0cf11e724f059a0d8f11"
-                    },
-                    "action": "pending",
-                    "created_at": "2019-11-20T08:47:00.109Z",
-                    "text": "You have a Pending Observation",
-                    "id": 66,
-                    "type": "Information",
-                    "title": "Pending Observation!"
-                })
-            }
-            catch (error) {
-                return reject({
-                    status: error
-                })
-            }
-        })
-    }
+                input.push(element)
+
+            }))
+
+            input.push(null)
+
+        } catch (error) {
+
+            return reject({
+                status: error.status || 500,
+                message: error.message || "Oops! something went wrong.",
+                errorObject: error
+            })
+
+        }
+    })
+
+}
+
+
+/**
+* @api {post} /kendra/api/v1/notifications/pushToAllUsers
+* @apiVersion 1.0.0
+* @apiName push notification to all users
+* @apiGroup Notifications
+* @apiSampleRequest /kendra/api/v1/notifications/pushToAllUsers
+* @apiUse successBody
+* @apiUse errorBody
+*/
+
+async pushToAllUsers(req) {
+    return new Promise(async (resolve, reject) => {
+
+        try {
+
+            let userData = await csv().fromString(req.files.userData.data.toString());
+
+            await Promise.all(userData.map(async element => {
+
+                let notificationResult = await pushNotificationsHelper.pushToDeviceId(element);
+
+            }))
+
+            return resolve({
+                message: "successfully sent notifications to users",
+            });
+
+        } catch (error) {
+
+            return reject({
+                status: error.status || 500,
+                message: error.message || "Oops! something went wrong.",
+                errorObject: error
+            })
+
+        }
+    })
+
+}
+
+async pushNotificationMessageToDevice(req) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            await notificationsHelper.pushNotificationMessageToDevice(req.userDetails.id, {
+                "is_read": false,
+                "internal": false,
+                "payload": {
+                    "submission_id": "5d7640a02788a2413a359cd1",
+                    "entity_name": "Shri Shiv Middle School, Shiv Kutti, Teliwara, Delhi",
+                    "observation_id": "5d663d63d7277c09376e786d",
+                    "type": "observation",
+                    "entity_id": "5bfe53ea1d0c350d61b78d0f",
+                    "solution_id": "5d0a0cf11e724f059a0d8f11"
+                },
+                "action": "pending",
+                "created_at": "2019-11-20T08:47:00.109Z",
+                "text": "You have a Pending Observation",
+                "id": 66,
+                "type": "Information",
+                "title": "Pending Observation!"
+            })
+        }
+        catch (error) {
+            return reject({
+                status: error
+            })
+        }
+    })
+}
 
 };
 
