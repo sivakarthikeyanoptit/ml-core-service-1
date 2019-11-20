@@ -205,65 +205,60 @@ module.exports = class Notifications {
 
                 let userData = await csv().fromString(req.files.userData.data.toString());
 
-                const fileName = `status`;
-                let fileStream = new FileStream(fileName);
-                let input = fileStream.initStream();
-
-                (async function () {
-                    await fileStream.getProcessorPromise();
-                    return resolve({
-                        isResponseAStream: true,
-                        fileNameWithPath: fileStream.fileNameWithPath()
-                    });
-                })();
-
                 await Promise.all(userData.map(async element => {
-
                     let userProfile = await userExtensionHelper.profileWithEntityDetails({
                         userId: element.userId,
                         status: "active",
                         isDeleted: false
                     })
+                    
+                    if (userProfile){
 
                     let deviceArray = userProfile.devices;
 
                     await Promise.all(deviceArray.map(async device => {
-
+                    
                         if (device.app == element.appName && device.status != "inactive") {
 
                             let message;
                             let notificationResult;
+                            let status;
 
-                            if (device.os == "android") {
-
-                                device.message = element.message;
-                                notificationResult = await pushNotificationsHelper.createNotificationInAndroid(device);
-
-                            } else if (device.os == "ios") {
-
-                                device.message = element.message;
-                                notificationResult = await pushNotificationsHelper.createNotificationInIos(device);
-                            }
-
+                            device.message = element.message;
+                            notificationResult = await pushNotificationsHelper.createNotificationInAndroid(device);
 
                             if (notificationResult !== undefined && notificationResult.message != "") {
 
-                                device.userId = element.userId;
                                 let updateStatus = await userExtensionHelper.updateDeviceStatus(device,deviceArray)
 
                                 message= "Failed to send the notification";
-                            } else {
-                                element.status = "success"
-                                input.push(element);
+                                status = 500
+
+                            } 
+                            else {
+                                status = 200
+                                message= "succesfully sent notification";
                             }
+
+                            return resolve({
+                                status: status,
+                                message: message
+                            })
+                        }
+
+                        else {
+                            return resolve({
+                                status: 500,
+                                message: "invalid device id"
+                            })
                         }
 
                     }));
-                }))
-
-                input.push(null)
-
-
+                
+                }
+                
+            }))
+                 
             } catch (error) {
 
                 return reject({
