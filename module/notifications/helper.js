@@ -118,7 +118,8 @@ module.exports = class notificationsHelper {
                             type: "institutional"
                         },
                         title: "Pending Assessment!",
-                        text: "You have a Pending Assessment"
+                        text: "You have a Pending Assessment",
+                        appName: "samiksha"
                     };
 
                     if (observation) {
@@ -196,7 +197,8 @@ module.exports = class notificationsHelper {
                         internal: false,
                         title: "Congratulations!",
                         type: "Information",
-                        "created_at": new Date()
+                        "created_at": new Date(),
+                        appName: "samiksha"
                     }
 
                     if (observation) {
@@ -259,12 +261,23 @@ module.exports = class notificationsHelper {
                     throw "No devices found"
                 }
 
-                for (let pointerToDevices = 0; pointerToDevices < getAllDevices.devices.length; pointerToDevices++) {
+                let getSpecificAppData = getAllDevices.devices.filter(eachDeviceName => eachDeviceName.app === notificationMessage.appName)
+
+                for (let pointerToDevices = 0; pointerToDevices < getSpecificAppData.length; pointerToDevices++) {
 
                     let notificationDataToBeSent = {
-                        deviceId: getAllDevices.devices[pointerToDevices].deviceId,
+                        deviceId: getSpecificAppData[pointerToDevices].deviceId,
                         title: notificationMessage.title,
-                        data: notificationMessage.payload
+                        data: {
+                            "title": notificationMessage.title,
+                            "text": notificationMessage.text,
+                            id: JSON.stringify(notificationMessage.id),
+                            is_read: JSON.stringify(notificationMessage.is_read),
+                            payload: JSON.stringify(notificationMessage.payload),
+                            created_at: notificationMessage.created_at,
+                            type: notificationMessage.type
+                        },
+                        text: notificationMessage.text
                     }
 
                     let pushedData = await pushNotificationsHelper.createNotificationInAndroid(notificationDataToBeSent);
@@ -275,7 +288,7 @@ module.exports = class notificationsHelper {
                             "message": `Cannot sent push notifications to ${getAllDevices.devices[pointerToDevices].deviceId}`
                         }
 
-                        slackClient.pushNotificationError(errorMsg);
+                        // slackClient.pushNotificationError(errorMsg);
                     }
                 }
 
