@@ -34,16 +34,18 @@ module.exports = class notificationsHelper {
             try {
 
                 let pushNotificationRelatedInformation = {
+                    "data": notificationData.data,
                     android: {
                         ttl: 3600 * 1000, // 1 hour in milliseconds
                         priority: 'high',
-                        data: notificationData.data ? notificationData.data : {},
                         notification: {
+                            "click_action": "FCM_PLUGIN_ACTIVITY",
                             title: notificationData.title ? notificationData.title : 'kendra service',
-                            body: notificationData.message,
+                            body: notificationData.text ? notificationData.text : notificationData.message,
                             icon: 'stock_ticker_update',
                             color: '#f45342'
                         },
+
                     },
                     token: notificationData.deviceId
                 }
@@ -139,7 +141,7 @@ module.exports = class notificationsHelper {
                         success = false;
                         // throw "Failed to push the notification"
                     } else {
-
+                        console.log(notificationInformation)
                         success = true
                     }
 

@@ -264,7 +264,16 @@ module.exports = class notificationsHelper {
                     let notificationDataToBeSent = {
                         deviceId: getAllDevices.devices[pointerToDevices].deviceId,
                         title: notificationMessage.title,
-                        data: notificationMessage.payload
+                        data: {
+                            "title": notificationMessage.title,
+                            "text": notificationMessage.text,
+                            id: JSON.stringify(notificationMessage.id),
+                            is_read: JSON.stringify(notificationMessage.is_read),
+                            payload: JSON.stringify(notificationMessage.payload),
+                            created_at: notificationMessage.created_at,
+                            type: notificationMessage.type
+                        },
+                        text: notificationMessage.text
                     }
 
                     let pushedData = await pushNotificationsHelper.createNotificationInAndroid(notificationDataToBeSent);
