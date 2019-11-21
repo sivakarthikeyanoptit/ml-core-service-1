@@ -212,7 +212,9 @@ module.exports = class Notifications {
                         userId: element.userId,
                         status: "active",
                         isDeleted: false
-                    })
+                    }, {
+                            devices: 1
+                        })
 
                     if (userProfile) {
 
