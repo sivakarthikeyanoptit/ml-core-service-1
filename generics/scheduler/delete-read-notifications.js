@@ -12,7 +12,7 @@ let unnatiIndex = process.env.ELASTICSEARCH_UNNATI_INDEX ? process.env.ELASTICSE
 let deleteReadNotification = function () {
   nodeScheduler.scheduleJob(process.env.SCHEDULE_FOR_READ_NOTIFICATION, () => {
 
-    console.log("<-----  Delete Read Notification For Samiksha cron started ---- >", new Date());
+    console.log("<-----  Delete Read Notification cron started ---- >", new Date());
 
     return new Promise(async (resolve, reject) => {
 
@@ -46,7 +46,7 @@ let deleteReadNotification = function () {
           }
         }
 
-        console.log("<-----  Delete Read Notification For Samiksha cron stopped ---- >", new Date());
+        console.log("<-----  Delete Read Notification cron stopped ---- >", new Date());
         return resolve()
 
       } catch (error) {
