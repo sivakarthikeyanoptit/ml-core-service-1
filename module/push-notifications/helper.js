@@ -1,5 +1,6 @@
 let fcmNotification = require('fcm-notification'); // load firebase notification
-const fcm_token_path = require(ROOT_PATH + "/config/fcm_keystore.json"); //read firebase token from the file
+const FCM_KEY_PATH = (process.env.FCM_KEY_PATH && process.env.FCM_KEY_PATH != "") ? process.env.FCM_KEY_PATH : "/config/fcm-keystore.json"
+const fcm_token_path = require(ROOT_PATH + FCM_KEY_PATH); //read firebase token from the file
 let FCM = new fcmNotification(fcm_token_path);
 
 module.exports = class notificationsHelper {

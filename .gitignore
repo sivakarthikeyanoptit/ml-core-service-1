@@ -58,7 +58,7 @@ typings/
 .env
 
 # firbase credentials
-config/fcm_keystore.json
+config/fcm-keystore.json
 
 # next.js build output
 .next
