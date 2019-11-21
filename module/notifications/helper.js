@@ -275,7 +275,7 @@ module.exports = class notificationsHelper {
                             is_read: JSON.stringify(notificationMessage.is_read),
                             payload: JSON.stringify(notificationMessage.payload),
                             action: notificationMessage.action,
-                            internal: notificationMessage.internal,
+                            internal: JSON.stringify(notificationMessage.internal),
                             created_at: notificationMessage.created_at,
                             type: notificationMessage.type
                         },
