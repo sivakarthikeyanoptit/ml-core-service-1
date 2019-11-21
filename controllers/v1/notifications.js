@@ -162,7 +162,9 @@ module.exports = class Notifications {
                 let deviceData = {
                     deviceId: req.body.deviceId,
                     app: req.headers.app,
-                    os: req.headers.os
+                    os: req.headers.os,
+                    status: "active",
+                    activatedAt: new Date()
                 }
 
                 let result = await userExtensionHelper.createOrUpdate(deviceData, req.userDetails);
@@ -187,7 +189,7 @@ module.exports = class Notifications {
 
 
    
-  /**
+    /**
      * @api {post} /kendra/api/v1/notifications/pushToUsers  Push Notifications To Users
      * @apiVersion 1.0.0
      * @apiName Push Notifications To Users
@@ -204,7 +206,24 @@ module.exports = class Notifications {
 
             try {
 
+                if (!req.files || !req.files.userData) {
+                    throw { message: "Missing file of type userData" }
+                }
+
                 let userData = await csv().fromString(req.files.userData.data.toString());
+
+                const fileName = `push-to-device`;
+                let fileStream = new FileStream(fileName);
+                let input = fileStream.initStream();
+
+                (async function () {
+                    await fileStream.getProcessorPromise();
+                    return resolve({
+                        isResponseAStream: true,
+                        fileNameWithPath: fileStream.fileNameWithPath()
+                    });
+                })();
+
 
                 await Promise.all(userData.map(async element => {
                     let userProfile = await userExtensionHelper.profileWithEntityDetails({
@@ -230,29 +249,18 @@ module.exports = class Notifications {
 
                             if (notificationResult !== undefined && notificationResult.message != "") {
 
-                                device.userId = element.userId;
-                                let updateStatus = await userExtensionHelper.updateDeviceStatus(device,deviceArray)
+                                let updateStatus = await userExtensionHelper.updateDeviceStatus(device,deviceArray,element.userId)
 
-                                message= "Failed to send the notification";
-                                status = 500
+                                element.status = "Fail"
 
                             } 
                             else {
-                                status = 200
-                                message= "succesfully sent notification";
+
+                                element.status = "Success"
                             }
 
-                            return resolve({
-                                status: status,
-                                message: message
-                            })
-                        }
+                            input.push(element)
 
-                        else {
-                            return resolve({
-                                status: 500,
-                                message: "invalid device id"
-                            })
                         }
 
                     }));
@@ -260,6 +268,8 @@ module.exports = class Notifications {
                 }
                 
             }))
+
+            input.push(null)
                  
             } catch (error) {
 
@@ -276,11 +286,12 @@ module.exports = class Notifications {
 
 
 /**
-* @api {post} /kendra/api/v1/notifications/pushToTopic
-* @apiVersion 1.0.0
+* @api {post} /kendra/api/v1/notifications/pushToTopic Push To Topic
+* @apiVersion 1.0.0 
 * @apiName push notification to topic
 * @apiGroup Notifications
 * @apiSampleRequest /kendra/api/v1/notifications/pushToTopic
+* @apiHeader {String} X-authenticated-user-token Authenticity token
 * @apiUse successBody
 * @apiUse errorBody
 */
@@ -340,45 +351,77 @@ async pushToTopic(req) {
 }
 
 
-/**
-* @api {post} /kendra/api/v1/notifications/pushToAllUsers
-* @apiVersion 1.0.0
-* @apiName push notification to all users
-* @apiGroup Notifications
-* @apiSampleRequest /kendra/api/v1/notifications/pushToAllUsers
-* @apiUse successBody
-* @apiUse errorBody
-*/
+    /**
+    * @api {post} /kendra/api/v1/notifications/pushToAllUsers  Push Notification To ALL Users
+    * @apiVersion 1.0.0
+    * @apiName Push Notification To ALL Users Topic
+    * @apiGroup Notifications
+    * @apiSampleRequest /kendra/api/v1/notifications/pushToAllUsers
+    * @apiHeader {String} X-authenticated-user-token Authenticity token
+    * @apiUse successBody
+    * @apiUse errorBody
+    */
 
-async pushToAllUsers(req) {
-    return new Promise(async (resolve, reject) => {
+    async pushToAllUsers(req) {
+        return new Promise(async (resolve, reject) => {
 
-        try {
+            try {
 
-            let userData = await csv().fromString(req.files.userData.data.toString());
+                if (!req.files || !req.files.pushToAllUsers) {
+                    throw { message: "Missing file of type pushToAllUsers" }
+                }
 
-            await Promise.all(userData.map(async element => {
+                let pushToAllUsers = await csv().fromString(req.files.pushToAllUsers.data.toString());
 
-                let notificationResult = await pushNotificationsHelper.pushToDeviceId(element);
+                const fileName = `push-to-all-users`;
+                let fileStream = new FileStream(fileName);
+                let input = fileStream.initStream();
 
-            }))
+                (async function () {
+                    await fileStream.getProcessorPromise();
+                    return resolve({
+                        isResponseAStream: true,
+                        fileNameWithPath: fileStream.fileNameWithPath()
+                    });
+                })();
 
-            return resolve({
-                message: "successfully sent notifications to users",
-            });
 
-        } catch (error) {
+                await Promise.all(pushToAllUsers.map(async element => {
 
-            return reject({
-                status: error.status || 500,
-                message: error.message || "Oops! something went wrong.",
-                errorObject: error
-            })
+                    if (!element.topicName) {
+                        element.topicName = "allUsers"
+                    }
 
-        }
-    })
+                    let topicResult = await pushNotificationsHelper.pushToTopic(element);
 
-}
+                    if (topicResult !== undefined && topicResult.success) {
+
+                        element.status = "success"
+
+                    } else {
+                        element.status = "Fail"
+                    }
+                
+                input.push(element)
+
+                }))
+
+                input.push(null)
+
+            } catch (error) {
+
+                return reject({
+                    status: error.status || 500,
+                    message: error.message || "Oops! something went wrong.",
+                    errorObject: error
+                })
+
+            }
+        })
+
+    }
+
+
 
 async pushNotificationMessageToDevice(req) {
     return new Promise(async (resolve, reject) => {

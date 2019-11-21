@@ -2,7 +2,7 @@ const json2csvTransform = require('json2csv').Transform;
 const stream = require("stream");
 const fs = require("fs");
 const moment = require("moment-timezone");
-const DEFAULT_REPORTS_PATH = "./public/reports"
+const DEFAULT_REPORTS_PATH = "./public/pushNotifications"
 
 let FileStream = class FileStream {
 

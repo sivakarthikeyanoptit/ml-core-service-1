@@ -12,10 +12,10 @@ module.exports = class notificationsHelper {
                     topic: element.topicName,
                     notification: {
                         title: "Kendra Service",
-                        body: "This is a Kendra service"
+                        body: element.message
                     },
                     data: {
-                        welcomeMsg: element.message
+                        welcomeMsg: "welcome to kendra service"
                     }
                 }
 
@@ -28,6 +28,8 @@ module.exports = class notificationsHelper {
             }
         })
     }
+
+    
 
     static createNotificationInAndroid(notificationData) {
         return new Promise(async (resolve, reject) => {
