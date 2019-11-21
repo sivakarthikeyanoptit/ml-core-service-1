@@ -261,7 +261,7 @@ module.exports = class notificationsHelper {
                     throw "No devices found"
                 }
 
-                let getSpecificAppData = getAllDevices.devices.filter(eachDeviceName => eachDeviceName.app === notificationMessage.appName)
+                let getSpecificAppData = getAllDevices.devices.filter(eachDeviceName => eachDeviceName.app === notificationMessage.appName && eachDeviceName.status === "active")
 
                 for (let pointerToDevices = 0; pointerToDevices < getSpecificAppData.length; pointerToDevices++) {
 

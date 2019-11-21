@@ -2,6 +2,7 @@ let fcmNotification = require('fcm-notification'); // load firebase notification
 const FCM_KEY_PATH = (process.env.FCM_KEY_PATH && process.env.FCM_KEY_PATH != "") ? process.env.FCM_KEY_PATH : "/config/fcm-keystore.json"
 const fcm_token_path = require(ROOT_PATH + FCM_KEY_PATH); //read firebase token from the file
 let FCM = new fcmNotification(fcm_token_path);
+let samikshaThemeColor = process.env.SAMIKSHA_THEME_COLOR ? process.env.SAMIKSHA_THEME_COLOR : "#A63936"
 
 module.exports = class notificationsHelper {
 
@@ -30,7 +31,7 @@ module.exports = class notificationsHelper {
         })
     }
 
-    
+
 
     static createNotificationInAndroid(notificationData) {
         return new Promise(async (resolve, reject) => {
@@ -46,7 +47,7 @@ module.exports = class notificationsHelper {
                             title: notificationData.title ? notificationData.title : 'kendra service',
                             body: notificationData.text ? notificationData.text : notificationData.message,
                             icon: 'stock_ticker_update',
-                            color: '#f45342'
+                            color: samikshaThemeColor
                         },
 
                     },
