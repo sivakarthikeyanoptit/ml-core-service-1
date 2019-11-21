@@ -88,24 +88,21 @@ module.exports = class userExtensionHelper {
     }
 
 
-    static updateDeviceStatus(deviceData, deviceArray) {
+    static updateDeviceStatus(deviceData, deviceArray, userId) {
 
         return new Promise(async (resolve, reject) => {
 
             deviceArray.forEach(async devices => {
-
-                console.log(devices);
-                console.log(deviceData);
+             
+                delete devices['message'];
 
                 if (devices.deviceId == deviceData.deviceId) {
                     devices.status = "inactive"
+                    devices.deactivatedAt = new Date();
                 }
 
-                delete devices['message'];
-                // delete devices['userId'];
-
                 let statusUpdate = await database.models.userExtension.findOneAndUpdate(
-                    { userId: deviceData.userId },
+                    { userId: userId },
                     { $set: { "devices": deviceArray } }
                 );
 

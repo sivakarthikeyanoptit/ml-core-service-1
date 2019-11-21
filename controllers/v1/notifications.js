@@ -162,7 +162,9 @@ module.exports = class Notifications {
                 let deviceData = {
                     deviceId: req.body.deviceId,
                     app: req.headers.app,
-                    os: req.headers.os
+                    os: req.headers.os,
+                    status: "active",
+                    activatedAt: new Date()
                 }
 
                 let result = await userExtensionHelper.createOrUpdate(deviceData, req.userDetails);
@@ -186,17 +188,17 @@ module.exports = class Notifications {
     }
 
 
-
+   
     /**
-       * @api {post} /kendra/api/v1/notifications/pushToUsers  Push Notifications To Users
-       * @apiVersion 1.0.0
-       * @apiName Push Notifications To Users
-       * @apiGroup Notifications
-       * @apiHeader {String} X-authenticated-user-token Authenticity token
-       * @apiSampleRequest /kendra/api/v1/notifications/pushToUsers
-       * @apiUse successBody
-       * @apiUse errorBody
-       */
+     * @api {post} /kendra/api/v1/notifications/pushToUsers  Push Notifications To Users
+     * @apiVersion 1.0.0
+     * @apiName Push Notifications To Users
+     * @apiGroup Notifications
+     * @apiHeader {String} X-authenticated-user-token Authenticity token
+     * @apiSampleRequest /kendra/api/v1/notifications/pushToUsers
+     * @apiUse successBody
+     * @apiUse errorBody
+     */
 
     async pushToUsers(req) {
 
@@ -204,7 +206,24 @@ module.exports = class Notifications {
 
             try {
 
+                if (!req.files || !req.files.userData) {
+                    throw { message: "Missing file of type userData" }
+                }
+
                 let userData = await csv().fromString(req.files.userData.data.toString());
+
+                const fileName = `push-to-device`;
+                let fileStream = new FileStream(fileName);
+                let input = fileStream.initStream();
+
+                (async function () {
+                    await fileStream.getProcessorPromise();
+                    return resolve({
+                        isResponseAStream: true,
+                        fileNameWithPath: fileStream.fileNameWithPath()
+                    });
+                })();
+
 
                 await Promise.all(userData.map(async element => {
 
@@ -234,10 +253,9 @@ module.exports = class Notifications {
 
                                 } else if (device.os == "ios") {
 
-                                    device.message = element.message;
-                                    notificationResult = await pushNotificationsHelper.createNotificationInIos(device);
-                                }
+                                let updateStatus = await userExtensionHelper.updateDeviceStatus(device,deviceArray,element.userId)
 
+                                element.status = "Fail"
 
                                 if (notificationResult !== undefined && notificationResult.message != "") {
 
@@ -260,18 +278,22 @@ module.exports = class Notifications {
                             }
 
                             else {
-                                return resolve({
-                                    status: 500,
-                                    message: "invalid device id"
-                                })
+
+                                element.status = "Success"
                             }
 
-                        }));
+                            input.push(element)
 
-                    }
+                        }
 
-                }))
+                    }));
+                
+                }
+                
+            }))
 
+            input.push(null)
+                 
             } catch (error) {
 
                 return reject({
@@ -287,9 +309,9 @@ module.exports = class Notifications {
 
 
     /**
-    * @api {post} /kendra/api/v1/notifications/pushToTopic
+    * @api {post} /kendra/api/v1/notifications/pushToTopic Push Notification to topic
     * @apiVersion 1.0.0
-    * @apiName push notification to topic
+    * @apiName Push Notification to topic
     * @apiGroup Notifications
     * @apiSampleRequest /kendra/api/v1/notifications/pushToTopic
     * @apiUse successBody
@@ -352,44 +374,76 @@ module.exports = class Notifications {
 
 
     /**
-    * @api {post} /kendra/api/v1/notifications/pushToAllUsers
+    * @api {post} /kendra/api/v1/notifications/pushToAllUsers  Push Notification To ALL Users
     * @apiVersion 1.0.0
-    * @apiName push notification to all users
+    * @apiName Push Notification To ALL Users Topic
     * @apiGroup Notifications
     * @apiSampleRequest /kendra/api/v1/notifications/pushToAllUsers
+    * @apiHeader {String} X-authenticated-user-token Authenticity token
     * @apiUse successBody
     * @apiUse errorBody
     */
 
-    async pushToAllUsers(req) {
-        return new Promise(async (resolve, reject) => {
+   async pushToAllUsers(req) {
+    return new Promise(async (resolve, reject) => {
 
-            try {
+        try {
 
-                let userData = await csv().fromString(req.files.userData.data.toString());
-
-                await Promise.all(userData.map(async element => {
-
-                    let notificationResult = await pushNotificationsHelper.pushToDeviceId(element);
-
-                }))
-
-                return resolve({
-                    message: "successfully sent notifications to users",
-                });
-
-            } catch (error) {
-
-                return reject({
-                    status: error.status || 500,
-                    message: error.message || "Oops! something went wrong.",
-                    errorObject: error
-                })
-
+            if (!req.files || !req.files.pushToAllUsers) {
+                throw { message: "Missing file of type pushToAllUsers" }
             }
-        })
 
-    }
+            let pushToAllUsers = await csv().fromString(req.files.pushToAllUsers.data.toString());
+
+            const fileName = `push-to-all-users`;
+            let fileStream = new FileStream(fileName);
+            let input = fileStream.initStream();
+
+            (async function () {
+                await fileStream.getProcessorPromise();
+                return resolve({
+                    isResponseAStream: true,
+                    fileNameWithPath: fileStream.fileNameWithPath()
+                });
+            })();
+
+
+            await Promise.all(pushToAllUsers.map(async element => {
+
+                if (!element.topicName) {
+                    element.topicName = "allUsers"
+                }
+
+                let topicResult = await pushNotificationsHelper.pushToTopic(element);
+
+                if (topicResult !== undefined && topicResult.success) {
+
+                    element.status = "success"
+
+                } else {
+                    element.status = "Fail"
+                }
+            
+            input.push(element)
+
+            }))
+
+            input.push(null)
+
+        } catch (error) {
+
+            return reject({
+                status: error.status || 500,
+                message: error.message || "Oops! something went wrong.",
+                errorObject: error
+            })
+
+        }
+    })
+
+}
+
+   
 
     async pushNotificationMessageToDevice(req) {
         return new Promise(async (resolve, reject) => {
@@ -427,5 +481,6 @@ module.exports = class Notifications {
         })
     }
 
+    
 };
 
