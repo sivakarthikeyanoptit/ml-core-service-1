@@ -94,9 +94,15 @@ module.exports = class userExtensionHelper {
 
             deviceArray.forEach(async devices => {
 
+                console.log(devices);
+                console.log(deviceData);
+
                 if (devices.deviceId == deviceData.deviceId) {
                     devices.status = "inactive"
                 }
+
+                delete devices['message'];
+                // delete devices['userId'];
 
                 let statusUpdate = await database.models.userExtension.findOneAndUpdate(
                     { userId: deviceData.userId },

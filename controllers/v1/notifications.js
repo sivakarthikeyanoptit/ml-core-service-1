@@ -186,7 +186,8 @@ module.exports = class Notifications {
     }
 
 
-    /**
+   
+  /**
      * @api {post} /kendra/api/v1/notifications/pushToUsers  Push Notifications To Users
      * @apiVersion 1.0.0
      * @apiName Push Notifications To Users
@@ -203,92 +204,72 @@ module.exports = class Notifications {
 
             try {
 
-                if (!req.files || !req.files.userData) {
-                    throw { message: "Missing file of type userData" }
-                }
-
                 let userData = await csv().fromString(req.files.userData.data.toString());
-
-                const fileName = `push-to-device`;
-                let fileStream = new FileStream(fileName);
-                let input = fileStream.initStream();
-
-                (async function () {
-                    await fileStream.getProcessorPromise();
-                    return resolve({
-                        isResponseAStream: true,
-                        fileNameWithPath: fileStream.fileNameWithPath()
-                    });
-                })();
 
                 await Promise.all(userData.map(async element => {
                     let userProfile = await userExtensionHelper.profileWithEntityDetails({
                         userId: element.userId,
                         status: "active",
                         isDeleted: false
-                    }, { devices: 1 })
+                    })
+                    
+                    if (userProfile){
 
                     let deviceArray = userProfile.devices;
 
                     await Promise.all(deviceArray.map(async device => {
-
+                    
                         if (device.app == element.appName && device.status != "inactive") {
 
-                            // let message;
+                            let message;
                             let notificationResult;
                             let status;
 
                             device.message = element.message;
                             notificationResult = await pushNotificationsHelper.createNotificationInAndroid(device);
 
-                            if (notificationResult !== undefined && notificationResult.success) {
+                            if (notificationResult !== undefined && notificationResult.message != "") {
 
-                                element.status = "success"
-
-                            } else {
                                 device.userId = element.userId;
+                                let updateStatus = await userExtensionHelper.updateDeviceStatus(device,deviceArray)
 
-                                element.status = "Fail"
-                                await userExtensionHelper.updateDeviceStatus(device, deviceArray)
+                                message= "Failed to send the notification";
+                                status = 500
+
+                            } 
+                            else {
+                                status = 200
+                                message= "succesfully sent notification";
                             }
 
-                            input.push(element);
-                        }
-
-                    } 
-                            else {
-                            status = 200
-                                message= "succesfully sent notification";
-                        }
-
                             return resolve({
-                            status: status,
-                            message: message
-                        })
-                }
+                                status: status,
+                                message: message
+                            })
+                        }
 
                         else {
-                        return resolve({
-                            status: 500,
-                            message: "invalid device id"
-                        })
-                    }
+                            return resolve({
+                                status: 500,
+                                message: "invalid device id"
+                            })
+                        }
 
                     }));
-
-    }
-
-}))
+                
+                }
+                
+            }))
                  
             } catch (error) {
 
-    return reject({
-        status: error.status || 500,
-        message: error.message || "Oops! something went wrong.",
-        errorObject: error
-    })
+                return reject({
+                    status: error.status || 500,
+                    message: error.message || "Oops! something went wrong.",
+                    errorObject: error
+                })
 
-}
+            }
         })
 
     }
