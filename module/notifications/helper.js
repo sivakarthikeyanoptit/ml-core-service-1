@@ -211,7 +211,7 @@ module.exports = class notificationsHelper {
                         result.text = observation ? `You have Completed ${userCompletionData[allUserCompletionData[pointerToUserData]].count} Observations this month!` : `You have Completed ${userCompletionData[allUserCompletionData[pointerToUserData]].count} Assessments this month!`
                         let pushCompletedAssessmentsOrObservationsToKafka = await kafkaCommunication.pushAssessmentsOrObservationsNotification(result);
 
-                        if (pushAssessmentsOrObservationsToKafka.status && pushCompletedAssessmentsOrObservationsToKafka.status != "success") {
+                        if (pushCompletedAssessmentsOrObservationsToKafka.status && pushCompletedAssessmentsOrObservationsToKafka.status != "success") {
                             let errorObject = {
                                 message: observations ? `Failed to push completed observations to kafka` : `Failed to push completed assessments to kafka`,
                                 payload: result.payload
