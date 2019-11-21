@@ -237,46 +237,24 @@ module.exports = class Notifications {
 
                     if (userProfile) {
 
-                        let deviceArray = userProfile.devices;
+                    let deviceArray = userProfile.devices;
 
-                        await Promise.all(deviceArray.map(async device => {
+                    await Promise.all(deviceArray.map(async device => {
+                    
+                        if (device.app == element.appName && device.status != "inactive") {
 
-                            if (device.app == element.appName && device.status != "inactive") {
+                            let notificationResult;
 
-                                let message;
-                                let notificationResult;
+                            device.message = element.message;
+                            notificationResult = await pushNotificationsHelper.createNotificationInAndroid(device);
 
-                                if (device.os == "android") {
-
-                                    device.message = element.message;
-                                    notificationResult = await pushNotificationsHelper.createNotificationInAndroid(device);
-
-                                } else if (device.os == "ios") {
+                            if (notificationResult !== undefined && notificationResult.message != "") {
 
                                 let updateStatus = await userExtensionHelper.updateDeviceStatus(device,deviceArray,element.userId)
 
                                 element.status = "Fail"
 
-                                if (notificationResult !== undefined && notificationResult.message != "") {
-
-                                    device.userId = element.userId;
-                                    let updateStatus = await userExtensionHelper.updateDeviceStatus(device, deviceArray)
-
-                                    message = "Failed to send the notification";
-                                    status = 500
-
-                                }
-                                else {
-                                    status = 200
-                                    message = "succesfully sent notification";
-                                }
-
-                                return resolve({
-                                    status: status,
-                                    message: message
-                                })
-                            }
-
+                            } 
                             else {
 
                                 element.status = "Success"
