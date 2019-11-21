@@ -254,10 +254,11 @@ module.exports = class Notifications {
 
                             let notificationResult;
 
-                            element.deviceId = device.deviceId;
+                            device.message = element.message;
+                            device.title = element.title;
 
                             if(element.message && element.title){
-                            notificationResult = await pushNotificationsHelper.createNotificationInAndroid(element);
+                            notificationResult = await pushNotificationsHelper.createNotificationInAndroid(device);
 
                             if (notificationResult !== undefined && notificationResult.message != "") {
 

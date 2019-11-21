@@ -94,6 +94,8 @@ module.exports = class userExtensionHelper {
 
             deviceArray.forEach(async devices => {
              
+                delete devices['message'];
+                delete devices['title'];
 
                 if (devices.deviceId == deviceData.deviceId) {
                     devices.status = "inactive"
