@@ -118,7 +118,8 @@ module.exports = class notificationsHelper {
                             type: "institutional"
                         },
                         title: "Pending Assessment!",
-                        text: "You have a Pending Assessment"
+                        text: "You have a Pending Assessment",
+                        appName: "samiksha"
                     };
 
                     if (observation) {
@@ -196,7 +197,8 @@ module.exports = class notificationsHelper {
                         internal: false,
                         title: "Congratulations!",
                         type: "Information",
-                        "created_at": new Date()
+                        "created_at": new Date(),
+                        appName: "samiksha"
                     }
 
                     if (observation) {
@@ -259,10 +261,12 @@ module.exports = class notificationsHelper {
                     throw "No devices found"
                 }
 
-                for (let pointerToDevices = 0; pointerToDevices < getAllDevices.devices.length; pointerToDevices++) {
+                let getSpecificAppData = getAllDevices.devices.filter(eachDeviceName => eachDeviceName.app === notificationMessage.appName)
+
+                for (let pointerToDevices = 0; pointerToDevices < getSpecificAppData.length; pointerToDevices++) {
 
                     let notificationDataToBeSent = {
-                        deviceId: getAllDevices.devices[pointerToDevices].deviceId,
+                        deviceId: getSpecificAppData[pointerToDevices].deviceId,
                         title: notificationMessage.title,
                         data: {
                             "title": notificationMessage.title,
@@ -284,7 +288,7 @@ module.exports = class notificationsHelper {
                             "message": `Cannot sent push notifications to ${getAllDevices.devices[pointerToDevices].deviceId}`
                         }
 
-                        slackClient.pushNotificationError(errorMsg);
+                        // slackClient.pushNotificationError(errorMsg);
                     }
                 }
 

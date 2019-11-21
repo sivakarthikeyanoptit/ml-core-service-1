@@ -411,7 +411,8 @@ module.exports = class Notifications {
                     "text": "You have a Pending Observation",
                     "id": 66,
                     "type": "Information",
-                    "title": "Pending Observation!"
+                    "title": "Pending Observation!",
+                    "appName": "samiksha"
                 })
 
                 resolve({
