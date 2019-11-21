@@ -12,11 +12,8 @@ module.exports = class notificationsHelper {
                 let pushNotificationRelatedInformation = {
                     topic: element.topicName,
                     notification: {
-                        title: "Kendra Service",
+                        title: element.title,
                         body: element.message
-                    },
-                    data: {
-                        welcomeMsg: "welcome to kendra service"
                     }
                 }
 
@@ -37,13 +34,12 @@ module.exports = class notificationsHelper {
             try {
 
                 let pushNotificationRelatedInformation = {
-                    "data": notificationData.data,
                     android: {
                         ttl: 3600 * 1000, // 1 hour in milliseconds
                         priority: 'high',
                         notification: {
                             "click_action": "FCM_PLUGIN_ACTIVITY",
-                            title: notificationData.title ? notificationData.title : 'kendra service',
+                            title: notificationData.title,
                             body: notificationData.text ? notificationData.text : notificationData.message,
                             icon: 'stock_ticker_update',
                             color: '#f45342'
@@ -70,23 +66,20 @@ module.exports = class notificationsHelper {
                 let pushNotificationRelatedInformation = {
                     android: {
                         notification: {
-                            title: "Kendra Service",
-                            body: notificationData.message
-                        },
-                        data: {
-                            welcomeMsg: "Welcome to Kendra "
+                            "click_action": "FCM_PLUGIN_ACTIVITY",
+                            title: notificationData.title,
+                            body: notificationData.text ? notificationData.text : notificationData.message,
+                            icon: 'stock_ticker_update',
+                            color: '#f45342'
                         }
                     },
                     token: notificationData.deviceId
                 }
 
-                let pushToTopicData = await this.sendMessage(pushNotificationRelatedInformation)
+                let pushToDevice = await this.sendMessage(pushNotificationRelatedInformation)
 
-                if (pushToTopicData.success) {
-                    return resolve({
-                        message: req.t('pushNotificationSuccess')
-                    })
-                }
+                return resolve(pushToDevice)
+                
 
             } catch (error) {
                 return reject(error);
@@ -103,21 +96,14 @@ module.exports = class notificationsHelper {
                 let pushNotificationRelatedInformation = {
                     token: token,
                     notification: {
-                        title: "Kendra Service",
+                        title: notificationData,
                         body: notificationData.message
-                    },
-                    data: {
-                        welcomeMsg: "Welcome to Kendra "
                     }
                 }
 
                 let pushToFcmToken = await this.sendMessage(pushNotificationRelatedInformation)
-
-                if (pushToFcmToken.success) {
-                    return resolve({
-                        message: req.t('pushNotificationSuccess')
-                    })
-                }
+                
+                return resolve(pushToFcmToken);
 
             } catch (error) {
                 return reject(error)

@@ -244,7 +244,7 @@ module.exports = class Notifications {
                             devices: 1
                         })
 
-                    if (userProfile) {
+                    if (userProfile.devices.length > 0) {
 
                     let deviceArray = userProfile.devices;
 
@@ -254,8 +254,10 @@ module.exports = class Notifications {
 
                             let notificationResult;
 
-                            device.message = element.message;
-                            notificationResult = await pushNotificationsHelper.createNotificationInAndroid(device);
+                            element.deviceId = device.deviceId;
+
+                            if(element.message && element.title){
+                            notificationResult = await pushNotificationsHelper.createNotificationInAndroid(element);
 
                             if (notificationResult !== undefined && notificationResult.message != "") {
 
@@ -278,9 +280,14 @@ module.exports = class Notifications {
                                 element.status = "Success"
                             }
 
-                            input.push(element)
-
                         }
+                         else {
+                             element.status = "Fail"
+                         }
+
+                         input.push(element)
+
+                    }
 
                     }));
                 
@@ -339,13 +346,19 @@ module.exports = class Notifications {
 
                 await Promise.all(topicData.map(async element => {
 
-                    let topicResult = await pushNotificationsHelper.pushToTopic(element);
+                    if (element.message && element.title) {
+                        let topicResult = await pushNotificationsHelper.pushToTopic(element);
 
-                    if (topicResult !== undefined && topicResult.success) {
+                        if (topicResult !== undefined && topicResult.success) {
 
-                        element.status = "success"
+                            element.status = "success"
+
+                        } else {
+                            element.status = "Fail"
+                        }
 
                     } else {
+
                         element.status = "Fail"
                     }
 
@@ -409,7 +422,8 @@ module.exports = class Notifications {
                 if (!element.topicName) {
                     element.topicName = "allUsers"
                 }
-
+                
+                if(element.message && element.title){
                 let topicResult = await pushNotificationsHelper.pushToTopic(element);
 
                 if (topicResult !== undefined && topicResult.success) {
@@ -419,6 +433,10 @@ module.exports = class Notifications {
                 } else {
                     element.status = "Fail"
                 }
+            }
+            else {
+                element.status = "Fail"
+            }
             
             input.push(element)
 
@@ -476,6 +494,187 @@ module.exports = class Notifications {
             }
         })
     }
+
+
+
+    /**
+    * @api {post} /kendra/api/v1/notifications/subscribeToTopic  Subscribe To Topic
+    * @apiVersion 1.0.0
+    * @apiName Subscribe To Topic
+    * @apiGroup Notifications
+    * @apiSampleRequest /kendra/api/v1/notifications/subscribeToTopic
+    * @apiHeader {String} X-authenticated-user-token Authenticity token
+    * @apiUse successBody
+    * @apiUse errorBody
+    */
+
+    async subscribeToTopic(req) {
+        return new Promise(async (resolve, reject) => {
+
+            try {
+
+                if (!req.files || !req.files.subscribeToTopic) {
+                    throw { message: "Missing file of type subscribeToTopic" }
+                }
+
+                let subscribersData = await csv().fromString(req.files.subscribeToTopic.data.toString());
+
+                const fileName = `subscribe-to-topic`;
+                let fileStream = new FileStream(fileName);
+                let input = fileStream.initStream();
+
+                (async function () {
+                    await fileStream.getProcessorPromise();
+                    return resolve({
+                        isResponseAStream: true,
+                        fileNameWithPath: fileStream.fileNameWithPath()
+                    });
+                })();
+
+
+                await Promise.all(subscribersData.map(async subscriber => {
+                    
+                    let userProfile = await userExtensionHelper.profileWithEntityDetails({
+                        userId: subscriber.userId,
+                        status: "active",
+                        isDeleted: false
+                    }, {
+                            devices: 1
+                        })
+                    
+                    if(userProfile.devices.length > 0) {
+
+                        let deviceArray = userProfile.devices;
+
+                        await Promise.all(deviceArray.map(async device => {
+
+                            if(device.app == subscriber.appName && device.os == subscriber.os && device.status == "active"){
+                                
+                                device.topic = subscriber.topicName;
+
+                                let subscribeResult = await pushNotificationsHelper.subscribeToTopic(device)
+
+                                if (subscribeResult !== undefined && subscribeResult.success) {
+
+                                    element.status = "success"
+            
+                                } else {
+                                    element.status = "Fail"
+                                }
+
+                                input.push(element)
+
+                            }
+                        }))
+
+                    }
+               }))
+
+               input.push(null)
+
+            } catch (error) {
+
+                return reject({
+                    status: error.status || 500,
+                    message: error.message || "Oops! something went wrong.",
+                    errorObject: error
+                })
+
+            }
+        })
+
+    }
+
+
+
+    /**
+    * @api {post} /kendra/api/v1/notifications/unsubscribeFromTopic  Unsubscribe From Topic
+    * @apiVersion 1.0.0
+    * @apiName Unsubscribe From Topic
+    * @apiGroup Notifications
+    * @apiSampleRequest /kendra/api/v1/notifications/unsubscribeFromTopic
+    * @apiHeader {String} X-authenticated-user-token Authenticity token
+    * @apiUse successBody
+    * @apiUse errorBody
+    */
+
+   async unsubscribeFromTopic(req) {
+    return new Promise(async (resolve, reject) => {
+
+        try {
+
+            if (!req.files || !req.files.unsubscribeFromTopic) {
+                throw { message: "Missing file of type subscribeToTopic" }
+            }
+
+            let unsubscribersData = await csv().fromString(req.files.unsubscribeFromTopic.data.toString());
+
+            const fileName = `unsubscribe-from-topic`;
+            let fileStream = new FileStream(fileName);
+            let input = fileStream.initStream();
+
+            (async function () {
+                await fileStream.getProcessorPromise();
+                return resolve({
+                    isResponseAStream: true,
+                    fileNameWithPath: fileStream.fileNameWithPath()
+                });
+            })();
+
+
+            await Promise.all(unsubscribersData.map(async unsubscriber => {
+                
+                let userProfile = await userExtensionHelper.profileWithEntityDetails({
+                    userId: unsubscriber.userId,
+                    status: "active",
+                    isDeleted: false
+                }, {
+                        devices: 1
+                    })
+                
+                if(userProfile.devices.length > 0) {
+
+                    let deviceArray = userProfile.devices;
+
+                    await Promise.all(deviceArray.map(async device => {
+
+                        if(device.app == unsubscriber.appName && device.os == unsubscriber.os && device.status == "inactive"){
+                            
+                            device.topic = unsubscriber.topicName;
+
+                            let unsubscribeResult = await pushNotificationsHelper.unsubscribeFromTopic(device);
+
+                            if (unsubscribeResult !== undefined && unsubscribeResult.success) {
+
+                                element.status = "success"
+        
+                            } else {
+                                element.status = "Fail"
+                            }
+
+                            input.push(element)
+
+                        }
+                    }))
+
+                }
+           }))
+
+           input.push(null)
+
+        } catch (error) {
+
+            return reject({
+                status: error.status || 500,
+                message: error.message || "Oops! something went wrong.",
+                errorObject: error
+            })
+
+        }
+      })
+
+    }
+
 
 
 };
