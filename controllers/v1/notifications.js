@@ -186,16 +186,17 @@ module.exports = class Notifications {
     }
 
 
+
     /**
-     * @api {post} /kendra/api/v1/notifications/pushToUsers  Push Notifications To Users
-     * @apiVersion 1.0.0
-     * @apiName Push Notifications To Users
-     * @apiGroup Notifications
-     * @apiHeader {String} X-authenticated-user-token Authenticity token
-     * @apiSampleRequest /kendra/api/v1/notifications/pushToUsers
-     * @apiUse successBody
-     * @apiUse errorBody
-     */
+       * @api {post} /kendra/api/v1/notifications/pushToUsers  Push Notifications To Users
+       * @apiVersion 1.0.0
+       * @apiName Push Notifications To Users
+       * @apiGroup Notifications
+       * @apiHeader {String} X-authenticated-user-token Authenticity token
+       * @apiSampleRequest /kendra/api/v1/notifications/pushToUsers
+       * @apiUse successBody
+       * @apiUse errorBody
+       */
 
     async pushToUsers(req) {
 
@@ -203,23 +204,7 @@ module.exports = class Notifications {
 
             try {
 
-                if (!req.files || !req.files.userData) {
-                    throw { message: "Missing file of type userData" }
-                }
-
                 let userData = await csv().fromString(req.files.userData.data.toString());
-
-                const fileName = `push-to-device`;
-                let fileStream = new FileStream(fileName);
-                let input = fileStream.initStream();
-
-                (async function () {
-                    await fileStream.getProcessorPromise();
-                    return resolve({
-                        isResponseAStream: true,
-                        fileNameWithPath: fileStream.fileNameWithPath()
-                    });
-                })();
 
                 await Promise.all(userData.map(async element => {
 
@@ -227,48 +212,63 @@ module.exports = class Notifications {
                         userId: element.userId,
                         status: "active",
                         isDeleted: false
-                    }, { devices: 1 })
+                    })
 
-                    let deviceArray = userProfile.devices;
+                    if (userProfile) {
 
-                    await Promise.all(deviceArray.map(async device => {
+                        let deviceArray = userProfile.devices;
 
-                        if (device.app == element.appName && device.status != "inactive") {
+                        await Promise.all(deviceArray.map(async device => {
 
-                            // let message;
-                            let notificationResult;
+                            if (device.app == element.appName && device.status != "inactive") {
 
-                            if (device.os == "android") {
+                                let message;
+                                let notificationResult;
 
-                                device.message = element.message;
-                                notificationResult = await pushNotificationsHelper.createNotificationInAndroid(device);
+                                if (device.os == "android") {
 
-                            } else if (device.os == "ios") {
+                                    device.message = element.message;
+                                    notificationResult = await pushNotificationsHelper.createNotificationInAndroid(device);
 
-                                device.message = element.message;
-                                notificationResult = await pushNotificationsHelper.createNotificationInIos(device);
+                                } else if (device.os == "ios") {
+
+                                    device.message = element.message;
+                                    notificationResult = await pushNotificationsHelper.createNotificationInIos(device);
+                                }
+
+
+                                if (notificationResult !== undefined && notificationResult.message != "") {
+
+                                    device.userId = element.userId;
+                                    let updateStatus = await userExtensionHelper.updateDeviceStatus(device, deviceArray)
+
+                                    message = "Failed to send the notification";
+                                    status = 500
+
+                                }
+                                else {
+                                    status = 200
+                                    message = "succesfully sent notification";
+                                }
+
+                                return resolve({
+                                    status: status,
+                                    message: message
+                                })
                             }
 
-
-                            if (notificationResult !== undefined && notificationResult.success) {
-
-                                element.status = "success"
-
-                            } else {
-                                device.userId = element.userId;
-
-                                element.status = "Fail"
-                                await userExtensionHelper.updateDeviceStatus(device, deviceArray)
+                            else {
+                                return resolve({
+                                    status: 500,
+                                    message: "invalid device id"
+                                })
                             }
 
-                            input.push(element);
-                        }
+                        }));
 
-                    }));
+                    }
+
                 }))
-
-                input.push(null)
-
 
             } catch (error) {
 

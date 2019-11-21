@@ -132,11 +132,11 @@ module.exports = class notificationsHelper {
                     let success;
                     let message = "";
                     if (err) {
-                        // if (err.errorInfo && err.errorInfo.message) {
-                        //     if (err.errorInfo.message == "The registration token is not a valid FCM registration token") {
-                        //         message = err.errorInfo.message;
-                        //     }
-                        // }
+                        if (err.errorInfo && err.errorInfo.message) {
+                            if (err.errorInfo.message == "The registration token is not a valid FCM registration token") {
+                                message = err.errorInfo.message;
+                            }
+                        }
 
                         success = false;
                         // throw "Failed to push the notification"
@@ -146,7 +146,8 @@ module.exports = class notificationsHelper {
                     }
 
                     return resolve({
-                        success: success
+                        success: success,
+                        message: message
                     })
                 });
 
@@ -156,5 +157,6 @@ module.exports = class notificationsHelper {
         })
 
     }
+
 
 };
