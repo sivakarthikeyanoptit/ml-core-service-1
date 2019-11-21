@@ -144,7 +144,7 @@ module.exports = class notificationsHelper {
 
                         let pushAssessmentsOrObservationsToKafka = await kafkaCommunication.pushAssessmentsOrObservationsNotification(result);
 
-                        if (pushAssessmentsOrObservationsToKafka.status && pushAssessmentsOrObservationsToKafka.status != "success") {
+                        if (pushAssessmentsOrObservationsToKafka && pushAssessmentsOrObservationsToKafka.status && pushAssessmentsOrObservationsToKafka.status != "success") {
                             let errorObject = {
                                 userId: result.user_id,
                                 message: `Failed to push ${result.title} to kafka`,
@@ -274,6 +274,8 @@ module.exports = class notificationsHelper {
                             id: JSON.stringify(notificationMessage.id),
                             is_read: JSON.stringify(notificationMessage.is_read),
                             payload: JSON.stringify(notificationMessage.payload),
+                            action: notificationMessage.action,
+                            internal: notificationMessage.internal,
                             created_at: notificationMessage.created_at,
                             type: notificationMessage.type
                         },
