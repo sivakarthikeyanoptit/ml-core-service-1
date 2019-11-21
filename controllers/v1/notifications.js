@@ -169,6 +169,15 @@ module.exports = class Notifications {
 
                 let result = await userExtensionHelper.createOrUpdate(deviceData, req.userDetails);
 
+                //subscribe the deviceId to the topic
+		        let topicArray = ["allUsers", "all-" + deviceData.app + "-users", "all-" + deviceData.app + "-" + deviceData.os + "-users"];
+		        
+		        await Promise.all(topicArray.map(async topicName => {
+                        
+                        deviceData.topic = topicName;
+		                let subscribeResult = await pushNotificationsHelper.subscribeToTopic(deviceData)
+		         }))
+
 
                 return resolve({
                     message: "successfully registered device id",
@@ -250,7 +259,16 @@ module.exports = class Notifications {
 
                             if (notificationResult !== undefined && notificationResult.message != "") {
 
-                                let updateStatus = await userExtensionHelper.updateDeviceStatus(device,deviceArray,element.userId)
+                                let updateStatus = await userExtensionHelper.updateDeviceStatus(device, deviceArray, element.userId)
+
+                                //unsubscribe the deviceId from the topic
+                                let topicArray = ["allUsers", "all-" + device.app + "-users", "all-" + device.app + "-" + device.os + "-users"];
+
+                                await Promise.all(topicArray.map(async topicName => {
+
+                                    device.topic = topicName;
+                                    let unsubscribeResult = await pushNotificationsHelper.unsubscribeFromTopic(device)
+                                }))
 
                                 element.status = "Fail"
 
@@ -459,6 +477,6 @@ module.exports = class Notifications {
         })
     }
 
-    
+
 };
 

@@ -161,5 +161,66 @@ module.exports = class notificationsHelper {
 
     }
 
+    static subscribeToTopic(subscribeData) {
+
+        return new Promise(async (resolve, reject) => {
+
+            try {
+                
+                let success;
+
+                FCM.subscribeToTopic(subscribeData.deviceId, subscribeData.topic, function (err, response) {
+                    if (err) {
+                        success = false;
+                    } else {
+                        success = true;
+                    }
+                })
+             
+                return resolve({
+                    success: success
+                })
+
+
+            } catch (error) {
+                return reject(error)
+            }
+
+
+        })
+
+    }
+
+    static unsubscribeFromTopic(unsubscribeData) {
+
+        return new Promise(async (resolve, reject) => {
+
+            try {
+                
+                let success;
+
+                FCM.unsubscribeFromTopic(unsubscribeData.deviceId, unsubscribeData.topic, function (err, response) {
+                    if (err) {
+                        success = false;
+                    } else {
+                        success = true;
+                    }
+                })
+
+                return resolve({
+                    success: success
+                })
+
+
+            } catch (error) {
+                return reject(error)
+            }
+
+
+        })
+
+    }
+
+
 
 };
