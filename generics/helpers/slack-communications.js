@@ -7,6 +7,7 @@ const gotenbergCommunicationsOnOff = process.env.GOTENBERG_ERROR_MESSAGES_TO_SLA
 const sendKafkaErrorMessagesToSlack = (!process.env.KAFKA_ERROR_MESSAGES_TO_SLACK || !process.env.KAFKA_ERROR_MESSAGES_TO_SLACK != "OFF") ? "ON" : "OFF"
 const sendSamikshaErrorMessagesToSlack = (!process.env.SAMIKSHA_ERROR_MESSAGES_TO_SLACK || !process.env.SAMIKSHA_ERROR_MESSAGES_TO_SLACK !== "OFF") ? "ON" : "OFF"
 const sendElasticSearchErrorMessagesToSlack = (!process.env.ELASTIC_SEARCH_ERROR_MESSAGE_TO_SLACK || !process.env.ELASTIC_SEARCH_ERROR_MESSAGE_TO_SLACK != "OFF") ? "ON" : "OFF"
+const sendPushNotificationsErrorMessagesToSlack = (!process.env.PUSH_NOTIFICATIONS_MESSAGE_TO_SLACK || !process.env.PUSH_NOTIFICATIONS_MESSAGE_TO_SLACK != "OFF") ? "ON" : "OFF"
 
 SEND_ELASTICSEARCH_ERROR_TO_SLACK = "OFF"
 
@@ -566,6 +567,77 @@ const samikshaErrorAlert = function (errorMessage) {
   }
 }
 
+const pushNotificationError = function (errorMessage) {
+  if (slackCommunicationsOnOff === "ON" && sendPushNotificationsErrorMessagesToSlack === "ON" && slackToken != "") {
+
+    const reqObj = new Request()
+    let attachmentData = new Array
+    let fieldsData = new Array
+
+    Object.keys(errorMessage).forEach(objValue => {
+      fieldsData.push({
+        title: objValue,
+        value: errorMessage[objValue],
+        short: false
+      })
+    })
+
+    fieldsData.push({
+      title: "Environment",
+      value: process.env.NODE_ENV,
+      short: false
+    })
+
+    let attachment = {
+      color: "#0ED614",
+      pretext: errorMessage,
+      text: "More information below",
+      fields: fieldsData
+    }
+    attachmentData.push(attachment)
+
+    var options = {
+      json: {
+        text: "Push Notifications Error Logs",
+        attachments: attachmentData
+      }
+    }
+
+
+    let returnResponse = {}
+
+    new Promise((resolve, reject) => {
+      return resolve(reqObj.post(
+        exceptionLogPostUrl,
+        options
+      ));
+    }).then(result => {
+      if (result.data === "ok") {
+        returnResponse = {
+          success: true,
+          message: "Slack message posted."
+        }
+      } else {
+        throw Error("Slack message was not posted")
+      }
+      return returnResponse
+    }).catch((err) => {
+      returnResponse = {
+        success: false,
+        message: "Slack message was not posted"
+      }
+      return returnResponse
+    })
+
+  } else {
+    return {
+      success: false,
+      message: "Slack configuration is not done"
+    }
+  }
+}
+
+
 module.exports = {
   sendExceptionLogMessage: sendExceptionLogMessage,
   rubricErrorLogs: rubricErrorLogs,
@@ -573,6 +645,7 @@ module.exports = {
   gotenbergErrorLogs: gotenbergErrorLogs,
   kafkaErrorAlert: kafkaErrorAlert,
   elasticSearchErrorAlert: elasticSearchErrorAlert,
-  samikshaErrorAlert: samikshaErrorAlert
+  samikshaErrorAlert: samikshaErrorAlert,
+  pushNotificationError: pushNotificationError
 };
 

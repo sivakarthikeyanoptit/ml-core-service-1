@@ -8,6 +8,7 @@ const csv = require('csvtojson');
 const notificationsHelper = require(ROOT_PATH + "/module/notifications/helper");
 const userExtensionHelper = require(ROOT_PATH + "/module/user-extension/helper");
 const pushNotificationsHelper = require(ROOT_PATH + "/module/push-notifications/helper");
+const FileStream = require(ROOT_PATH + "/generics/file-stream");
 
 module.exports = class Notifications {
 
@@ -157,112 +158,208 @@ module.exports = class Notifications {
         return new Promise(async (resolve, reject) => {
 
             try {
-                
+
                 let deviceData = {
-                     deviceId : req.body.deviceId,
-                     app : req.headers.app,
-                     os : req.headers.os
+                    deviceId: req.body.deviceId,
+                    app: req.headers.app,
+                    os: req.headers.os
                 }
 
                 let result = await userExtensionHelper.createOrUpdate(deviceData, req.userDetails);
 
-        
+
                 return resolve({
-                  message: "successfully registered device id",
+                    message: "successfully registered device id",
                 });
-        
-                } catch (error) {
-        
+
+            } catch (error) {
+
                 return reject({
-                  status: error.status || 500,
-                  message: error.message || "Oops! something went wrong.",
-                  errorObject: error
+                    status: error.status || 500,
+                    message: error.message || "Oops! something went wrong.",
+                    errorObject: error
                 })
-        
-              }
+
+            }
+        })
+
+    }
+
+
+
+    /**
+       * @api {post} /kendra/api/v1/notifications/pushToUsers  Push Notifications To Users
+       * @apiVersion 1.0.0
+       * @apiName Push Notifications To Users
+       * @apiGroup Notifications
+       * @apiHeader {String} X-authenticated-user-token Authenticity token
+       * @apiSampleRequest /kendra/api/v1/notifications/pushToUsers
+       * @apiUse successBody
+       * @apiUse errorBody
+       */
+
+    async pushToUsers(req) {
+
+        return new Promise(async (resolve, reject) => {
+
+            try {
+
+                let userData = await csv().fromString(req.files.userData.data.toString());
+
+                await Promise.all(userData.map(async element => {
+
+                    let userProfile = await userExtensionHelper.profileWithEntityDetails({
+                        userId: element.userId,
+                        status: "active",
+                        isDeleted: false
+                    }, {
+                            devices: 1
+                        })
+
+                    if (userProfile) {
+
+                        let deviceArray = userProfile.devices;
+
+                        await Promise.all(deviceArray.map(async device => {
+
+                            if (device.app == element.appName && device.status != "inactive") {
+
+                                let message;
+                                let notificationResult;
+
+                                if (device.os == "android") {
+
+                                    device.message = element.message;
+                                    notificationResult = await pushNotificationsHelper.createNotificationInAndroid(device);
+
+                                } else if (device.os == "ios") {
+
+                                    device.message = element.message;
+                                    notificationResult = await pushNotificationsHelper.createNotificationInIos(device);
+                                }
+
+
+                                if (notificationResult !== undefined && notificationResult.message != "") {
+
+                                    device.userId = element.userId;
+                                    let updateStatus = await userExtensionHelper.updateDeviceStatus(device, deviceArray)
+
+                                    message = "Failed to send the notification";
+                                    status = 500
+
+                                }
+                                else {
+                                    status = 200
+                                    message = "succesfully sent notification";
+                                }
+
+                                return resolve({
+                                    status: status,
+                                    message: message
+                                })
+                            }
+
+                            else {
+                                return resolve({
+                                    status: 500,
+                                    message: "invalid device id"
+                                })
+                            }
+
+                        }));
+
+                    }
+
+                }))
+
+            } catch (error) {
+
+                return reject({
+                    status: error.status || 500,
+                    message: error.message || "Oops! something went wrong.",
+                    errorObject: error
+                })
+
+            }
         })
 
     }
 
 
     /**
-     * @api {post} /kendra/api/v1/notifications/pushToUsers
-     * @apiVersion 1.0.0
-     * @apiName push notification to users
-     * @apiGroup Notifications
-     * @apiHeader {String} X-authenticated-user-token Authenticity token
-     * @apiHeader {String} app
-     * @apiHeader {String} os
-     * @apiSampleRequest /kendra/api/v1/notifications/pushToUsers
-     * @apiUse successBody
-     * @apiUse errorBody
-     */
-
-    async pushToUsers(req) {
-        return new Promise(async (resolve, reject) => {
-
-            try {
-
-                return resolve({ result: searchData })
-            }
-            catch (error) {
-                reject(error)
-            }
-        })
-
-    }
-
-
-     /**
-     * @api {post} /kendra/api/v1/notifications/pushToTopic
-     * @apiVersion 1.0.0
-     * @apiName push notification to topic
-     * @apiGroup Notifications
-     * @apiSampleRequest /kendra/api/v1/notifications/pushToTopic
-     * @apiUse successBody
-     * @apiUse errorBody
-     */
+    * @api {post} /kendra/api/v1/notifications/pushToTopic
+    * @apiVersion 1.0.0
+    * @apiName push notification to topic
+    * @apiGroup Notifications
+    * @apiSampleRequest /kendra/api/v1/notifications/pushToTopic
+    * @apiUse successBody
+    * @apiUse errorBody
+    */
 
     async pushToTopic(req) {
         return new Promise(async (resolve, reject) => {
 
             try {
 
-                let userData = await csv().fromString(req.files.userData.data.toString());
-                
-                await Promise.all(userData.map(async element => {
+                if (!req.files || !req.files.pushToTopic) {
+                    throw { message: "Missing file of type pushToTopic" }
+                }
 
-                       let notificationResult = await pushNotificationsHelper.pushToDeviceId(element);
+                let topicData = await csv().fromString(req.files.pushToTopic.data.toString());
+
+                const fileName = `push-to-topic`;
+                let fileStream = new FileStream(fileName);
+                let input = fileStream.initStream();
+
+                (async function () {
+                    await fileStream.getProcessorPromise();
+                    return resolve({
+                        isResponseAStream: true,
+                        fileNameWithPath: fileStream.fileNameWithPath()
+                    });
+                })();
+
+                await Promise.all(topicData.map(async element => {
+
+                    let topicResult = await pushNotificationsHelper.pushToTopic(element);
+
+                    if (topicResult !== undefined && topicResult.success) {
+
+                        element.status = "success"
+
+                    } else {
+                        element.status = "Fail"
+                    }
+
+                    input.push(element)
 
                 }))
 
-                return resolve({
-                    message: "successfully sent notifications to users",
-                  });
-        
-              } catch (error) {
-        
+                input.push(null)
+
+            } catch (error) {
+
                 return reject({
-                  status: error.status || 500,
-                  message: error.message || "Oops! something went wrong.",
-                  errorObject: error
+                    status: error.status || 500,
+                    message: error.message || "Oops! something went wrong.",
+                    errorObject: error
                 })
-        
-              }
+
+            }
         })
 
     }
 
 
-     /**
-     * @api {post} /kendra/api/v1/notifications/pushToAllUsers
-     * @apiVersion 1.0.0
-     * @apiName push notification to all users
-     * @apiGroup Notifications
-     * @apiSampleRequest /kendra/api/v1/notifications/pushToAllUsers
-     * @apiUse successBody
-     * @apiUse errorBody
-     */
+    /**
+    * @api {post} /kendra/api/v1/notifications/pushToAllUsers
+    * @apiVersion 1.0.0
+    * @apiName push notification to all users
+    * @apiGroup Notifications
+    * @apiSampleRequest /kendra/api/v1/notifications/pushToAllUsers
+    * @apiUse successBody
+    * @apiUse errorBody
+    */
 
     async pushToAllUsers(req) {
         return new Promise(async (resolve, reject) => {
@@ -270,28 +367,63 @@ module.exports = class Notifications {
             try {
 
                 let userData = await csv().fromString(req.files.userData.data.toString());
-                
+
                 await Promise.all(userData.map(async element => {
 
-                       let notificationResult = await pushNotificationsHelper.pushToDeviceId(element);
+                    let notificationResult = await pushNotificationsHelper.pushToDeviceId(element);
 
                 }))
 
                 return resolve({
                     message: "successfully sent notifications to users",
-                  });
-        
-              } catch (error) {
-        
+                });
+
+            } catch (error) {
+
                 return reject({
-                  status: error.status || 500,
-                  message: error.message || "Oops! something went wrong.",
-                  errorObject: error
+                    status: error.status || 500,
+                    message: error.message || "Oops! something went wrong.",
+                    errorObject: error
                 })
-        
-              }
+
+            }
         })
 
+    }
+
+    async pushNotificationMessageToDevice(req) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                await notificationsHelper.pushNotificationMessageToDevice(req.userDetails.id, {
+                    "is_read": false,
+                    "internal": false,
+                    "payload": {
+                        "submission_id": "5d7640a02788a2413a359cd1",
+                        "entity_name": "Shri Shiv Middle School, Shiv Kutti, Teliwara, Delhi",
+                        "observation_id": "5d663d63d7277c09376e786d",
+                        "type": "observation",
+                        "entity_id": "5bfe53ea1d0c350d61b78d0f",
+                        "solution_id": "5d0a0cf11e724f059a0d8f11"
+                    },
+                    "action": "pending",
+                    "created_at": "2019-11-20T08:47:00.109Z",
+                    "text": "You have a Pending Observation",
+                    "id": 66,
+                    "type": "Information",
+                    "title": "Pending Observation!"
+                })
+
+                resolve({
+                    message: "Success"
+                })
+            }
+            catch (error) {
+                return reject({
+                    status: error
+                })
+            }
+        })
     }
 
 };

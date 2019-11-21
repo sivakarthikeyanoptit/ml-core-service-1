@@ -3,6 +3,8 @@ const kafkaCommunication = require(ROOT_PATH + "/generics/helpers/kafka-communic
 let moment = require("moment-timezone")
 let currentDate = moment(new Date());
 let slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
+const userExtensionHelper = require(ROOT_PATH + "/module/user-extension/helper");
+const pushNotificationsHelper = require(ROOT_PATH + "/module/push-notifications/helper");
 
 module.exports = class notificationsHelper {
 
@@ -141,7 +143,7 @@ module.exports = class notificationsHelper {
 
                         let pushAssessmentsOrObservationsToKafka = await kafkaCommunication.pushAssessmentsOrObservationsNotification(result);
 
-                        if (pushAssessmentsOrObservationsToKafka.status != "success") {
+                        if (pushAssessmentsOrObservationsToKafka.status && pushAssessmentsOrObservationsToKafka.status != "success") {
                             let errorObject = {
                                 userId: result.user_id,
                                 message: `Failed to push ${result.title} to kafka`,
@@ -207,7 +209,7 @@ module.exports = class notificationsHelper {
                         result.text = observation ? `You have Completed ${userCompletionData[allUserCompletionData[pointerToUserData]].count} Observations this month!` : `You have Completed ${userCompletionData[allUserCompletionData[pointerToUserData]].count} Assessments this month!`
                         let pushCompletedAssessmentsOrObservationsToKafka = await kafkaCommunication.pushAssessmentsOrObservationsNotification(result);
 
-                        if (pushCompletedAssessmentsOrObservationsToKafka.status != "success") {
+                        if (pushAssessmentsOrObservationsToKafka.status && pushCompletedAssessmentsOrObservationsToKafka.status != "success") {
                             let errorObject = {
                                 message: observations ? `Failed to push completed observations to kafka` : `Failed to push completed assessments to kafka`,
                                 payload: result.payload
@@ -238,6 +240,57 @@ module.exports = class notificationsHelper {
                 })
             }
             catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+    static pushNotificationMessageToDevice(userId, notificationMessage) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let getAllDevices = await userExtensionHelper.profileWithEntityDetails({
+                    userId: userId,
+                    status: "active",
+                    isDeleted: false
+                }, { devices: 1 })
+
+                if (!getAllDevices.devices.length > 0) {
+                    throw "No devices found"
+                }
+
+                for (let pointerToDevices = 0; pointerToDevices < getAllDevices.devices.length; pointerToDevices++) {
+
+                    let notificationDataToBeSent = {
+                        deviceId: getAllDevices.devices[pointerToDevices].deviceId,
+                        title: notificationMessage.title,
+                        data: {
+                            "title": notificationMessage.title,
+                            "text": notificationMessage.text,
+                            id: JSON.stringify(notificationMessage.id),
+                            is_read: JSON.stringify(notificationMessage.is_read),
+                            payload: JSON.stringify(notificationMessage.payload),
+                            created_at: notificationMessage.created_at,
+                            type: notificationMessage.type
+                        },
+                        text: notificationMessage.text
+                    }
+
+                    let pushedData = await pushNotificationsHelper.createNotificationInAndroid(notificationDataToBeSent);
+
+                    if (!pushedData.status) {
+
+                        let errorMsg = {
+                            "message": `Cannot sent push notifications to ${getAllDevices.devices[pointerToDevices].deviceId}`
+                        }
+
+                        slackClient.pushNotificationError(errorMsg);
+                    }
+                }
+
+                return resolve()
+
+            } catch (error) {
                 return reject(error);
             }
         })
