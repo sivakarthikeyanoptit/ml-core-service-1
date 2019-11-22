@@ -1,7 +1,7 @@
 
 module.exports = class userExtensionHelper {
 
-    static profileWithEntityDetails(filterQueryObject, projection = {}) {
+    static userExtensionDocument(filterQueryObject, projection = {}) {
         return new Promise(async (resolve, reject) => {
             try {
 
@@ -22,62 +22,67 @@ module.exports = class userExtensionHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let deviceArray = [];
-                let userId = userDetails.userId;
-
-                let userExtensionData = await database.models.userExtension.findOne({
-                    userId: userId,
+                let userExtensionData = await this.userExtensionDocument({
+                    userId: userDetails.userId,
                     status: "active",
                     isDeleted: false
-                })
+                }, { devices: 1 })
+
+                let response = {}
 
                 if (userExtensionData) {
 
-                    deviceArray = userExtensionData.devices;
+                    let deviceNotFound = false
 
-                    if (deviceArray.some(e => e.deviceId === deviceData.deviceId)) {
+                    if (userExtensionData.devices && userExtensionData.devices.length > 0) {
+
+                        let matchingDeviceData = userExtensionData.devices.find(eachDevice => eachDevice.deviceId === deviceData.deviceId);
+
+                        if (!matchingDeviceData) {
+
+                            deviceNotFound = true
+                        }
 
                     } else {
-
-                        deviceArray.push(deviceData);
-
-                        let deviceUpdate = await database.models.userExtension.findOneAndUpdate(
-                            {
-                                userId: userId
-                            },
-                            _.merge({
-                                "devices": deviceArray
-                            })
-                        );
+                        deviceNotFound = true
                     }
 
-                    return resolve({
-                        success: true,
-                        message: "Device successfuly registered."
-                    });
+                    if (deviceNotFound) {
 
-                }
+                        let updatedData = await database.models.userExtension.findOneAndUpdate({
+                            userId: userDetails.userId,
+                        }, { $addToSet: { devices: deviceData } }).lean();
 
-                else {
+                        if (updatedData) {
+                            response["success"] = true
+                            response["message"] = `Added Successfully device id ${deviceData.deviceId} for user ${userDetails.email}`
+                        } else {
+                            throw `Could not add device id ${deviceData.deviceId} for user ${userDetails.email}`
+                        }
+                    }
 
-                    deviceArray.push(deviceData);
+                } else {
 
-                    let newUser = await database.models.userExtension.create(
+                    let createUserExtension = await database.models.userExtension.create(
                         {
-                            "userId": userId,
-                            "externalId": userDetails.email,
-                            "devices": deviceArray,
+                            "userId": userDetails.userId,
+                            "externalId": userDetails.userName,
+                            "devices": [deviceData],
                             "createdBy": "SYSTEM",
                             "updatedBy": "SYSTEM"
                         }
-                    );
+                    )
 
-                    return resolve({
-                        success: true,
-                        message: "Device successfuly registered."
-                    });
+                    if (createUserExtension) {
+                        response["success"] = true
+                        response["message"] = `Successfully created user ${userDetails.userId} in userExtension`
+                    } else {
+                        throw `Could not create user ${userDetails.userId} in userExtension`
+                    }
 
                 }
+
+                return resolve(response)
 
             } catch (error) {
                 return reject(error);
@@ -93,7 +98,7 @@ module.exports = class userExtensionHelper {
         return new Promise(async (resolve, reject) => {
 
             deviceArray.forEach(async devices => {
-             
+
                 delete devices['message'];
                 delete devices['title'];
 

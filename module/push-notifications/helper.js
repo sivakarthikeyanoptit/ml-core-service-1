@@ -80,7 +80,7 @@ module.exports = class notificationsHelper {
                 let pushToDevice = await this.sendMessage(pushNotificationRelatedInformation)
 
                 return resolve(pushToDevice)
-                
+
 
             } catch (error) {
                 return reject(error);
@@ -103,7 +103,7 @@ module.exports = class notificationsHelper {
                 }
 
                 let pushToFcmToken = await this.sendMessage(pushNotificationRelatedInformation)
-                
+
                 return resolve(pushToFcmToken);
 
             } catch (error) {
@@ -153,7 +153,7 @@ module.exports = class notificationsHelper {
         return new Promise(async (resolve, reject) => {
 
             try {
-                
+
                 let success;
 
                 FCM.subscribeToTopic(subscribeData.deviceId, subscribeData.topic, function (err, response) {
@@ -162,11 +162,12 @@ module.exports = class notificationsHelper {
                     } else {
                         success = true;
                     }
+
+                    return resolve({
+                        success: success
+                    })
                 })
-             
-                return resolve({
-                    success: success
-                })
+
 
 
             } catch (error) {
@@ -183,7 +184,7 @@ module.exports = class notificationsHelper {
         return new Promise(async (resolve, reject) => {
 
             try {
-                
+
                 let success;
 
                 FCM.unsubscribeFromTopic(unsubscribeData.deviceId, unsubscribeData.topic, function (err, response) {
@@ -192,10 +193,10 @@ module.exports = class notificationsHelper {
                     } else {
                         success = true;
                     }
-                })
 
-                return resolve({
-                    success: success
+                    return resolve({
+                        success: success
+                    })
                 })
 
 
