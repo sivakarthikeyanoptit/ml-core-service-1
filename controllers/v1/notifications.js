@@ -531,13 +531,13 @@ module.exports = class Notifications {
 
                                 if (subscribeResult !== undefined && subscribeResult.success) {
 
-                                    element.status = "success"
+                                    subscriber.status = "success"
 
                                 } else {
-                                    element.status = "Fail"
+                                    subscriber.status = "Fail"
                                 }
 
-                                input.push(element)
+                                input.push(subscriber)
 
                             }
                         }))
@@ -620,13 +620,13 @@ module.exports = class Notifications {
 
                                 if (unsubscribeResult !== undefined && unsubscribeResult.success) {
 
-                                    element.status = "success"
+                                    unsubscriber.status = "success"
 
                                 } else {
-                                    element.status = "Fail"
+                                    unsubscriber.status = "Fail"
                                 }
 
-                                input.push(element)
+                                input.push(unsubscriber)
 
                             }
                         }))
