@@ -149,9 +149,13 @@ module.exports = class Notifications {
      * @apiUse errorBody
      * @apiParamExample {json} Response:
      * {
-      "message": "successfully registered device id",
-      "status": 200
-       }
+        "status": 200,
+        "result": {
+            "allUsers": "Subscribed",
+            "all-samiksha-users": "Subscribed",
+            "all-samiksha-android-users": "Subscribed"
+        }
+}
     */
 
     async registerDevice(req) {
@@ -202,8 +206,6 @@ module.exports = class Notifications {
         })
 
     }
-
-
 
     /**
      * @api {post} /kendra/api/v1/notifications/pushToUsers  Push Notifications To Users
