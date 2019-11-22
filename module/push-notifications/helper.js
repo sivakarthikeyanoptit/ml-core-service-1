@@ -3,6 +3,7 @@ const FCM_KEY_PATH = (process.env.FCM_KEY_PATH && process.env.FCM_KEY_PATH != ""
 const fcm_token_path = require(ROOT_PATH + FCM_KEY_PATH); //read firebase token from the file
 let FCM = new fcmNotification(fcm_token_path);
 let samikshaThemeColor = process.env.SAMIKSHA_THEME_COLOR ? process.env.SAMIKSHA_THEME_COLOR : "#A63936"
+const nodeEnvironment = process.env.NODE_ENV ? process.env.NODE_ENV : "dev"
 
 module.exports = class notificationsHelper {
 
@@ -27,8 +28,6 @@ module.exports = class notificationsHelper {
             }
         })
     }
-
-
 
     static createNotificationInAndroid(notificationData) {
         return new Promise(async (resolve, reject) => {
@@ -156,7 +155,7 @@ module.exports = class notificationsHelper {
 
                 let success;
 
-                FCM.subscribeToTopic(subscribeData.deviceId, subscribeData.topic, function (err, response) {
+                FCM.subscribeToTopic(subscribeData.deviceId, nodeEnvironment + "-" + subscribeData.topic, function (err, response) {
                     if (err) {
                         success = false;
                     } else {
@@ -187,7 +186,7 @@ module.exports = class notificationsHelper {
 
                 let success;
 
-                FCM.unsubscribeFromTopic(unsubscribeData.deviceId, unsubscribeData.topic, function (err, response) {
+                FCM.unsubscribeFromTopic(unsubscribeData.deviceId, nodeEnvironment + "-" + unsubscribeData.topic, function (err, response) {
                     if (err) {
                         success = false;
                     } else {
