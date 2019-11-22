@@ -3,7 +3,7 @@ const FCM_KEY_PATH = (process.env.FCM_KEY_PATH && process.env.FCM_KEY_PATH != ""
 const fcm_token_path = require(ROOT_PATH + FCM_KEY_PATH); //read firebase token from the file
 let FCM = new fcmNotification(fcm_token_path);
 let samikshaThemeColor = process.env.SAMIKSHA_THEME_COLOR ? process.env.SAMIKSHA_THEME_COLOR : "#A63936"
-const nodeEnvironment = process.env.NODE_ENV ? process.env.NODE_ENV : "dev"
+const nodeEnvironment = process.env.NODE_ENV ? process.env.NODE_ENV : "development"
 
 module.exports = class notificationsHelper {
 
