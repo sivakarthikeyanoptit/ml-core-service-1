@@ -1,30 +1,29 @@
 let fcmNotification = require('fcm-notification'); // load firebase notification
-// let fcm = new fcmNotification(ROOT_PATH + process.env.FIREBASE_KEYSTORE);
+const FCM_KEY_PATH = (process.env.FCM_KEY_PATH && process.env.FCM_KEY_PATH != "") ? process.env.FCM_KEY_PATH : "/config/fcm-keystore.json"
+const fcm_token_path = require(ROOT_PATH + FCM_KEY_PATH); //read firebase token from the file
+let FCM = new fcmNotification(fcm_token_path);
+let samikshaThemeColor = process.env.SAMIKSHA_THEME_COLOR ? process.env.SAMIKSHA_THEME_COLOR : "#A63936"
 
 module.exports = class notificationsHelper {
 
-    static createNotificationForAllUser(req) {
+    static pushToTopic(element) {
         return new Promise(async (resolve, reject) => {
             try {
 
                 let pushNotificationRelatedInformation = {
-                    topic: "allUsers",
+                    topic: element.topicName,
                     notification: {
                         title: "Kendra Service",
-                        body: "This is a Kendra service"
+                        body: element.message
                     },
                     data: {
-                        welcomeMsg: "Welcome to Kendra "
+                        welcomeMsg: "welcome to kendra service"
                     }
                 }
 
                 let pushToTopicData = await this.sendMessage(pushNotificationRelatedInformation)
 
-                if (pushToTopicData.success) {
-                    return resolve({
-                        message: req.t('pushNotificationSuccess')
-                    })
-                }
+                return resolve(pushToTopicData)
 
             } catch (error) {
                 return reject(error);
@@ -32,22 +31,54 @@ module.exports = class notificationsHelper {
         })
     }
 
-    static createNotificationInAndroid(req) {
+
+
+    static createNotificationInAndroid(notificationData) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let pushNotificationRelatedInformation = {
+                    "data": notificationData.data,
+                    android: {
+                        ttl: 3600 * 1000, // 1 hour in milliseconds
+                        priority: 'high',
+                        notification: {
+                            "click_action": "FCM_PLUGIN_ACTIVITY",
+                            title: notificationData.title ? notificationData.title : 'kendra service',
+                            body: notificationData.text ? notificationData.text : notificationData.message,
+                            icon: 'stock_ticker_update',
+                            color: samikshaThemeColor
+                        },
+
+                    },
+                    token: notificationData.deviceId
+                }
+
+                let pushToDevice = await this.sendMessage(pushNotificationRelatedInformation);
+
+                return resolve(pushToDevice)
+
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+    static createNotificationInIos(notificationData) {
         return new Promise(async (resolve, reject) => {
             try {
 
                 let pushNotificationRelatedInformation = {
                     android: {
-                        ttl: 3600 * 1000, // 1 hour in milliseconds
-                        priority: 'normal',
                         notification: {
-                            title: 'Android',
-                            body: 'For Android phone',
-                            icon: 'stock_ticker_update',
-                            color: '#f45342'
+                            title: "Kendra Service",
+                            body: notificationData.message
+                        },
+                        data: {
+                            welcomeMsg: "Welcome to Kendra "
                         }
                     },
-                    topic: "android"
+                    token: notificationData.deviceId
                 }
 
                 let pushToTopicData = await this.sendMessage(pushNotificationRelatedInformation)
@@ -64,46 +95,17 @@ module.exports = class notificationsHelper {
         })
     }
 
-    static createNotificationInIos(req) {
+    static pushToDeviceId(notificationData) {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let pushNotificationRelatedInformation = {
-                    topic: "ios",
-                    notification: {
-                        title: "Kendra Service",
-                        body: "This is a Kendra service"
-                    },
-                    data: {
-                        welcomeMsg: "Welcome to Kendra "
-                    }
-                }
-
-                let pushToTopicData = await this.sendMessage(pushNotificationRelatedInformation)
-
-                if (pushToTopicData.success) {
-                    return resolve({
-                        message: req.t('pushNotificationSuccess')
-                    })
-                }
-
-            } catch (error) {
-                return reject(error);
-            }
-        })
-    }
-
-    static pushToDeviceId(fcm_token) {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                var token = fcm_token;
+                var token = notificationData.deviceId;
 
                 let pushNotificationRelatedInformation = {
                     token: token,
                     notification: {
                         title: "Kendra Service",
-                        body: "This is a Kendra service"
+                        body: notificationData.message
                     },
                     data: {
                         welcomeMsg: "Welcome to Kendra "
@@ -124,41 +126,41 @@ module.exports = class notificationsHelper {
         })
     }
 
-    static sendMessage(notificationRelatedInformation) {
+    static sendMessage(notificationInformation) {
 
         return new Promise(async (resolve, reject) => {
             try {
 
-                fcm.send(notificationRelatedInformation, (err, response) => {
+                FCM.send(notificationInformation, (err, response) => {
+
+                    let success;
+                    let message = "";
                     if (err) {
-                        console.log('error::: ', err)
-                        throw "Failed to push the notification"
+                        if (err.errorInfo && err.errorInfo.message) {
+                            if (err.errorInfo.message == "The registration token is not a valid FCM registration token") {
+                                message = err.errorInfo.message;
+                            }
+                        }
+
+                        success = false;
+                        // throw "Failed to push the notification"
                     } else {
-                        console.log('In push notification')
-                        console.log('response::: ', response)
-                        return resolve({
-                            success: true
-                        })
+                        console.log(notificationInformation)
+                        success = true
                     }
+
+                    return resolve({
+                        success: success,
+                        message: message
+                    })
                 });
 
             } catch (error) {
-
+                return reject(error)
             }
         })
 
-
-        // Send a message to devices subscribed to the provided topic.
-
-        // fcm.send(message, function (err, response) {
-        //     if (err) {
-        //         console.log('error::: ', err);
-        //         return "ERROR";
-        //     } else {
-        //         console.log('response::: ', response);
-        //         return response;
-        //     }
-        // });
     }
+
 
 };

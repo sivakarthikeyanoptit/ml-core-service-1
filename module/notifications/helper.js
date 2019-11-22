@@ -1,13 +1,18 @@
-const elasticSearchHelper = require(ROOT_PATH + "/generics/helpers/elastic-search")
+const elasticSearchHelper = require(ROOT_PATH + "/generics/helpers/elastic-search");
+const kafkaCommunication = require(ROOT_PATH + "/generics/helpers/kafka-communications")
 let moment = require("moment-timezone")
+let currentDate = moment(new Date());
+let slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
+const userExtensionHelper = require(ROOT_PATH + "/module/user-extension/helper");
+const pushNotificationsHelper = require(ROOT_PATH + "/module/push-notifications/helper");
 
 module.exports = class notificationsHelper {
 
-    static list(userDetails, pageSize, pageNo,appName = "") {
+    static list(userDetails, pageSize, pageNo, appName = "") {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let getNotificationDocument = await elasticSearchHelper.getNotificationData(userDetails,appName)
+                let getNotificationDocument = await elasticSearchHelper.getNotificationData(userDetails, appName)
 
                 if (getNotificationDocument.statusCode !== 200) {
                     return resolve({
@@ -34,11 +39,11 @@ module.exports = class notificationsHelper {
         })
     }
 
-    static markItRead(userDetails, notificatonNumber,appName ="") {
+    static markItRead(userDetails, notificatonNumber, appName = "") {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let updateNotificationDocument = await elasticSearchHelper.updateNotificationData(userDetails, Number(notificatonNumber), { is_read: true },appName)
+                let updateNotificationDocument = await elasticSearchHelper.updateNotificationData(userDetails, Number(notificatonNumber), { is_read: true }, appName)
 
                 return resolve(updateNotificationDocument)
             } catch (error) {
@@ -47,11 +52,11 @@ module.exports = class notificationsHelper {
         })
     }
 
-    static unReadCount(userDetails,appName="") {
+    static unReadCount(userDetails, appName = "") {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let getNotificationDocument = await elasticSearchHelper.getNotificationData(userDetails,appName)
+                let getNotificationDocument = await elasticSearchHelper.getNotificationData(userDetails, appName)
 
                 if (getNotificationDocument.statusCode !== 200) {
                     return resolve({
@@ -73,7 +78,8 @@ module.exports = class notificationsHelper {
             try {
                 const userNotificationDocument = await elasticsearch.client.search({
                     index: "samiksha",
-                    type: "user-notification"
+                    type: "user-notification",
+                    size: 1000
                 })
 
                 let notifications = userNotificationDocument.body.hits.hits
@@ -87,350 +93,140 @@ module.exports = class notificationsHelper {
         })
     }
 
-    static pendingAssessments(pendingData) {
+    static pendingAssessmentsOrObservations(assessmentOrObservationData, observation = false) {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let currentDate = moment(new Date());
+                let pendingData = assessmentOrObservationData.filter(singleData => {
+                    let pendingCreatedDate = moment(singleData.createdAt)
+                    let dateDifferenceWithPendingAssessment = currentDate.diff(pendingCreatedDate, 'days')
 
-                pendingData = pendingData.filter(eachPendingData => {
-                    let createdAtDate = moment(eachPendingData.createdAt)
-                    let dateDifference = currentDate.diff(createdAtDate, 'days')
-
-                    // if (dateDifference >= 14) {
-                    //     return eachPendingData;
-                    // }
-
-                    return eachPendingData
-
+                    if (dateDifferenceWithPendingAssessment >= 14) {
+                        return singleData;
+                    }
                 })
 
                 if (pendingData.length > 0) {
 
-                    let assessment = {
+                    let result = {
+                        is_read: false,
+                        action: "pending",
+                        internal: false,
+                        type: "Information",
+                        created_at: new Date(),
+                        payload: {
+                            type: "institutional"
+                        },
+                        title: "Pending Assessment!",
+                        text: "You have a Pending Assessment",
+                        appName: "samiksha"
+                    };
+
+                    if (observation) {
+                        result.payload["type"] = "observation";
+                        result.title = "Pending Observation!";
+                        result.text = "You have a Pending Observation"
+                    }
+
+                    for (let pointerToPendingData = 0; pointerToPendingData < pendingData.length; pointerToPendingData++) {
+
+                        result.payload["solution_id"] = pendingData[pointerToPendingData].solutionId;
+                        result.payload["submission_id"] = pendingData[pointerToPendingData]._id;
+                        result.payload["entity_id"] = pendingData[pointerToPendingData].entityId;
+                        result.payload["entity_name"] = pendingData[pointerToPendingData].entityName;
+                        result["user_id"] = pendingData[pointerToPendingData].userId
+
+                        if (observation) {
+                            result.payload["observation_id"] = pendingData[pointerToPendingData].observationId;
+                        } else {
+                            result.payload["program_id"] = pendingData[pointerToPendingData].programId;
+                        }
+
+                        let pushAssessmentsOrObservationsToKafka = await kafkaCommunication.pushAssessmentsOrObservationsNotification(result);
+
+                        if (pushAssessmentsOrObservationsToKafka && pushAssessmentsOrObservationsToKafka.status && pushAssessmentsOrObservationsToKafka.status != "success") {
+                            let errorObject = {
+                                userId: result.user_id,
+                                message: `Failed to push ${result.title} to kafka`,
+                                payload: result.payload
+                            }
+                            slackClient.kafkaErrorAlert(errorObject)
+                            return;
+                        }
+                    }
+                }
+            }
+            catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+    static completedAssessmentsOrObservations(assessmentOrObservationData, observation = false) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let userCompletionData = {}
+
+                for (let indexToAssessmentOrObservationData = 0; indexToAssessmentOrObservationData < assessmentOrObservationData.length; indexToAssessmentOrObservationData++) {
+                    let createdAtDate = moment(assessmentOrObservationData[indexToAssessmentOrObservationData].createdAt).format("YYYY-MM-DD");
+
+                    let checkDate = moment(currentDate).isSame(createdAtDate, 'month');
+
+                    if (checkDate) {
+
+                        if (!userCompletionData[assessmentOrObservationData[indexToAssessmentOrObservationData].userId]) {
+                            userCompletionData[assessmentOrObservationData[indexToAssessmentOrObservationData].userId] = {}
+                            userCompletionData[assessmentOrObservationData[indexToAssessmentOrObservationData].userId]["count"] = 0;
+                        }
+
+                        userCompletionData[assessmentOrObservationData[indexToAssessmentOrObservationData].userId]["count"] += 1
+                    }
+                }
+
+                let allUserCompletionData = Object.keys(userCompletionData)
+
+                if (allUserCompletionData.length > 0) {
+
+                    let result = {
                         is_read: false,
                         payload: {
                             type: "institutional"
                         },
-                        action: "pending",
+                        action: "view_only",
                         internal: false,
-                        title: "Pending Assessment!",
-                        text: "You have a Pending Assessment",
+                        title: "Congratulations!",
                         type: "Information",
-                        created_at: new Date()
+                        "created_at": new Date(),
+                        appName: "samiksha"
                     }
 
-                    for (let pointerToPendingAssessments = 0; pointerToPendingAssessments < pendingData.length; pointerToPendingAssessments++) {
+                    if (observation) {
+                        result.payload.type = "observation"
+                    }
 
-                        let getNotificationDocument = await elasticSearchHelper.getNotificationData(pendingData[pointerToPendingAssessments].userId)
+                    for (let pointerToUserData = 0; pointerToUserData < allUserCompletionData.length; pointerToUserData++) {
 
-                        assessment.payload["solution_id"] = pendingData[pointerToPendingAssessments].solutionId;
-                        assessment.payload["submission_id"] = pendingData[pointerToPendingAssessments]._id;
-                        assessment.payload["entity_id"] = pendingData[pointerToPendingAssessments].entityId;
-                        assessment.payload["program_id"] = pendingData[pointerToPendingAssessments].programId;
-                        assessment.payload["entity_name"] = pendingData[pointerToPendingAssessments].entityName;
+                        result.user_id = allUserCompletionData[pointerToUserData]
+                        result.text = observation ? `You have Completed ${userCompletionData[allUserCompletionData[pointerToUserData]].count} Observations this month!` : `You have Completed ${userCompletionData[allUserCompletionData[pointerToUserData]].count} Assessments this month!`
+                        let pushCompletedAssessmentsOrObservationsToKafka = await kafkaCommunication.pushAssessmentsOrObservationsNotification(result);
 
-                        if (getNotificationDocument.statusCode !== 404) {
-
-                            let notifications = getNotificationDocument.body._source.notifications
-
-                            let existingNotification = notifications.find(item => {
-                                if (item.payload.submission_id === pendingData[pointerToPendingAssessments]._id) {
-                                    return item
-                                }
-                            })
-
-
-                            if (existingNotification !== undefined) {
-                                let dateDifference = currentDate.diff(existingNotification.created_at, 'days')
-
-                                // if (dateDifference >= 14) {
-                                    await elasticSearchHelper.updateNotificationData(pendingData[pointerToPendingAssessments].userId, Number(existingNotification.id), { created_at: new Date(),is_read:false })
-                                    // await elasticSearchHelper.deleteNotificationData(pendingData[pointerToPendingAssessments].userId, existingNotification.id)
-                                    // await elasticSearchHelper.pushNotificationData(pendingData[pointerToPendingAssessments].userId, assessment)
-                                // }
-                            } else{
-                                await elasticSearchHelper.pushNotificationData(pendingData[pointerToPendingAssessments].userId, assessment)
+                        if (pushCompletedAssessmentsOrObservationsToKafka.status && pushCompletedAssessmentsOrObservationsToKafka.status != "success") {
+                            let errorObject = {
+                                message: observations ? `Failed to push completed observations to kafka` : `Failed to push completed assessments to kafka`,
+                                payload: result.payload
                             }
-
-                        } else{
-                            await elasticSearchHelper.pushNotificationData(pendingData[pointerToPendingAssessments].userId, assessment)
+                            slackClient.kafkaErrorAlert(errorObject)
+                            return;
                         }
-
-
                     }
                 }
 
                 return resolve()
+
             }
             catch (error) {
                 return reject(error);
-            }
-        })
-    }
-
-    static pendingObservations(pendingObservationData) {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                let currentDate = moment(new Date());
-
-                pendingObservationData = pendingObservationData.filter(eachPendingData => {
-                    let createdAtDate = moment(eachPendingData.createdAt)
-                    let dateDifference = currentDate.diff(createdAtDate, 'days')
-
-                    // if (dateDifference >= 14) {
-                    //     return eachPendingData;
-                    // }
-
-                    return eachPendingData;
-
-                })
-
-                if (pendingObservationData.length > 0) {
-
-                    let observation = {
-                        is_read: false,
-                        payload: {
-                            type: "observation"
-                        },
-                        action: "pending",
-                        internal: false,
-                        title: "Pending Observation!",
-                        text: "You have a Pending Observation",
-                        type: "Information",
-                        created_at: new Date()
-                    }
-
-                    for (let pointerToPendingAssessments = 0; pointerToPendingAssessments < pendingObservationData.length; pointerToPendingAssessments++) {
-
-                        let getNotificationDocument = await elasticSearchHelper.getNotificationData(pendingObservationData[pointerToPendingAssessments].userId)
-
-                        observation.payload["solution_id"] = pendingObservationData[pointerToPendingAssessments].solutionId;
-                        observation.payload["submission_id"] = pendingObservationData[pointerToPendingAssessments]._id;
-                        observation.payload["entity_id"] = pendingObservationData[pointerToPendingAssessments].entityId;
-                        observation.payload["observation_id"] = pendingObservationData[pointerToPendingAssessments].observationId;
-                        observation.payload["entity_name"] = pendingObservationData[pointerToPendingAssessments].entityName;
-
-                        if (getNotificationDocument.statusCode !== 404) {
-
-                            let notifications = getNotificationDocument.body._source.notifications
-
-                            let existingNotification = notifications.find(item => {
-                                if (item.payload.submission_id === pendingObservationData[pointerToPendingAssessments]._id) {
-                                    return item
-                                }
-                            })
-
-
-                            if (existingNotification !== undefined) {
-                                let dateDifference = currentDate.diff(existingNotification.created_at, 'days')
-                                if (dateDifference >= 14) { // dateDifference>=14 
-                                    await elasticSearchHelper.updateNotificationData(pendingObservationData[pointerToPendingAssessments].userId, Number(existingNotification.id), { created_at: new Date(),is_read:false })
-                                }
-                            } else{
-                                await elasticSearchHelper.pushNotificationData(pendingObservationData[pointerToPendingAssessments].userId, observation)
-                            }
-
-                        } else{
-                            await elasticSearchHelper.pushNotificationData(pendingObservationData[pointerToPendingAssessments].userId, observation)
-                        }
-
-
-                    }
-                }
-
-                return resolve()
-            }
-            catch (error) {
-                return reject(error);
-            }
-        })
-    }
-
-    static completedAssessment(completedData) {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                let currentDate = moment(new Date())
-
-                let completedAssessments = {
-                    is_read: false,
-                    payload: {
-                        type: "institutional"
-                    },
-                    action: "view_only",
-                    internal: false,
-                    title: "Congratulations!",
-                    type: "Information",
-                    "created_at": new Date()
-                }
-
-                let userDetails = {}
-
-                for (let pointerToCompletedData = 0; pointerToCompletedData < completedData.length; pointerToCompletedData++) {
-                    let createdAtDate = moment(completedData[pointerToCompletedData].createdAt).format("YYYY-MM-DD");
-
-                    let checkDate = moment(currentDate).isSame(createdAtDate, 'month');
-
-                    if (checkDate) {
-
-                        if (!userDetails[completedData[pointerToCompletedData].userId]) {
-                            userDetails[completedData[pointerToCompletedData].userId] = {}
-                            userDetails[completedData[pointerToCompletedData].userId]["count"] = 0;
-                        }
-
-                        userDetails[completedData[pointerToCompletedData].userId]["count"] += 1
-                    }
-
-                }
-
-                let allUserRoles = Object.keys(userDetails)
-
-                for (let pointerToUserData = 0; pointerToUserData < allUserRoles.length; pointerToUserData++) {
-                    completedAssessments.text = `You have Completed ${userDetails[allUserRoles[pointerToUserData]].count} Assessments this month!`
-                    await elasticSearchHelper.pushNotificationData(allUserRoles[pointerToUserData], completedAssessments)
-                }
-
-                return resolve()
-            }
-            catch (error) {
-                return reject(error);
-            }
-        })
-    }
-
-    static completedObservations(completedData) {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                let currentDate = moment(new Date())
-
-                let completedObservations = {
-                    is_read: false,
-                    payload: {
-                        type: "observation"
-                    },
-                    action: "view_only",
-                    internal: false,
-                    title: "Congratulations!",
-                    type: "Information",
-                    "created_at": new Date()
-                }
-
-                let userDetails = {}
-
-                for (let pointerToCompletedData = 0; pointerToCompletedData < completedData.length; pointerToCompletedData++) {
-                    let createdAtDate = moment(completedData[pointerToCompletedData].createdAt).format("YYYY-MM-DD");
-
-                    let checkDate = moment(currentDate).isSame(createdAtDate, 'month');
-
-                    if (checkDate) {
-
-                        if (!userDetails[completedData[pointerToCompletedData].userId]) {
-                            userDetails[completedData[pointerToCompletedData].userId] = {}
-                            userDetails[completedData[pointerToCompletedData].userId]["count"] = 0;
-                        }
-
-                        userDetails[completedData[pointerToCompletedData].userId]["count"] += 1
-                    }
-
-                }
-
-                let allUserRoles = Object.keys(userDetails)
-
-                for (let pointerToUserData = 0; pointerToUserData < allUserRoles.length; pointerToUserData++) {
-                    completedObservations.text = `You have Completed ${userDetails[allUserRoles[pointerToUserData]].count} Observations this month!`
-                    await elasticSearchHelper.pushNotificationData(allUserRoles[pointerToUserData], completedObservations)
-                }
-
-                return resolve()
-            }
-            catch (error) {
-                return reject(error);
-            }
-        })
-    }
-
-    static deleteReadNotification() {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                let currentDate = moment(new Date());
-
-                let getAllIndexData = await elasticSearchHelper.getAllIndexData()
-
-                if (getAllIndexData.result.length > 0) {
-
-                    for (let pointerToIndexData = 0; pointerToIndexData < getAllIndexData.result.length; pointerToIndexData++) {
-
-                        let currentIndexData = getAllIndexData.result[pointerToIndexData]
-                        let userId = currentIndexData.userId;
-
-                        let getFilteredNotifications = currentIndexData.notifications.filter(item => {
-
-                            let notificationCreatedDate = moment(item.created_at);
-                            let dateDifference = currentDate.diff(notificationCreatedDate, 'days');
-
-                            if (item.is_read === true) {
-                                return item
-                            }
-                        })
-
-                        if (getFilteredNotifications.length > 0) {
-                            console.log("here")
-                            for (let pointerToNotifications = 0; pointerToNotifications < getFilteredNotifications.length; pointerToNotifications++) {
-                                await elasticSearchHelper.deleteNotificationData(userId, getFilteredNotifications[pointerToNotifications].id)
-                            }
-                        }
-                    }
-                }
-
-                return resolve();
-            }
-            catch (error) {
-                return reject(error)
-            }
-        })
-    }
-
-    static deleteUnReadNotification() {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                let currentDate = moment(new Date());
-
-                let getAllIndexData = await elasticSearchHelper.getAllIndexData()
-
-                if (getAllIndexData.result.length > 0) {
-
-                    for (let pointerToIndexData = 0; pointerToIndexData < getAllIndexData.result.length; pointerToIndexData++) {
-
-                        let currentIndexData = getAllIndexData.result[pointerToIndexData]
-                        let userId = currentIndexData.userId;
-
-                        let getFilteredNotifications = currentIndexData.notifications.filter(item => {
-
-                            let notificationCreatedDate = moment(item.created_at);
-                            let dateDifference = currentDate.diff(notificationCreatedDate, 'days');
-
-                            if (item.is_read === false ) { // jUst for testing purpose
-                                return item
-                            }
-                        })
-
-                        if (getFilteredNotifications.length > 0) {
-                            for (let pointerToNotifications = 0; pointerToNotifications < getFilteredNotifications.length; pointerToNotifications++) {
-                                await elasticSearchHelper.deleteNotificationData(userId, getFilteredNotifications[pointerToNotifications].id)
-                            }
-                        }
-                    }
-                }
-
-                return resolve();
-            }
-            catch (error) {
-                return reject(error)
             }
         })
     }
@@ -451,89 +247,59 @@ module.exports = class notificationsHelper {
         })
     }
 
-
-    static customDeleteReadNotification(appName="",days="") {
+    static pushNotificationMessageToDevice(userId, notificationMessage) {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let currentDate = moment(new Date());
+                let getAllDevices = await userExtensionHelper.profileWithEntityDetails({
+                    userId: userId,
+                    status: "active",
+                    isDeleted: false
+                }, { devices: 1 })
 
-                let getAllIndexData = await elasticSearchHelper.getAllIndexData(appName)
+                if (!getAllDevices.devices.length > 0) {
+                    throw "No devices found"
+                }
 
-                if (getAllIndexData.result.length > 0) {
+                let getSpecificAppData = getAllDevices.devices.filter(eachDeviceName => eachDeviceName.app === notificationMessage.appName && eachDeviceName.status === "active")
 
-                    for (let pointerToIndexData = 0; pointerToIndexData < getAllIndexData.result.length; pointerToIndexData++) {
+                for (let pointerToDevices = 0; pointerToDevices < getSpecificAppData.length; pointerToDevices++) {
 
-                        let currentIndexData = getAllIndexData.result[pointerToIndexData]
-                        let userId = currentIndexData.userId;
+                    let notificationDataToBeSent = {
+                        deviceId: getSpecificAppData[pointerToDevices].deviceId,
+                        title: notificationMessage.title,
+                        data: {
+                            "title": notificationMessage.title,
+                            "text": notificationMessage.text,
+                            id: JSON.stringify(notificationMessage.id),
+                            is_read: JSON.stringify(notificationMessage.is_read),
+                            payload: JSON.stringify(notificationMessage.payload),
+                            action: notificationMessage.action,
+                            internal: JSON.stringify(notificationMessage.internal),
+                            created_at: notificationMessage.created_at,
+                            type: notificationMessage.type
+                        },
+                        text: notificationMessage.text
+                    }
 
-                        let getFilteredNotifications = currentIndexData.notifications.filter(item => {
+                    let pushedData = await pushNotificationsHelper.createNotificationInAndroid(notificationDataToBeSent);
 
-                            let notificationCreatedDate = moment(item.created_at);
-                            let dateDifference = currentDate.diff(notificationCreatedDate, 'days');
+                    if (!pushedData.status) {
 
-                            if (item.is_read === true) {
-                                return item
-                            }
-                        })
-
-                        if (getFilteredNotifications.length > 0) {
-                            for (let pointerToNotifications = 0; pointerToNotifications < getFilteredNotifications.length; pointerToNotifications++) {
-                                await elasticSearchHelper.deleteNotificationData(userId, getFilteredNotifications[pointerToNotifications].id,appName)
-                            }
+                        let errorMsg = {
+                            "message": `Cannot sent push notifications to ${getAllDevices.devices[pointerToDevices].deviceId}`
                         }
+
+                        // slackClient.pushNotificationError(errorMsg);
                     }
                 }
 
-                return resolve();
-            }
-            catch (error) {
-                return reject(error)
-            }
-        })
-    }
+                return resolve()
 
-
-    static customdeleteUnReadNotification(appName="",days="") {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                let currentDate = moment(new Date());
-
-                let getAllIndexData = await elasticSearchHelper.getAllIndexData(appName)
-
-                if (getAllIndexData.result.length > 0) {
-
-                    for (let pointerToIndexData = 0; pointerToIndexData < getAllIndexData.result.length; pointerToIndexData++) {
-
-                        let currentIndexData = getAllIndexData.result[pointerToIndexData]
-                        let userId = currentIndexData.userId;
-
-                        let getFilteredNotifications = currentIndexData.notifications.filter(item => {
-
-                            let notificationCreatedDate = moment(item.created_at);
-                            let dateDifference = currentDate.diff(notificationCreatedDate, 'days');
-
-                            if (item.is_read === false ) { // jUst for testing purpose
-                                return item
-                            }
-                        })
-
-                        if (getFilteredNotifications.length > 0) {
-                            for (let pointerToNotifications = 0; pointerToNotifications < getFilteredNotifications.length; pointerToNotifications++) {
-                                await elasticSearchHelper.deleteNotificationData(userId, getFilteredNotifications[pointerToNotifications].id,appName)
-                            }
-                        }
-                    }
-                }
-
-                return resolve();
-            }
-            catch (error) {
-                return reject(error)
+            } catch (error) {
+                return reject(error);
             }
         })
     }
-    
 
 };
