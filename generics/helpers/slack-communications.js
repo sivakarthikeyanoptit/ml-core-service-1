@@ -589,7 +589,7 @@ const pushNotificationError = function (errorMessage) {
     })
 
     let attachment = {
-      color: "#0ED614",
+      color: "#fa3e3e",
       pretext: errorMessage,
       text: "More information below",
       fields: fieldsData
@@ -636,7 +636,6 @@ const pushNotificationError = function (errorMessage) {
     }
   }
 }
-
 
 module.exports = {
   sendExceptionLogMessage: sendExceptionLogMessage,

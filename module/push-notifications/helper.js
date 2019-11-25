@@ -3,8 +3,8 @@ const FCM_KEY_PATH = (process.env.FCM_KEY_PATH && process.env.FCM_KEY_PATH != ""
 const fcm_token_path = require(ROOT_PATH + FCM_KEY_PATH); //read firebase token from the file
 let FCM = new fcmNotification(fcm_token_path);
 let samikshaThemeColor = process.env.SAMIKSHA_THEME_COLOR ? process.env.SAMIKSHA_THEME_COLOR : "#A63936"
-const nodeEnvironment = process.env.NODE_ENV ? process.env.NODE_ENV : "development"
-
+const nodeEnvironment = process.env.NODE_ENV ? process.env.NODE_ENV : "development";
+let slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
 module.exports = class notificationsHelper {
 
     static pushToTopic(element) {
@@ -128,9 +128,12 @@ module.exports = class notificationsHelper {
                         }
 
                         success = false;
-                        // throw "Failed to push the notification"
+
+                        slackClient.pushNotificationError({
+                            "message": "FCM is not connected"
+                        })
+
                     } else {
-                        console.log(notificationInformation)
                         success = true
                     }
 
@@ -158,6 +161,9 @@ module.exports = class notificationsHelper {
                 FCM.subscribeToTopic(subscribeData.deviceId, nodeEnvironment + "-" + subscribeData.topic, function (err, response) {
                     if (err) {
                         success = false;
+                        slackClient.pushNotificationError({
+                            "message": "Could not subscribe to given topic in fcm."
+                        })
                     } else {
                         success = true;
                     }
@@ -189,6 +195,10 @@ module.exports = class notificationsHelper {
                 FCM.unsubscribeFromTopic(unsubscribeData.deviceId, nodeEnvironment + "-" + unsubscribeData.topic, function (err, response) {
                     if (err) {
                         success = false;
+
+                        slackClient.pushNotificationError({
+                            "message": "Could not unsubscribe from given topic in fcm."
+                        })
                     } else {
                         success = true;
                     }
@@ -207,7 +217,5 @@ module.exports = class notificationsHelper {
         })
 
     }
-
-
 
 };
