@@ -260,7 +260,7 @@ module.exports = class Notifications {
 
                         await Promise.all(deviceArray.map(async device => {
 
-                            if (device.app == element.appName && device.status != "inactive") {
+                            if (device.app == element.appName && device.status !== "inactive") {
 
                                 let notificationResult;
 
@@ -270,7 +270,7 @@ module.exports = class Notifications {
                                 if (element.message && element.title) {
                                     notificationResult = await pushNotificationsHelper.createNotificationInAndroid(device);
 
-                                    if (notificationResult !== undefined && notificationResult.message != "") {
+                                    if (notificationResult !== undefined && notificationResult.success) {
 
                                         let updateStatus = await userExtensionHelper.updateDeviceStatus(device, deviceArray, element.userId)
 
@@ -283,26 +283,31 @@ module.exports = class Notifications {
                                             let unsubscribeResult = await pushNotificationsHelper.unsubscribeFromTopic(device)
                                         }))
 
-                                        element.status = "Fail"
+                                        element.status = "Success"
 
                                     }
                                     else {
 
-                                        element.status = "Success"
+                                        element.status = "Fail"
                                     }
 
                                 }
                                 else {
-                                    element.status = "Fail"
+                                    element.status = "Message or title is not present in csv"
                                 }
 
-                                input.push(element)
-
+                            } else {
+                                element.status = "App name could not be found and status is inactive"
                             }
 
                         }));
 
+                    } else {
+                        element.status = "Devices could not be found for the given user"
                     }
+
+
+                    input.push(element)
 
                 }))
 
@@ -448,7 +453,7 @@ module.exports = class Notifications {
                         }
                     }
                     else {
-                        element.status = "Fail"
+                        element.status = "Message or title is not present in csv."
                     }
 
                     input.push(element)
