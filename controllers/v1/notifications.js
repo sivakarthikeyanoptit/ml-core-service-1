@@ -303,7 +303,7 @@ module.exports = class Notifications {
                         }));
 
                     } else {
-                        element.status = "Devices could not be found for the given user"
+                        element.status = "No devices found."
                     }
 
 
@@ -548,7 +548,7 @@ module.exports = class Notifications {
                         }))
 
                     } else {
-                        subscriber.status = "Devices could not be found for the given user"
+                        subscriber.status = "No devices found."
                     }
 
                     input.push(subscriber)
@@ -615,7 +615,7 @@ module.exports = class Notifications {
                             devices: 1
                         })
 
-                    if (userProfile.devices.length > 0) {
+                    if (userProfile && userProfile.devices.length > 0) {
 
                         let deviceArray = userProfile.devices;
 
@@ -641,7 +641,7 @@ module.exports = class Notifications {
                         }))
 
                     } else {
-                        unsubscriber.status = "Devices could not be found for the given user"
+                        unsubscriber.status = "No devices found."
                     }
 
                     input.push(unsubscriber)
