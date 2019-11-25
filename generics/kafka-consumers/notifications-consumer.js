@@ -1,7 +1,7 @@
 const elastissearchHelper = require(GENERIC_HELPERS_PATH + "/elastic-search");
 let processingUsersTrack = {}
 let slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
-let notificationsHelpers = require(ROOT_PATH + "/module/notifications/helper")
+let notificationsHelpers = require(ROOT_PATH + "/module/notifications/in-app/helper")
 
 var messageReceived = function (message) {
 

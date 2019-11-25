@@ -21,12 +21,12 @@ module.exports = class Language {
     }
 
     /**
- * @api {post} /assessment-design/api/v1/language/list List Language
+ * @api {get} /kendra/api/v1/language/list List Language
  * @apiVersion 1.0.0
  * @apiName List Language
  * @apiGroup Language
  * @apiHeader {String} X-authenticated-user-token Authenticity token
- * @apiSampleRequest /assessment-design/api/v1/language/list
+ * @apiSampleRequest /kendra/api/v1/language/list
  * @apiUse successBody
  * @apiUse errorBody
  * @apiParamExample {json} Response:
@@ -87,12 +87,12 @@ module.exports = class Language {
     }
 
     /**
-    * @api {post} /assessment-design/api/v1/language/translate?language=:language Translate Language
+    * @api {get} /kendra/api/v1/language/translate?language=:language Translate Language
     * @apiVersion 1.0.0
     * @apiName language Translate Language
     * @apiGroup Language
     * @apiHeader {String} X-authenticated-user-token Authenticity token
-    * @apiSampleRequest /assessment-design/api/v1/language/translate?language=en
+    * @apiSampleRequest /kendra/api/v1/language/translate?language=en
     * @apiUse successBody
     * @apiUse errorBody
     * @apiParamExample {json} Response:
