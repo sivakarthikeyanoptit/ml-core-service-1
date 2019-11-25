@@ -116,6 +116,8 @@ module.exports = class notificationsHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
+                let deviceId = notificationInformation.token;
+
                 FCM.send(notificationInformation, (err, response) => {
 
                     let success;
@@ -123,15 +125,19 @@ module.exports = class notificationsHelper {
                     if (err) {
                         if (err.errorInfo && err.errorInfo.message) {
                             if (err.errorInfo.message == "The registration token is not a valid FCM registration token") {
+
+                                slackClient.pushNotificationError({
+                                    "code": err.errorInfo.code,
+                                    "message": err.errorInfo.message,
+                                })
+
                                 message = err.errorInfo.message;
                             }
                         }
 
                         success = false;
 
-                        slackClient.pushNotificationError({
-                            "message": "FCM is not connected"
-                        })
+                        console.log(`Failed to send to deviceid : ${deviceId}`)
 
                     } else {
                         success = true
@@ -162,7 +168,8 @@ module.exports = class notificationsHelper {
                     if (err) {
                         success = false;
                         slackClient.pushNotificationError({
-                            "message": "Could not subscribe to given topic in fcm."
+                            "code": err.errorInfo.code,
+                            "message": err.errorInfo.message
                         })
                     } else {
                         success = true;
@@ -197,7 +204,8 @@ module.exports = class notificationsHelper {
                         success = false;
 
                         slackClient.pushNotificationError({
-                            "message": "Could not unsubscribe from given topic in fcm."
+                            "code": err.errorInfo.code,
+                            "message": err.errorInfo.message
                         })
                     } else {
                         success = true;

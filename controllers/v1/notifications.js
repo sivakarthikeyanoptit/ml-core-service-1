@@ -254,7 +254,7 @@ module.exports = class Notifications {
                             devices: 1
                         })
 
-                    if (userProfile.devices.length > 0) {
+                    if (userProfile && userProfile.devices.length > 0) {
 
                         let deviceArray = userProfile.devices;
 
@@ -297,7 +297,7 @@ module.exports = class Notifications {
                                 }
 
                             } else {
-                                element.status = "App name could not be found and status is inactive"
+                                element.status = "App name could not be found or status is inactive"
                             }
 
                         }));
@@ -522,7 +522,7 @@ module.exports = class Notifications {
                             devices: 1
                         })
 
-                    if (userProfile.devices.length > 0) {
+                    if (userProfile && userProfile.devices.length > 0) {
 
                         let deviceArray = userProfile.devices;
 
@@ -542,12 +542,16 @@ module.exports = class Notifications {
                                     subscriber.status = "Fail"
                                 }
 
-                                input.push(subscriber)
-
+                            } else {
+                                subscriber.status = "App name could not be found or status is inactive"
                             }
                         }))
 
+                    } else {
+                        subscriber.status = "Devices could not be found for the given user"
                     }
+
+                    input.push(subscriber)
                 }))
 
                 input.push(null)
@@ -631,12 +635,16 @@ module.exports = class Notifications {
                                     unsubscriber.status = "Fail"
                                 }
 
-                                input.push(unsubscriber)
-
+                            } else {
+                                unsubscriber.status = "App name could not be found or status is inactive"
                             }
                         }))
 
+                    } else {
+                        unsubscriber.status = "Devices could not be found for the given user"
                     }
+
+                    input.push(unsubscriber)
                 }))
 
                 input.push(null)

@@ -574,6 +574,7 @@ const pushNotificationError = function (errorMessage) {
     let attachmentData = new Array
     let fieldsData = new Array
 
+
     Object.keys(errorMessage).forEach(objValue => {
       fieldsData.push({
         title: objValue,
@@ -581,6 +582,7 @@ const pushNotificationError = function (errorMessage) {
         short: false
       })
     })
+
 
     fieldsData.push({
       title: "Environment",
