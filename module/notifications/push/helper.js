@@ -5,7 +5,9 @@ let FCM = new fcmNotification(fcm_token_path);
 let samikshaThemeColor = process.env.SAMIKSHA_THEME_COLOR ? process.env.SAMIKSHA_THEME_COLOR : "#A63936"
 const nodeEnvironment = process.env.NODE_ENV ? process.env.NODE_ENV : "development";
 let slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
-module.exports = class notificationsHelper {
+const userExtensionHelper = require(ROOT_PATH + "/module/user-extension/helper");
+
+module.exports = class pushNotificationsHelper {
 
     static pushToTopic(element) {
         return new Promise(async (resolve, reject) => {
@@ -116,6 +118,8 @@ module.exports = class notificationsHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
+                let deviceId = notificationInformation.token;
+
                 FCM.send(notificationInformation, (err, response) => {
 
                     let success;
@@ -123,15 +127,17 @@ module.exports = class notificationsHelper {
                     if (err) {
                         if (err.errorInfo && err.errorInfo.message) {
                             if (err.errorInfo.message == "The registration token is not a valid FCM registration token") {
+
+                                slackClient.pushNotificationError({
+                                    "code": err.errorInfo.code,
+                                    "message": err.errorInfo.message,
+                                })
+
                                 message = err.errorInfo.message;
                             }
                         }
 
                         success = false;
-
-                        slackClient.pushNotificationError({
-                            "message": "FCM is not connected"
-                        })
 
                     } else {
                         success = true
@@ -162,8 +168,10 @@ module.exports = class notificationsHelper {
                     if (err) {
                         success = false;
                         slackClient.pushNotificationError({
-                            "message": "Could not subscribe to given topic in fcm."
+                            "code": err.errorInfo.code,
+                            "message": err.errorInfo.message
                         })
+
                     } else {
                         success = true;
                     }
@@ -197,8 +205,10 @@ module.exports = class notificationsHelper {
                         success = false;
 
                         slackClient.pushNotificationError({
-                            "message": "Could not unsubscribe from given topic in fcm."
+                            "code": err.errorInfo.code,
+                            "message": err.errorInfo.message
                         })
+
                     } else {
                         success = true;
                     }
@@ -216,6 +226,101 @@ module.exports = class notificationsHelper {
 
         })
 
+    }
+
+    static pushData(allUserData) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                if (!allUserData.topicName) {
+                    allUserData.topicName = "allUsers"
+                }
+
+                if (allUserData.message && allUserData.title) {
+                    let topicResult = await this.pushToTopic(allUserData);
+
+                    if (topicResult !== undefined && topicResult.success) {
+
+                        allUserData.status = "success"
+
+                    } else {
+                        allUserData.status = "Fail"
+                    }
+                }
+                else {
+                    allUserData.status = "Message or title is not present in csv."
+                }
+
+
+                return resolve(allUserData)
+
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+    static subscribeOrUnSubscribeData(subscribeOrUnSubscribeData, subscribeToTopic = false) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let userProfile = await userExtensionHelper.userExtensionDocument({
+                    userId: subscribeOrUnSubscribeData.userId,
+                    status: "active",
+                    isDeleted: false
+                }, {
+                        devices: 1
+                    });
+
+                let deviceStatus;
+
+                if (subscribeToTopic) {
+                    deviceStatus = "active"
+                } else {
+                    deviceStatus = "inactive"
+                }
+
+                if (userProfile && userProfile.devices.length > 0) {
+
+                    let deviceArray = userProfile.devices;
+
+                    await Promise.all(deviceArray.map(async device => {
+
+                        if (device.app == subscribeOrUnSubscribeData.appName && device.os == subscribeOrUnSubscribeData.os && device.status === deviceStatus) {
+
+                            device.topic = subscribeOrUnSubscribeData.topicName;
+
+                            let result;
+
+                            if (subscribeToTopic) {
+                                result = await this.subscribeToTopic(device)
+                            } else {
+                                result = await this.unsubscribeFromTopic(device);
+                            }
+
+                            if (result !== undefined && result.success) {
+
+                                subscribeOrUnSubscribeData.status = subscribeToTopic ? "successfully subscribed" : "successfully unsubscribed"
+
+                            } else {
+                                subscribeOrUnSubscribeData.status = subscribeToTopic ? "Fail to subscribe" : "Fail to unsubscribe"
+                            }
+
+                        } else {
+                            subscribeOrUnSubscribeData.status = "App name could not be found or status is inactive"
+                        }
+                    }))
+
+                } else {
+                    subscribeOrUnSubscribeData.status = "No devices found."
+                }
+
+                return resolve(subscribeOrUnSubscribeData)
+
+            } catch (error) {
+                return reject(error);
+            }
+        })
     }
 
 };

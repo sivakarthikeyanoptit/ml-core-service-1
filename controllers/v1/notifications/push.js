@@ -1,14 +1,13 @@
 /**
- * name : notifications.js
+ * name : push.js
  * author : Aman Jung Karki
- * Date : 06-Nov-2019
- * Description : Notification related information for samiksha service.
+ * created-date : 25-Nov-2019
+ * Description :  Push notifications.
  */
 
 const csv = require('csvtojson');
-const notificationsHelper = require(ROOT_PATH + "/module/notifications/helper");
 const userExtensionHelper = require(ROOT_PATH + "/module/user-extension/helper");
-const pushNotificationsHelper = require(ROOT_PATH + "/module/push-notifications/helper");
+const pushNotificationsHelper = require(ROOT_PATH + "/module/notifications/push/helper");
 const FileStream = require(ROOT_PATH + "/generics/file-stream");
 
 module.exports = class Notifications {
@@ -29,134 +28,20 @@ module.exports = class Notifications {
     }
 
     static get name() {
-        return "notifications";
+        return "push";
     }
 
     /**
-    * @api {get} /kendra/api/v1/notifications/list?page=:page&limit=:limit Notifications List
-    * @apiVersion 1.0.0
-    * @apiName Notifications List
-    * @apiGroup Notifications
-    * @apiSampleRequest /kendra/api/v1/notifications/list?page=1&limit=10
-    * @apiHeader {String} X-authenticated-user-token Authenticity token  
-    * @apiUse successBody
-    * @apiUse errorBody
-    */
-
-    async list(req) {
-        return new Promise(async (resolve, reject) => {
-
-            try {
-
-                let notificationDocument = await notificationsHelper.list((req.params._id && req.params._id != "") ? req.params._id : req.userDetails.id, req.pageSize, req.pageNo, (req.query.appName && req.query.appName != "") ? req.query.appName : "")
-
-                return resolve({
-                    result: notificationDocument,
-                    message: req.t('notificationList')
-                })
-
-            } catch (error) {
-                return reject({
-                    status: error.status || httpStatusCode["internal_server_error"].status,
-                    message: error.message || httpStatusCode["internal_server_error"].message
-                })
-            }
-        })
-    }
-
-    /**
-    * @api {get} /kendra/api/v1/notifications/unReadCount Count of Unread Notifications
-    * @apiVersion 1.0.0
-    * @apiName Count of Unread Notifications
-    * @apiGroup Notifications
-    * @apiSampleRequest /kendra/api/v1/notifications/unReadCount
-    * @apiHeader {String} X-authenticated-user-token Authenticity token  
-    * @apiUse successBody
-    * @apiUse errorBody
-    */
-
-    async unReadCount(req) {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                let unReadCountDocument = await notificationsHelper.unReadCount(req.userDetails.id, (req.query.appName && req.query.appName != "") ? req.query.appName : "")
-
-                return resolve({
-                    message: req.t('unreadNotifocation'),
-                    status: httpStatusCode.ok.status,
-                    result: {
-                        count: unReadCountDocument.count
-                    }
-                })
-
-            } catch (error) {
-                reject({
-                    status: error.status || httpStatusCode["internal_server_error"].status,
-                    message: error.message || httpStatusCode["internal_server_error"].message
-                })
-            }
-        })
-    }
-
-    /**
-     * @api {post} /kendra/api/v1/notifications/markItRead/{{notificationId}} Mark a Notification Read
+     * @api {post} /kendra/api/v1/notifications/push/registerDevice  Push Notifications To Users
      * @apiVersion 1.0.0
-     * @apiName Mark a Notification Read
+     * @apiName Push Notifications To Users
      * @apiGroup Notifications
-     * @apiSampleRequest /kendra/api/v1/notifications/markItRead/1
+     * @apiHeader {String} X-authenticated-user-token Authenticity token
+     * @apiParam {File} userData Mandatory userData file of type CSV.
+     * @apiSampleRequest /kendra/api/v1/notifications/push/registerDevice
      * @apiUse successBody
      * @apiUse errorBody
      */
-
-    async markItRead(req) {
-        return new Promise(async (resolve, reject) => {
-
-            try {
-
-
-                await notificationsHelper.markItRead(req.userDetails.id, req.params._id, (req.query.appName && req.query.appName != "") ? req.query.appName : "")
-
-                return resolve({
-                    message: req.t('markItReadNotification'),
-                    status: httpStatusCode.ok.status
-                })
-            } catch (error) {
-                reject({
-                    status: error.status || httpStatusCode["internal_server_error"].status,
-                    message: error.message || httpStatusCode["internal_server_error"].message
-                })
-            }
-        })
-
-    }
-
-    /**
-     * @api {post} /kendra/api/v1/notifications/registerDevice Register a Device Id
-     * @apiVersion 1.0.0
-     * @apiName Register a Device Id
-     * @apiGroup Notifications
-     * @apiParamExample {json} Request-Body:
-     * 
-     *   {
-     *       "deviceId" : "123123123"
-     *   }
-     *
-     * @apiHeader {String} X-authenticated-user-token Authenticity token
-     * @apiHeader {String} app
-     * @apiHeader {String} os
-     * @apiSampleRequest /kendra/api/v1/notifications/registerDevice  
-     * @apiUse successBody
-     * @apiUse errorBody
-     * @apiParamExample {json} Response:
-     * {
-        "status": 200,
-        "result": {
-            "allUsers": "Subscribed",
-            "all-samiksha-users": "Subscribed",
-            "all-samiksha-android-users": "Subscribed"
-        }
-}
-    */
 
     async registerDevice(req) {
         return new Promise(async (resolve, reject) => {
@@ -208,13 +93,13 @@ module.exports = class Notifications {
     }
 
     /**
-     * @api {post} /kendra/api/v1/notifications/pushToUsers  Push Notifications To Users
+     * @api {post} /kendra/api/v1/notifications/push/pushToUsers  Push Notifications To Users
      * @apiVersion 1.0.0
      * @apiName Push Notifications To Users
      * @apiGroup Notifications
      * @apiHeader {String} X-authenticated-user-token Authenticity token
      * @apiParam {File} userData Mandatory userData file of type CSV.
-     * @apiSampleRequest /kendra/api/v1/notifications/pushToUsers
+     * @apiSampleRequest /kendra/api/v1/notifications/push/pushToUsers
      * @apiUse successBody
      * @apiUse errorBody
      */
@@ -254,7 +139,7 @@ module.exports = class Notifications {
                             devices: 1
                         })
 
-                    if (userProfile.devices.length > 0) {
+                    if (userProfile && userProfile.devices.length > 0) {
 
                         let deviceArray = userProfile.devices;
 
@@ -297,13 +182,13 @@ module.exports = class Notifications {
                                 }
 
                             } else {
-                                element.status = "App name could not be found and status is inactive"
+                                element.status = "App name could not be found or status is inactive"
                             }
 
                         }));
 
                     } else {
-                        element.status = "Devices could not be found for the given user"
+                        element.status = "No devices found."
                     }
 
 
@@ -328,11 +213,11 @@ module.exports = class Notifications {
 
 
     /**
-    * @api {post} /kendra/api/v1/notifications/pushToTopic Push Notification to topic
+    * @api {post} /kendra/api/v1/notifications/push/pushToTopic Push Notification to topic
     * @apiVersion 1.0.0
     * @apiName Push Notification to topic
     * @apiGroup Notifications
-    * @apiSampleRequest /kendra/api/v1/notifications/pushToTopic
+    * @apiSampleRequest /kendra/api/v1/notifications/push/pushToTopic
     * @apiParam {File} pushToTopic Mandatory pushToTopic file of type CSV.    
     * @apiUse successBody
     * @apiUse errorBody
@@ -361,25 +246,11 @@ module.exports = class Notifications {
                     });
                 })();
 
-                await Promise.all(topicData.map(async element => {
+                await Promise.all(topicData.map(async singleTopicData => {
 
-                    if (element.message && element.title) {
-                        let topicResult = await pushNotificationsHelper.pushToTopic(element);
+                    let topicCsvData = await pushNotificationsHelper.pushData(singleTopicData)
 
-                        if (topicResult !== undefined && topicResult.success) {
-
-                            element.status = "success"
-
-                        } else {
-                            element.status = "Fail"
-                        }
-
-                    } else {
-
-                        element.status = "Fail"
-                    }
-
-                    input.push(element)
+                    input.push(topicCsvData)
 
                 }))
 
@@ -400,11 +271,11 @@ module.exports = class Notifications {
 
 
     /**
-    * @api {post} /kendra/api/v1/notifications/pushToAllUsers  Push Notification To ALL Users
+    * @api {post} /kendra/api/v1/notifications/push/pushToAllUsers  Push Notification To ALL Users
     * @apiVersion 1.0.0
     * @apiName Push Notification To ALL Users Topic
     * @apiGroup Notifications
-    * @apiSampleRequest /kendra/api/v1/notifications/pushToAllUsers
+    * @apiSampleRequest /kendra/api/v1/notifications/push/pushToAllUsers
     * @apiHeader {String} X-authenticated-user-token Authenticity token
     * @apiParam {File} pushToAllUsers Mandatory pushToAllUsers file of type CSV.        
     * @apiUse successBody
@@ -435,28 +306,11 @@ module.exports = class Notifications {
                 })();
 
 
-                await Promise.all(pushToAllUsers.map(async element => {
+                await Promise.all(pushToAllUsers.map(async allUserData => {
 
-                    if (!element.topicName) {
-                        element.topicName = "allUsers"
-                    }
+                    let topicPushStatus = await pushNotificationsHelper.pushData(allUserData)
 
-                    if (element.message && element.title) {
-                        let topicResult = await pushNotificationsHelper.pushToTopic(element);
-
-                        if (topicResult !== undefined && topicResult.success) {
-
-                            element.status = "success"
-
-                        } else {
-                            element.status = "Fail"
-                        }
-                    }
-                    else {
-                        element.status = "Message or title is not present in csv."
-                    }
-
-                    input.push(element)
+                    input.push(topicPushStatus)
 
                 }))
 
@@ -477,11 +331,11 @@ module.exports = class Notifications {
 
 
     /**
-    * @api {post} /kendra/api/v1/notifications/subscribeToTopic  Subscribe To Topic
+    * @api {post} /kendra/api/v1/notifications/push/subscribeToTopic  Subscribe To Topic
     * @apiVersion 1.0.0
     * @apiName Subscribe To Topic
     * @apiGroup Notifications
-    * @apiSampleRequest /kendra/api/v1/notifications/subscribeToTopic
+    * @apiSampleRequest /kendra/api/v1/notifications/push/subscribeToTopic
     * @apiHeader {String} X-authenticated-user-token Authenticity token
     * @apiParam {File} subscribeToTopic Mandatory subscribeToTopic file of type CSV.            
     * @apiUse successBody
@@ -511,43 +365,11 @@ module.exports = class Notifications {
                     });
                 })();
 
-
                 await Promise.all(subscribersData.map(async subscriber => {
 
-                    let userProfile = await userExtensionHelper.userExtensionDocument({
-                        userId: subscriber.userId,
-                        status: "active",
-                        isDeleted: false
-                    }, {
-                            devices: 1
-                        })
+                    let subscribeStatus = await pushNotificationsHelper.subscribeOrUnSubscribeData(subscriber, true)
 
-                    if (userProfile.devices.length > 0) {
-
-                        let deviceArray = userProfile.devices;
-
-                        await Promise.all(deviceArray.map(async device => {
-
-                            if (device.app == subscriber.appName && device.os == subscriber.os && device.status == "active") {
-
-                                device.topic = subscriber.topicName;
-
-                                let subscribeResult = await pushNotificationsHelper.subscribeToTopic(device)
-
-                                if (subscribeResult !== undefined && subscribeResult.success) {
-
-                                    subscriber.status = "success"
-
-                                } else {
-                                    subscriber.status = "Fail"
-                                }
-
-                                input.push(subscriber)
-
-                            }
-                        }))
-
-                    }
+                    input.push(subscribeStatus)
                 }))
 
                 input.push(null)
@@ -566,11 +388,11 @@ module.exports = class Notifications {
     }
 
     /**
-    * @api {post} /kendra/api/v1/notifications/unsubscribeFromTopic  Unsubscribe From Topic
+    * @api {post} /kendra/api/v1/notifications/push/unsubscribeFromTopic  Unsubscribe From Topic
     * @apiVersion 1.0.0
     * @apiName Unsubscribe From Topic
     * @apiGroup Notifications
-    * @apiSampleRequest /kendra/api/v1/notifications/unsubscribeFromTopic
+    * @apiSampleRequest /kendra/api/v1/notifications/push/unsubscribeFromTopic
     * @apiHeader {String} X-authenticated-user-token Authenticity token
     * @apiParam {File} unsubscribeFromTopic Mandatory unsubscribeFromTopic file of type CSV.                
     * @apiUse successBody
@@ -583,7 +405,7 @@ module.exports = class Notifications {
             try {
 
                 if (!req.files || !req.files.unsubscribeFromTopic) {
-                    throw { message: "Missing file of type subscribeToTopic" }
+                    throw { message: "Missing file of type unSubscribeFromTopic" }
                 }
 
                 let unsubscribersData = await csv().fromString(req.files.unsubscribeFromTopic.data.toString());
@@ -603,40 +425,9 @@ module.exports = class Notifications {
 
                 await Promise.all(unsubscribersData.map(async unsubscriber => {
 
-                    let userProfile = await userExtensionHelper.userExtensionDocument({
-                        userId: unsubscriber.userId,
-                        status: "active",
-                        isDeleted: false
-                    }, {
-                            devices: 1
-                        })
+                    let unSubscribeStatus = await pushNotificationsHelper.subscribeOrUnSubscribeData(unsubscriber)
 
-                    if (userProfile.devices.length > 0) {
-
-                        let deviceArray = userProfile.devices;
-
-                        await Promise.all(deviceArray.map(async device => {
-
-                            if (device.app == unsubscriber.appName && device.os == unsubscriber.os && device.status == "inactive") {
-
-                                device.topic = unsubscriber.topicName;
-
-                                let unsubscribeResult = await pushNotificationsHelper.unsubscribeFromTopic(device);
-
-                                if (unsubscribeResult !== undefined && unsubscribeResult.success) {
-
-                                    unsubscriber.status = "success"
-
-                                } else {
-                                    unsubscriber.status = "Fail"
-                                }
-
-                                input.push(unsubscriber)
-
-                            }
-                        }))
-
-                    }
+                    input.push(unSubscribeStatus)
                 }))
 
                 input.push(null)

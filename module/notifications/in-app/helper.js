@@ -4,9 +4,9 @@ let moment = require("moment-timezone")
 let currentDate = moment(new Date());
 let slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
 const userExtensionHelper = require(ROOT_PATH + "/module/user-extension/helper");
-const pushNotificationsHelper = require(ROOT_PATH + "/module/push-notifications/helper");
+const pushNotificationsHelper = require(ROOT_PATH + "/module/notifications/push/helper");
 
-module.exports = class notificationsHelper {
+module.exports = class inAppNotificationsHelper {
 
     static list(userDetails, pageSize, pageNo, appName = "") {
         return new Promise(async (resolve, reject) => {
