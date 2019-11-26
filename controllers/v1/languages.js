@@ -1,7 +1,7 @@
 const fs = require("fs");
 let listOfLanguages = require(ROOT_PATH + "/generics/languages");
 
-module.exports = class Language {
+module.exports = class Languages {
 
     /**
      * @apiDefine errorBody
@@ -17,16 +17,16 @@ module.exports = class Language {
 
 
     static get name() {
-        return "language";
+        return "languages";
     }
 
     /**
- * @api {get} /kendra/api/v1/language/list List Language
+ * @api {post} /kendra/api/v1/languages/list List Language
  * @apiVersion 1.0.0
  * @apiName List Language
  * @apiGroup Language
  * @apiHeader {String} X-authenticated-user-token Authenticity token
- * @apiSampleRequest /kendra/api/v1/language/list
+ * @apiSampleRequest /kendra/api/v1/languages/list
  * @apiUse successBody
  * @apiUse errorBody
  * @apiParamExample {json} Response:
@@ -87,12 +87,12 @@ module.exports = class Language {
     }
 
     /**
-    * @api {get} /kendra/api/v1/language/translate?language=:language Translate Language
+    * @api {post} /kendra/api/v1/languages/translate?language=:language Translate Language
     * @apiVersion 1.0.0
     * @apiName language Translate Language
     * @apiGroup Language
     * @apiHeader {String} X-authenticated-user-token Authenticity token
-    * @apiSampleRequest /kendra/api/v1/language/translate?language=en
+    * @apiSampleRequest /kendra/api/v1/languages/translate?language=en
     * @apiUse successBody
     * @apiUse errorBody
     * @apiParamExample {json} Response:
