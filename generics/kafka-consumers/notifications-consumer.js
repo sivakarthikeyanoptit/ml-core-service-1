@@ -1,6 +1,7 @@
 const elastissearchHelper = require(GENERIC_HELPERS_PATH + "/elastic-search");
 let processingUsersTrack = {}
 let slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
+let notificationsHelpers = require(ROOT_PATH + "/module/notifications/in-app/helper")
 
 var messageReceived = function (message) {
 
@@ -34,6 +35,7 @@ var messageReceived = function (message) {
         if (!isUserUpdationUnderProcess) {
           processingUsersTrack[userId] = true
           const elasticsearchPushResponse = await elastissearchHelper.pushNotificationData(userId, parsedMessage)
+          await notificationsHelpers.pushNotificationMessageToDevice(userId, parsedMessage)
           delete processingUsersTrack[userId]
         } else {
           // repeat with the interval of 1 seconds
@@ -43,6 +45,7 @@ var messageReceived = function (message) {
               clearInterval(timerId)
               processingUsersTrack[userId] = true
               const elasticsearchPushResponse = await elastissearchHelper.pushNotificationData(userId, parsedMessage)
+              await notificationsHelpers.pushNotificationMessageToDevice(userId, parsedMessage)
               delete processingUsersTrack[userId]
             }
           }, 1000);

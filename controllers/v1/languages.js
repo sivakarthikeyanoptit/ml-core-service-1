@@ -1,8 +1,7 @@
 const fs = require("fs");
 let listOfLanguages = require(ROOT_PATH + "/generics/languages");
-let languagesHelpers = require(ROOT_PATH + "/module/languages/helper.js")
 
-module.exports = class LanguagePack {
+module.exports = class Languages {
 
     /**
      * @apiDefine errorBody
@@ -18,16 +17,122 @@ module.exports = class LanguagePack {
 
 
     static get name() {
-        return "languagePack";
+        return "languages";
     }
 
     /**
-    * @api {post} /assessment-design/api/v1/languages/translate?language=:language Translate Language
+* @api {post} /kendra/api/v1/languages/upload Insert Language
+* @apiVersion 1.0.0
+* @apiName language Insert Language
+* @apiGroup Language
+* @apiHeader {String} X-authenticated-user-token Authenticity token
+* @apiSampleRequest /kendra/api/v1/languages/upload
+* @apiParam {File} language Mandatory language file of type CSV.
+* @apiUse successBody
+* @apiUse errorBody
+*/
+
+    upload(req) {
+
+        return new Promise(async (resolve, reject) => {
+
+            try {
+
+                if (!req.files || !req.files.language) throw { status: httpStatusCode["bad_request"].status, message: httpStatusCode["bad_request"].message };
+
+                await languagesHelpers.upload(req.files);
+
+                return resolve({
+                    message: "Language uploaded successfully"
+                })
+
+            } catch (error) {
+
+                return reject({
+                    status: error.status || httpStatusCode["internal_server_error"].status,
+                    message: error.message || httpStatusCode["internal_server_error"].message
+                })
+
+            }
+
+
+        })
+    }
+
+
+    /**
+ * @api {post} /kendra/api/v1/languages/list List Language
+ * @apiVersion 1.0.0
+ * @apiName List Language
+ * @apiGroup Language
+ * @apiHeader {String} X-authenticated-user-token Authenticity token
+ * @apiSampleRequest /kendra/api/v1/languages/list
+ * @apiUse successBody
+ * @apiUse errorBody
+ * @apiParamExample {json} Response:
+ *  {
+     "message": "Language Set Successfully.",
+     "status": 200,
+    {
+        "message": "Language  Listed Successfully.",
+        "status": 200,
+        "result": [
+            {
+                "code": "en",
+                "name": "english"
+            },
+            {
+                "code": "hi",
+                "name": "hindi"
+            },
+            {
+                "code": "ch",
+                "name": "chinese"
+            }
+        ]
+    }
+}
+ */
+
+    list() {
+
+        return new Promise(async (resolve, reject) => {
+
+            try {
+
+                let languageLists = Object.keys(listOfLanguages).map(eachListOfLanguage => {
+                    return {
+                        "code": listOfLanguages[eachListOfLanguage],
+                        "name": eachListOfLanguage
+                    }
+                })
+
+                return resolve({
+                    message: "Language  Listed Successfully.",
+                    result: languageLists
+                });
+
+            } catch (error) {
+
+                return reject({
+                    status: error.status || 500,
+                    message: error.message || "Oops! something went wrong.",
+                    errorObject: error
+                })
+
+            }
+
+
+        })
+    }
+
+    /**
+    * @api {get} /kendra/api/v1/language/translate?language=:language Translate Language
     * @apiVersion 1.0.0
     * @apiName language Translate Language
     * @apiGroup Language
     * @apiHeader {String} X-authenticated-user-token Authenticity token
-    * @apiSampleRequest /assessment-design/api/v1/languages/translate?language=en
+    * @apiSampleRequest /kendra/api/v1/language/translate?language=en
     * @apiUse successBody
     * @apiUse errorBody
     * @apiParamExample {json} Response:
@@ -77,114 +182,6 @@ module.exports = class LanguagePack {
         })
     }
 
-    /**
-* @api {post} /kendra/api/v1/languages/upload Insert Language
-* @apiVersion 1.0.0
-* @apiName language Insert Language
-* @apiGroup Language
-* @apiHeader {String} X-authenticated-user-token Authenticity token
-* @apiSampleRequest /kendra/api/v1/languages/upload
-* @apiUse successBody
-* @apiUse errorBody
-* @apiParamExample {json} Response:
-*  {
-    "message": "Language Set Successfully.",
-    "status": 200,
-    "result": {
-        "language": "hindi"
-    }
-}
-*/
 
-    upload(req) {
-
-        return new Promise(async (resolve, reject) => {
-
-            try {
-
-                if (!req.files || !req.files.language) throw { status: httpStatusCode["bad_request"].status, message: httpStatusCode["bad_request"].message };
-
-                await languagesHelpers.upload(req.files);
-
-                return resolve({
-                    message: "Language uploaded successfully"
-                })
-
-            } catch (error) {
-
-                return reject({
-                    status: error.status || httpStatusCode["internal_server_error"].status,
-                    message: error.message || httpStatusCode["internal_server_error"].message
-                })
-
-            }
-
-
-        })
-    }
-
-    /**
- * @api {get} /kendra/api/v1/languages/list Notifications List
- * @apiVersion 1.0.0
- * @apiName languages List
- * @apiGroup Language
- * @apiSampleRequest /kendra/api/v1/languages/list
- * @apiHeader {String} X-authenticated-user-token Authenticity token  
- * @apiUse successBody
- * @apiUse errorBody
- */
-
-    list(req) {
-        return new Promise(async (resolve, reject) => {
-
-            try {
-
-                let languageLists = await languagesHelpers.list(req.params._id)
-
-                return resolve({
-                    result: languageLists.data,
-                    message: languageLists.message
-                })
-
-            } catch (error) {
-                return reject({
-                    status: error.status || httpStatusCode["internal_server_error"].status,
-                    message: error.message || httpStatusCode["internal_server_error"].message
-                })
-            }
-        })
-    }
-
-    /**
- * @api {get} /kendra/api/v1/languages/listAll Notifications List
- * @apiVersion 1.0.0
- * @apiName languages List
- * @apiGroup Language
- * @apiSampleRequest /kendra/api/v1/languages/list
- * @apiHeader {String} X-authenticated-user-token Authenticity token  
- * @apiUse successBody
- * @apiUse errorBody
- */
-
-    listAll(req) {
-        return new Promise(async (resolve, reject) => {
-
-            try {
-
-                let languageLists = await languagesHelpers.listAll()
-
-                return resolve({
-                    result: languageLists.data,
-                    message: languageLists.message
-                })
-
-            } catch (error) {
-                return reject({
-                    status: error.status || httpStatusCode["internal_server_error"].status,
-                    message: error.message || httpStatusCode["internal_server_error"].message
-                })
-            }
-        })
-    }
 
 };

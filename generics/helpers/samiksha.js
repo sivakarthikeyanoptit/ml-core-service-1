@@ -10,7 +10,7 @@ let slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
 
 var pendingAssessments = function () {
 
-    const samikshaServiceUrl = process.env.APPLICATION_BASE_HOST + process.env.SAMIKSHA_BASE_URL + "api/v1/entityAssessors/pendingAssessments"
+    const samikshaServiceUrl = process.env.APPLICATION_BASE_HOST + process.env.SAMIKSHA_SERVICE_BASE_URL + "api/v1/entityAssessors/pendingAssessments"
 
     return new Promise((resolve, reject) => {
         try {
@@ -45,7 +45,7 @@ var pendingAssessments = function () {
 
 var pendingObservations = function () {
 
-    const samikshaServiceUrl = process.env.APPLICATION_BASE_HOST + process.env.SAMIKSHA_BASE_URL + "api/v1/observations/pendingObservations"
+    const samikshaServiceUrl = process.env.APPLICATION_BASE_HOST + process.env.SAMIKSHA_SERVICE_BASE_URL + "api/v1/observations/pendingObservations"
 
     return new Promise((resolve, reject) => {
         try {
@@ -78,7 +78,7 @@ var pendingObservations = function () {
 
 var completedAssessments = function () {
 
-    const samikshaServiceUrl = process.env.APPLICATION_BASE_HOST + process.env.SAMIKSHA_BASE_URL + "api/v1/entityAssessors/completedAssessments"
+    const samikshaServiceUrl = process.env.APPLICATION_BASE_HOST + process.env.SAMIKSHA_SERVICE_BASE_URL + "api/v1/entityAssessors/completedAssessments"
 
     return new Promise((resolve, reject) => {
         try {
@@ -112,7 +112,7 @@ var completedAssessments = function () {
 
 var completedObservations = function () {
 
-    const samikshaServiceUrl = process.env.APPLICATION_BASE_HOST + process.env.SAMIKSHA_BASE_URL + "api/v1/observations/completedObservations"
+    const samikshaServiceUrl = process.env.APPLICATION_BASE_HOST + process.env.SAMIKSHA_SERVICE_BASE_URL + "api/v1/observations/completedObservations"
 
     return new Promise((resolve, reject) => {
         try {

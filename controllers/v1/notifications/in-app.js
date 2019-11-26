@@ -1,15 +1,14 @@
 /**
  * name : notifications.js
  * author : Aman Jung Karki
- * Date : 06-Nov-2019
+ * created-date : 06-Nov-2019
+ * modified-date:25-Nov-2019
  * Description : Notification related information for samiksha service.
  */
 
-const notificationsHelper = require(ROOT_PATH + "/module/notifications/helper");
-const samikshaIndexName = (process.env.ELASTICSEARCH_SAMIKSHA_INDEX && process.env.ELASTICSEARCH_SAMIKSHA_INDEX != "") ? process.env.ELASTICSEARCH_SAMIKSHA_INDEX : "samiksha"
+const notificationsHelper = require(ROOT_PATH + "/module/notifications/in-app/helper");
 
-
-module.exports = class Notifications {
+module.exports = class InApp {
 
     /**
      * @apiDefine errorBody
@@ -31,11 +30,11 @@ module.exports = class Notifications {
     }
 
     /**
-    * @api {get} /kendra/api/v1/notifications/list?page=:page&limit=:limit Notifications List
+    * @api {get} /kendra/api/v1/notifications/in-app/list?page=:page&limit=:limit Notifications List
     * @apiVersion 1.0.0
     * @apiName Notifications List
     * @apiGroup Notifications
-    * @apiSampleRequest /kendra/api/v1/notifications/list?page=1&limit=10
+    * @apiSampleRequest /kendra/api/v1/notifications/in-app/list?page=1&limit=10
     * @apiHeader {String} X-authenticated-user-token Authenticity token  
     * @apiUse successBody
     * @apiUse errorBody
@@ -63,11 +62,11 @@ module.exports = class Notifications {
     }
 
     /**
-    * @api {get} /kendra/api/v1/notifications/unReadCount Count of Unread Notifications
+    * @api {get} /kendra/api/v1/notifications/in-app/unReadCount Count of Unread Notifications
     * @apiVersion 1.0.0
     * @apiName Count of Unread Notifications
     * @apiGroup Notifications
-    * @apiSampleRequest /kendra/api/v1/notifications/unReadCount
+    * @apiSampleRequest /kendra/api/v1/notifications/in-app/unReadCount
     * @apiHeader {String} X-authenticated-user-token Authenticity token  
     * @apiUse successBody
     * @apiUse errorBody
@@ -97,11 +96,11 @@ module.exports = class Notifications {
     }
 
     /**
-     * @api {post} /kendra/api/v1/notifications/markItRead/{{notificationId}} Mark a Notification Read
+     * @api {post} /kendra/api/v1/notifications/in-app/markItRead/{{notificationId}} Mark a Notification Read
      * @apiVersion 1.0.0
      * @apiName Mark a Notification Read
      * @apiGroup Notifications
-     * @apiSampleRequest /kendra/api/v1/notifications/markItRead/1
+     * @apiSampleRequest /kendra/api/v1/notifications/in-app/markItRead/1
      * @apiUse successBody
      * @apiUse errorBody
      */
@@ -128,48 +127,5 @@ module.exports = class Notifications {
 
     }
 
-    async create(req) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                let createdData = await notificationsHelper.create(req.userDetails.id, req.body)
-
-                return resolve(createdData)
-            } catch (error) {
-                reject(error)
-            }
-        })
-    }
-
-    async search() {
-        return new Promise(async (resolve, reject) => {
-            try {
-                let searchData = await notificationsHelper.search()
-
-                return resolve({ result: searchData })
-            }
-            catch (error) {
-                reject(error)
-            }
-        })
-    }
-
-    async deleteAllIndex() {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const userNotificationDocCreation = await elasticsearch.client.indices.delete({
-                    index: "sl-languages-dev"
-                })
-
-                return resolve({
-                    status: userNotificationDocCreation.statusCode
-                })
-            } catch (error) {
-                return reject(error)
-            }
-        })
-    }
-
 };
-
-
 

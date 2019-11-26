@@ -24,29 +24,48 @@ module.exports = function () {
   global.REQUEST_TIMEOUT_FOR_REPORTS = process.env.REQUEST_TIMEOUT_FOR_REPORTS || 120000;
 
   // boostrap all models
-  // global.models = requireAll({
-  //   dirname: ROOT_PATH + "/models",
-  //   filter: /(.+)\.js$/,
-  //   resolve: function (Model) {
-  //     return Model;
-  //   }
-  // });
-
-  //load base v1 controllers
-  fs.readdirSync(ROOT_PATH + '/controllers/v1/').forEach(function (file) {
-    if (file.match(/\.js$/) !== null) {
-      var name = file.replace('.js', '');
-      global[name + 'BaseController'] = require(ROOT_PATH + '/controllers/v1/' + file);
+  global.models = requireAll({
+    dirname: ROOT_PATH + "/models",
+    filter: /(.+)\.js$/,
+    resolve: function (Model) {
+      return Model;
     }
   });
 
+  //load base v1 controllers
+
+  let pathToController = ROOT_PATH + '/controllers/v1/'
+  fs.readdirSync(pathToController).forEach(function (file) {
+
+    checkWhetherFolderExistsOrNor(ROOT_PATH + '/controllers/v1/', file)
+  });
+
+  function checkWhetherFolderExistsOrNor(pathToFolder, file) {
+
+    let folderExists = fs.lstatSync(pathToFolder + file).isDirectory();
+
+    if (folderExists) {
+      fs.readdirSync(pathToFolder + file).forEach(function (folderOrFile) {
+        checkWhetherFolderExistsOrNor(pathToFolder + file + "/", folderOrFile)
+      })
+
+    } else {
+      if (file.match(/\.js$/) !== null) {
+        var name = file.replace('.js', '');
+        global[name + 'BaseController'] = require(pathToFolder + file);
+      }
+    }
+
+  }
+
   //load schema files
-  // fs.readdirSync(ROOT_PATH + '/models/').forEach(function (file) {
-  //   if (file.match(/\.js$/) !== null) {
-  //     var name = file.replace('.js', '');
-  //     global[name + 'Schema'] = require(ROOT_PATH + '/models/' + file);
-  //   }
-  // });
+  global.schemas = new Array
+  fs.readdirSync(ROOT_PATH + '/models/').forEach(function (file) {
+    if (file.match(/\.js$/) !== null) {
+      var name = file.replace('.js', '');
+      global.schemas[name] = require(ROOT_PATH + '/models/' + file);
+    }
+  });
 
   // boostrap all controllers
   global.controllers = requireAll({
