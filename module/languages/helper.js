@@ -2,6 +2,8 @@ const kafkaCommunication = require(ROOT_PATH + "/generics/helpers/kafka-communic
 let slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
 const csv = require("csvtojson");
 const elasticSearchHelper = require(ROOT_PATH + "/generics/helpers/elastic-search");
+const languageIndex = (process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX && process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX != "") ? process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX : "shikshalokam";
+const languageTypeName = (process.env.ELASTICSEARCH_SHIKSHALOKAM_TYPE && process.env.ELASTICSEARCH_SHIKSHALOKAM_TYPE != "") ? process.env.ELASTICSEARCH_SHIKSHALOKAM_TYPE : "i18next";
 
 module.exports = class notificationsHelper {
 
@@ -11,34 +13,60 @@ module.exports = class notificationsHelper {
 
                 let languageData = await csv().fromString(files.language.data.toString());
 
-                let languageFileName = files.language.name.replace('.csv', '');
-
-                let language = {};
+                let languages = {};
 
                 for (let pointerToLanguage = 0; pointerToLanguage < languageData.length; pointerToLanguage++) {
 
-                    if (!language[languageData[pointerToLanguage].appKey]) {
-                        language[languageData[pointerToLanguage].appKey] = {}
-                        language[languageData[pointerToLanguage].appKey][languageData[pointerToLanguage].key] = languageData[pointerToLanguage].value
+                    let splitKeyDataToArray = languageData[pointerToLanguage].key.split("_")
+
+                    Object.keys(languageData[pointerToLanguage]).forEach(eachLanguage => {
+
+                        if (eachLanguage !== "key") {
+
+                            if (!languages[eachLanguage]) {
+                                languages[eachLanguage] = {};
+                                languages[eachLanguage]["id"] = eachLanguage;
+                                languages[eachLanguage]["action"] = "language"
+                            }
+
+                            if (!languages[eachLanguage][splitKeyDataToArray[0]]) {
+                                languages[eachLanguage][splitKeyDataToArray[0]] = {}
+                            }
+
+                            languages[eachLanguage][splitKeyDataToArray[0]][splitKeyDataToArray[1]] = languageData[pointerToLanguage][eachLanguage]
+
+                        }
+                    })
+                }
+
+                let allSetOfLanguages = Object.values(languages)
+
+                let responseData = [];
+
+                for (let pointerToAllSetOfLanguage = 0; pointerToAllSetOfLanguage < allSetOfLanguages.length; pointerToAllSetOfLanguage++) {
+
+                    let pushLanguagesToKafka = await kafkaCommunication.pushLanguagesToKafka(allSetOfLanguages[pointerToAllSetOfLanguage]);
+                    let result = {}
+
+                    result["language"] = allSetOfLanguages[pointerToAllSetOfLanguage].id
+
+                    if (pushLanguagesToKafka.status != "success") {
+                        let errorObject = {
+                            message: `Failed to push to kafka`
+                        }
+
+                        result["message"] = "Fail to upload"
+                        slackClient.kafkaErrorAlert(errorObject)
+                        return;
                     } else {
-                        language[languageData[pointerToLanguage].appKey][languageData[pointerToLanguage].key] = languageData[pointerToLanguage].value
+                        result["message"] = "Successfully Uploaded"
                     }
+
+                    responseData.push(result)
                 }
 
-                language["id"] = languageFileName;
-                language["action"] = "language";
 
-                let pushLanguagesToKafka = await kafkaCommunication.pushLanguagesToKafka(language)
-
-                if (pushLanguagesToKafka.status != "success") {
-                    let errorObject = {
-                        message: `Failed to push to kafka`
-                    }
-                    slackClient.kafkaErrorAlert(errorObject)
-                    return;
-                }
-
-                return resolve()
+                return resolve(responseData)
 
 
             } catch (error) {
@@ -50,7 +78,14 @@ module.exports = class notificationsHelper {
     static list(languageId) {
         return new Promise(async (resolve, reject) => {
             try {
-                let getLanguageDocument = await elasticSearchHelper.getLanguageData(languageId)
+
+                let languageInfo = {
+                    id: languageId,
+                    index: languageIndex,
+                    type: languageTypeName
+                }
+
+                let getLanguageDocument = await elasticSearchHelper.getData(languageInfo)
 
                 let data = {};
 
@@ -59,7 +94,7 @@ module.exports = class notificationsHelper {
                 }
 
                 return resolve({
-                    message: `${languageId} fetched successfully`,
+                    message: `${languageId} language data fetched successfully`,
                     data: data
                 })
 
