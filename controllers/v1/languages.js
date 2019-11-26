@@ -119,11 +119,11 @@ module.exports = class Languages {
     }
 
     /**
- * @api {get} /kendra/api/v1/languages/list Notifications List
+ * @api {get} /kendra/api/v1/languages/list/:languageId Notifications List
  * @apiVersion 1.0.0
  * @apiName languages List
  * @apiGroup Language
- * @apiSampleRequest /kendra/api/v1/languages/list
+ * @apiSampleRequest /kendra/api/v1/languages/list/en
  * @apiHeader {String} X-authenticated-user-token Authenticity token  
  * @apiUse successBody
  * @apiUse errorBody
