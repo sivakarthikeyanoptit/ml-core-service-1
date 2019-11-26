@@ -139,8 +139,6 @@ module.exports = class pushNotificationsHelper {
 
                         success = false;
 
-                        console.log(`Failed to send to deviceid : ${deviceId}`)
-
                     } else {
                         success = true
                     }
@@ -173,6 +171,7 @@ module.exports = class pushNotificationsHelper {
                             "code": err.errorInfo.code,
                             "message": err.errorInfo.message
                         })
+
                     } else {
                         success = true;
                     }
@@ -209,6 +208,7 @@ module.exports = class pushNotificationsHelper {
                             "code": err.errorInfo.code,
                             "message": err.errorInfo.message
                         })
+
                     } else {
                         success = true;
                     }
