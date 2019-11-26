@@ -23,12 +23,12 @@ module.exports = class Languages {
     }
 
     /**
-    * @api {post} /assessment-design/api/v1/languages/translate?language=:language Translate Language
+    * @api {post} /kendra/api/v1/languages/translate?language=:language Translate Language
     * @apiVersion 1.0.0
     * @apiName language Translate Language
     * @apiGroup Language
     * @apiHeader {String} X-authenticated-user-token Authenticity token
-    * @apiSampleRequest /assessment-design/api/v1/languages/translate?language=en
+    * @apiSampleRequest /kendra/api/v1/languages/translate?language=en
     * @apiUse successBody
     * @apiUse errorBody
     * @apiParamExample {json} Response:
