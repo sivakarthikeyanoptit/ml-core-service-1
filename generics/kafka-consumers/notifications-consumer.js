@@ -12,7 +12,14 @@ var messageReceived = function (message) {
       let parsedMessage = JSON.parse(message.value)
 
       if (parsedMessage.action === "deletion") {
+
         await elastissearchHelper.deleteReadOrUnReadNotificationData(parsedMessage.users, parsedMessage)
+
+      } else if (parsedMessage.action === "versionUpdate") {
+
+        delete parsedMessage.action;
+        await elastissearchHelper.updateAppVersion(parsedMessage);
+
       } else if (parsedMessage.action === "language") {
         console.log("elastic search");
         const id = parsedMessage.id;
@@ -20,8 +27,7 @@ var messageReceived = function (message) {
         delete parsedMessage.action;
 
         await elastissearchHelper.pushLanguageData(id, parsedMessage)
-      }
-      else {
+      } else {
         const userId = parsedMessage.user_id
         delete parsedMessage.user_id
         parsedMessage.is_read = false
@@ -82,6 +88,7 @@ var errorTriggered = function (error) {
 
   });
 };
+
 
 module.exports = {
   messageReceived: messageReceived,

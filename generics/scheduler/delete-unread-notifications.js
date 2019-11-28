@@ -36,7 +36,7 @@
 
 // for (let pointerToUnReadNotifications = 0; pointerToUnReadNotifications < unreadNotificationsArray.length; pointerToUnReadNotifications++) {
 
-//   let pushUnDeleteReadNotificationsToKafka = await kafkaCommunication.pushDeletionNotificationsToKafka(unreadNotificationsArray[pointerToUnReadNotifications]);
+//   let pushUnDeleteReadNotificationsToKafka = await kafkaCommunication.pushNotificationsDataToKafka(unreadNotificationsArray[pointerToUnReadNotifications]);
 
 //   if (pushUnDeleteReadNotificationsToKafka.status != "success") {
 //     let errorObject = {
