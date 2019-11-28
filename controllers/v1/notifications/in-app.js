@@ -127,5 +127,43 @@ module.exports = class InApp {
 
     }
 
+    /**
+     * @api {post} /kendra/api/v1/notifications/in-app/updateVersion Upload app version
+     * @apiVersion 1.0.0
+     * @apiName Upload app version
+     * @apiGroup Notifications
+     * @apiSampleRequest /kendra/api/v1/notifications/in-app/updateVersion
+     * @apiParam {File} updateVersion Mandatory updateVersion file of type CSV.     
+     * @apiUse successBody
+     * @apiUse errorBody
+     */
+
+    async updateVersion(req) {
+        return new Promise(async (resolve, reject) => {
+
+            try {
+
+                if (!req.files || !req.files.updateVersion) {
+                    throw { message: "Missing file of type updateVersion" }
+                }
+
+                let updateVersionData = await csv().fromString(req.files.updateVersion.data.toString());
+
+                let versionUpdateDocument = await notificationsHelper.updateAppVersion(updateVersionData)
+
+                return resolve({
+                    message: req.t('markItReadNotification'),
+                    status: httpStatusCode.ok.status
+                })
+            } catch (error) {
+                reject({
+                    status: error.status || httpStatusCode["internal_server_error"].status,
+                    message: error.message || httpStatusCode["internal_server_error"].message
+                })
+            }
+        })
+
+    }
+
 };
 

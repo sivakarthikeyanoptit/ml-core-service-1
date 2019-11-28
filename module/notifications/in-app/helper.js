@@ -302,4 +302,21 @@ module.exports = class inAppNotificationsHelper {
         })
     }
 
+    static updateAppVersion(updateAppData) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                for (let pointerToUpdateAppData = 0; pointerToUpdateAppData < updateAppData.length; pointerToUpdateAppData++) {
+                    updateAppData[pointerToUpdateAppData]["action"] = "versionUpdate";
+                    await kafkaCommunication.pushAppUpdateDataToKafka(updateAppData[pointerToUpdateAppData]);
+                }
+
+                return resolve()
+
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
 };

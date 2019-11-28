@@ -13,6 +13,9 @@ var messageReceived = function (message) {
 
       if (parsedMessage.action === "deletion") {
         await elastissearchHelper.deleteReadOrUnReadNotificationData(parsedMessage.users, parsedMessage)
+      } else if (parsedMessage.action === "versionUpdate") {
+
+        await updateVersion(parsedMessage);
       } else {
         const userId = parsedMessage.user_id
         delete parsedMessage.user_id
@@ -74,6 +77,19 @@ var errorTriggered = function (error) {
 
   });
 };
+
+var updateVersion = function (parsedData) {
+  return new Promise(function (resolve, reject) {
+
+    try {
+
+      return resolve(error);
+    } catch (error) {
+      return reject(error);
+    }
+
+  });
+}
 
 module.exports = {
   messageReceived: messageReceived,

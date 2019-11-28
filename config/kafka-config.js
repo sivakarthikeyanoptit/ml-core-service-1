@@ -25,12 +25,49 @@ var connect = function (config) {
 
   Consumer = kafka.Consumer
 
-  if (config.topics["notificationsTopic"] && config.topics["notificationsTopic"] != "") {
+  sendToKafkaConsumers(Consumer, config.topics["notificationsTopic"]);
+
+  sendToKafkaConsumers(Consumer, config.topics["versionUpdateTopic"]);
+
+  // if (config.topics["notificationsTopic"] && config.topics["notificationsTopic"] != "") {
+
+  //   let consumer = new Consumer(
+  //     client,
+  //     [
+  //       { topic: config.topics["notificationsTopic"], offset: 0, partition: 0 }
+  //     ],
+  //     {
+  //       autoCommit: true
+  //     }
+  //   );
+
+  //   consumer.on('message', async function (message) {
+  //     notificationsConsumer.messageReceived(message)
+  //   });
+
+  //   consumer.on('error', async function (error) {
+  //     notificationsConsumer.errorTriggered(error)
+  //   });
+
+  // }
+
+  return {
+    kafkaProducer: producer,
+    kafkaConsumer: kafka.Consumer,
+    kafkaClient: client,
+    kafkaKeyedMessage: KeyedMessage
+  };
+
+};
+
+var sendToKafkaConsumers = function (Consumer, topic) {
+
+  if (topic && topic != "") {
 
     let consumer = new Consumer(
       client,
       [
-        { topic: config.topics["notificationsTopic"], offset: 0, partition: 0 }
+        { topic: topic, offset: 0, partition: 0 }
       ],
       {
         autoCommit: true
@@ -47,13 +84,6 @@ var connect = function (config) {
 
   }
 
-  return {
-    kafkaProducer: producer,
-    kafkaConsumer: kafka.Consumer,
-    kafkaClient: client,
-    kafkaKeyedMessage: KeyedMessage
-  };
-
-};
+}
 
 module.exports = connect;
