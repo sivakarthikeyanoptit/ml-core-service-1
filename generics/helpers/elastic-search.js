@@ -2,7 +2,7 @@ const samikshaIndexName = (process.env.ELASTICSEARCH_SAMIKSHA_INDEX && process.e
 const samikshaNotificationTypeName = (process.env.ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE && process.env.ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE != "") ? process.env.ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE : "user-notification"
 const unnatiIndexName = (process.env.ELASTICSEARCH_UNNATI_INDEX && process.env.ELASTICSEARCH_UNNATI_INDEX != "") ? process.env.ELASTICSEARCH_UNNATI_INDEX : "unnati";
 const languageIndex = (process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX && process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX != "") ? process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX : "shikshalokam";
-const versionIndex = (process.env.ELASTICSEARCH_APP_VERSION_INDEX && process.env.ELASTICSEARCH_APP_VERSION_INDEX != "") ? process.env.ELASTICSEARCH_APP_VERSION_INDEX : "sl-app-version";
+const versionIndex = (process.env.ELASTICSEARCH_APP_RELEASES_INDEX && process.env.ELASTICSEARCH_APP_RELEASES_INDEX != "") ? process.env.ELASTICSEARCH_APP_RELEASES_INDEX : "sl-app-releases";
 const languageTypeName = (process.env.ELASTICSEARCH_SHIKSHALOKAM_TYPE && process.env.ELASTICSEARCH_SHIKSHALOKAM_TYPE != "") ? process.env.ELASTICSEARCH_SHIKSHALOKAM_TYPE : "i18next";
 let moment = require("moment-timezone")
 
