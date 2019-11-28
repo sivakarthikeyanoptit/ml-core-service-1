@@ -13,10 +13,22 @@ var messageReceived = function (message) {
 
       if (parsedMessage.action === "deletion") {
         await elastissearchHelper.deleteReadOrUnReadNotificationData(parsedMessage.users, parsedMessage)
+<<<<<<< HEAD
       } else if (parsedMessage.action === "versionUpdate") {
 
         await updateVersion(parsedMessage);
       } else {
+=======
+      } else if (parsedMessage.action === "language") {
+        console.log("elastic search");
+        const id = parsedMessage.id;
+        delete parsedMessage.id;
+        delete parsedMessage.action;
+
+        await elastissearchHelper.pushLanguageData(id, parsedMessage)
+      }
+      else {
+>>>>>>> 80bb2b866abff157e84e7f88cd4969de418568fc
         const userId = parsedMessage.user_id
         delete parsedMessage.user_id
         parsedMessage.is_read = false
