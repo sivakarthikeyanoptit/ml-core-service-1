@@ -2,9 +2,9 @@ const samikshaIndexName = (process.env.ELASTICSEARCH_SAMIKSHA_INDEX && process.e
 const samikshaNotificationTypeName = (process.env.ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE && process.env.ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE != "") ? process.env.ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE : "user-notification"
 const unnatiIndexName = (process.env.ELASTICSEARCH_UNNATI_INDEX && process.env.ELASTICSEARCH_UNNATI_INDEX != "") ? process.env.ELASTICSEARCH_UNNATI_INDEX : "unnati";
 const languageIndex = (process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX && process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX != "") ? process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX : "shikshalokam";
+const versionIndex = (process.env.ELASTICSEARCH_APP_VERSION_INDEX && process.env.ELASTICSEARCH_APP_VERSION_INDEX != "") ? process.env.ELASTICSEARCH_APP_VERSION_INDEX : "sl-app-version";
 const languageTypeName = (process.env.ELASTICSEARCH_SHIKSHALOKAM_TYPE && process.env.ELASTICSEARCH_SHIKSHALOKAM_TYPE != "") ? process.env.ELASTICSEARCH_SHIKSHALOKAM_TYPE : "i18next";
 let moment = require("moment-timezone")
-
 
 var pushNotificationData = function (userId = "", notificatonData = {}) {
 
@@ -364,6 +364,130 @@ var pushLanguageData = function (languageId = "", languageData = {}) {
   });
 };
 
+var updateAppVersion = function (versionData) {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (versionData.appName == "") throw "Invalid appName."
+
+      let versionInfo = {};
+
+      versionInfo["id"] = versionData.appName
+      versionInfo["index"] = versionIndex;
+      versionInfo["type"] = samikshaNotificationTypeName;
+
+      let appVersionDocument = await getData(versionInfo);
+
+      let versionObj = { ...versionInfo }
+
+      if (appVersionDocument.statusCode === 404) {
+
+        versionData.action = "alertModal";
+        versionData.id = 0;
+
+        versionObj["body"] = {
+          versions: [versionData]
+        }
+
+        const appVersionCreation = await createOrUpdateData(versionObj);
+
+        if (!(appVersionCreation.statusCode == 200 || appVersionCreation.statusCode == 201)) {
+          throw new Error(`Failed to push app version in elastic search.`)
+        }
+
+      } else if (appVersionDocument.statusCode == 200) {
+
+        let singleVersionObject = appVersionDocument.body._source;
+
+        let checkIfminimumVersionExistsOrNot = singleVersionObject.versions.find(item => item.payload.appVersion === versionData.minimum_version);
+
+        if (checkIfminimumVersionExistsOrNot) {
+
+          let allVersionIds = singleVersionObject.versions.map(item => {
+            return item.id
+          });
+
+          let maximumAppVersionId = Math.max(...allVersionIds)
+
+          versionData.id = maximumAppVersionId + 1;
+
+          singleVersionObject.versions.push(notificatonData)
+
+          versionObj["body"] = {
+            doc: {
+              versions: singleVersionObject.versions
+            }
+          }
+
+          const appVersionUpdation = await createOrUpdateData(versionObj, true)
+
+          if (appVersionUpdation.statusCode !== 200) {
+            throw new Error("Failed to push notification to elastic search.")
+          }
+
+        }
+
+      } else {
+        throw "Something went wrong!"
+      }
+
+      return resolve({
+        success: true
+      })
+
+    } catch (error) {
+      return reject(error);
+    }
+  });
+};
+
+var pushAppVersionToLoggedInUser = function (userDetails, headers, appName) {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (headers.appName == "") throw "Invalid appName."
+
+      let versionInfo = {};
+
+      versionInfo["id"] = headers.appname
+      versionInfo["index"] = versionIndex;
+      versionInfo["type"] = samikshaNotificationTypeName;
+
+      let appVersionDocument = await getData(versionInfo);
+
+      let versionObj = { ...versionInfo }
+
+      if (appVersionDocument.statusCode === 200) {
+
+        let versionData = appVersionDocument.body._source.versions;
+        let updateAppVersion = versionData[versionData.length - 1];
+
+        if (updateAppVersion.payload.platform === headers.platform && updateAppVersion.payload.appVersion !== headers.appversion) {
+
+          const pushAppVersionInNotificationData = await pushNotificationData(userDetails, updateAppVersion);
+
+          if (!pushAppVersionInNotificationData.success) {
+            throw new Error(`Failed to push app version for particular user.`)
+          }
+
+          console.log("here");
+        }
+
+      }
+
+      return resolve({
+        success: true
+      })
+
+    } catch (error) {
+      return reject(error);
+    }
+  });
+};
+
+
 var getLanguageData = function (languageId = "") {
 
   return new Promise(async function (resolve, reject) {
@@ -614,5 +738,7 @@ module.exports = {
   pushLanguageData: pushLanguageData,
   getLanguageData: getLanguageData,
   getAllLanguagesData: getAllLanguagesData,
-  getData: getData
+  getData: getData,
+  updateAppVersion: updateAppVersion,
+  pushAppVersionToLoggedInUser: pushAppVersionToLoggedInUser
 };

@@ -7,6 +7,7 @@
  */
 
 const notificationsHelper = require(ROOT_PATH + "/module/notifications/in-app/helper");
+const csv = require('csvtojson');
 
 module.exports = class InApp {
 
@@ -45,7 +46,7 @@ module.exports = class InApp {
 
             try {
 
-                let notificationDocument = await notificationsHelper.list((req.params._id && req.params._id != "") ? req.params._id : req.userDetails.id, req.pageSize, req.pageNo, (req.query.appName && req.query.appName != "") ? req.query.appName : "")
+                let notificationDocument = await notificationsHelper.list((req.params._id && req.params._id != "") ? req.params._id : req.userDetails.id, req.pageSize, req.pageNo, (req.query.appName && req.query.appName != "") ? req.query.appName : "", req.headers)
 
                 return resolve({
                     result: notificationDocument,
@@ -76,13 +77,14 @@ module.exports = class InApp {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let unReadCountDocument = await notificationsHelper.unReadCount(req.userDetails.id, (req.query.appName && req.query.appName != "") ? req.query.appName : "")
+                let unReadCountDocument = await notificationsHelper.unReadCount(req.userDetails.id, (req.query.appName && req.query.appName != "") ? req.query.appName : "", req.headers)
 
                 return resolve({
                     message: req.t('unreadNotifocation'),
                     status: httpStatusCode.ok.status,
                     result: {
-                        count: unReadCountDocument.count
+                        count: unReadCountDocument.count,
+                        data: unReadCountDocument.data
                     }
                 })
 
@@ -96,22 +98,22 @@ module.exports = class InApp {
     }
 
     /**
-     * @api {post} /kendra/api/v1/notifications/in-app/markItRead/{{notificationId}} Mark a Notification Read
+     * @api {post} /kendra/api/v1/notifications/in-app/markAsRead/{{notificationId}} Mark a Notification Read
      * @apiVersion 1.0.0
      * @apiName Mark a Notification Read
      * @apiGroup Notifications
-     * @apiSampleRequest /kendra/api/v1/notifications/in-app/markItRead/1
+     * @apiSampleRequest /kendra/api/v1/notifications/in-app/markAsRead/1
      * @apiUse successBody
      * @apiUse errorBody
      */
 
-    async markItRead(req) {
+    async markAsRead(req) {
         return new Promise(async (resolve, reject) => {
 
             try {
 
 
-                await notificationsHelper.markItRead(req.userDetails.id, req.params._id, (req.query.appName && req.query.appName != "") ? req.query.appName : "")
+                await notificationsHelper.markAsRead(req.userDetails.id, req.params._id, (req.query.appName && req.query.appName != "") ? req.query.appName : "")
 
                 return resolve({
                     message: req.t('markItReadNotification'),

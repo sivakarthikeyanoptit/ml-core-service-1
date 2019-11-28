@@ -27,51 +27,6 @@ var connect = function (config) {
 
   sendToKafkaConsumers(Consumer, config.topics["notificationsTopic"]);
   sendToKafkaConsumers(Consumer, config.topics["languagesTopic"]);
-  sendToKafkaConsumers(Consumer, config.topics["versionUpdateTopic"]);
-
-  // if (config.topics["notificationsTopic"] && config.topics["notificationsTopic"] != "") {
-
-  //   let consumer = new Consumer(
-  //     client,
-  //     [
-  //       { topic: config.topics["notificationsTopic"], offset: 0, partition: 0 }
-  //     ],
-  //     {
-  //       autoCommit: true
-  //     }
-  //   );
-
-  //   consumer.on('message', async function (message) {
-  //     notificationsConsumer.messageReceived(message)
-  //   });
-
-  //   consumer.on('error', async function (error) {
-  //     notificationsConsumer.errorTriggered(error)
-  //   });
-
-  // }
-
-  // if (config.topics["languagesTopic"] && config.topics["languagesTopic"] != "") {
-
-  //   let languageConsumer = new Consumer(
-  //     client,
-  //     [
-  //       { topic: config.topics["languagesTopic"], offset: 0, partition: 0 }
-  //     ],
-  //     {
-  //       autoCommit: true
-  //     }
-  //   );
-
-  //   languageConsumer.on('message', async function (message) {
-  //     notificationsConsumer.messageReceived(message)
-  //   });
-
-  //   languageConsumer.on('error', async function (error) {
-  //     notificationsConsumer.errorTriggered(error)
-  //   });
-
-  // }
 
   return {
     kafkaProducer: producer,

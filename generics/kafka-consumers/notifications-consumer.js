@@ -12,13 +12,14 @@ var messageReceived = function (message) {
       let parsedMessage = JSON.parse(message.value)
 
       if (parsedMessage.action === "deletion") {
+
         await elastissearchHelper.deleteReadOrUnReadNotificationData(parsedMessage.users, parsedMessage)
-<<<<<<< HEAD
+
       } else if (parsedMessage.action === "versionUpdate") {
 
-        await updateVersion(parsedMessage);
-      } else {
-=======
+        delete parsedMessage.action;
+        await elastissearchHelper.updateAppVersion(parsedMessage);
+
       } else if (parsedMessage.action === "language") {
         console.log("elastic search");
         const id = parsedMessage.id;
@@ -26,9 +27,7 @@ var messageReceived = function (message) {
         delete parsedMessage.action;
 
         await elastissearchHelper.pushLanguageData(id, parsedMessage)
-      }
-      else {
->>>>>>> 80bb2b866abff157e84e7f88cd4969de418568fc
+      } else {
         const userId = parsedMessage.user_id
         delete parsedMessage.user_id
         parsedMessage.is_read = false
@@ -90,18 +89,6 @@ var errorTriggered = function (error) {
   });
 };
 
-var updateVersion = function (parsedData) {
-  return new Promise(function (resolve, reject) {
-
-    try {
-
-      return resolve(error);
-    } catch (error) {
-      return reject(error);
-    }
-
-  });
-}
 
 module.exports = {
   messageReceived: messageReceived,

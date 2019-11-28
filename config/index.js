@@ -61,7 +61,6 @@ const configuration = {
     host: process.env.KAFKA_URL,
     topics: {
       notificationsTopic: process.env.NOTIFICATIONS_TOPIC || "sl-notifications-dev",
-      versionUpdateTopic: process.env.VERSION_UPDATE_TOPIC || "sl-versions-dev",
       languagesTopic: process.env.LANGUAGE_TOPIC || "sl-languages-dev"
     }
   },

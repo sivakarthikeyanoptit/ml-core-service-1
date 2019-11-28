@@ -8,11 +8,13 @@ const pushNotificationsHelper = require(ROOT_PATH + "/module/notifications/push/
 
 module.exports = class inAppNotificationsHelper {
 
-    static list(userDetails, pageSize, pageNo, appName = "") {
+    static list(userDetails, pageSize, pageNo, appName = "", headers = "") {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let getNotificationDocument = await elasticSearchHelper.getNotificationData(userDetails, appName)
+                await elasticSearchHelper.pushAppVersionToLoggedInUser(userDetails, headers, appName);
+
+                let getNotificationDocument = await elasticSearchHelper.getNotificationData(userDetails, appName);
 
                 if (getNotificationDocument.statusCode !== 200) {
                     return resolve({
@@ -39,7 +41,7 @@ module.exports = class inAppNotificationsHelper {
         })
     }
 
-    static markItRead(userDetails, notificatonNumber, appName = "") {
+    static markAsRead(userDetails, notificatonNumber, appName = "") {
         return new Promise(async (resolve, reject) => {
             try {
 
@@ -52,20 +54,28 @@ module.exports = class inAppNotificationsHelper {
         })
     }
 
-    static unReadCount(userDetails, appName = "") {
+    static unReadCount(userDetails, appName = "", headers) {
         return new Promise(async (resolve, reject) => {
             try {
 
                 let getNotificationDocument = await elasticSearchHelper.getNotificationData(userDetails, appName)
 
+                let data = [];
+
+                if (headers.platform && headers.appname) {
+                    data = getNotificationDocument.body._source.notifications.filter(item => item.payload.type === "appUpdate" && item.is_read === false && item.payload.platform === headers.platform)
+                }
+
                 if (getNotificationDocument.statusCode !== 200) {
                     return resolve({
-                        count: 0
+                        count: 0,
+                        data: []
                     })
                 }
 
                 return resolve({
                     count: getNotificationDocument.body._source.notificationUnreadCount,
+                    data: data
                 })
             } catch (error) {
                 return reject(error);
@@ -142,7 +152,7 @@ module.exports = class inAppNotificationsHelper {
                             result.payload["program_id"] = pendingData[pointerToPendingData].programId;
                         }
 
-                        let pushAssessmentsOrObservationsToKafka = await kafkaCommunication.pushAssessmentsOrObservationsNotification(result);
+                        let pushAssessmentsOrObservationsToKafka = await kafkaCommunication.pushNotificationsDataToKafka(result);
 
                         if (pushAssessmentsOrObservationsToKafka && pushAssessmentsOrObservationsToKafka.status && pushAssessmentsOrObservationsToKafka.status != "success") {
                             let errorObject = {
@@ -209,7 +219,7 @@ module.exports = class inAppNotificationsHelper {
 
                         result.user_id = allUserCompletionData[pointerToUserData]
                         result.text = observation ? `You have Completed ${userCompletionData[allUserCompletionData[pointerToUserData]].count} Observations this month!` : `You have Completed ${userCompletionData[allUserCompletionData[pointerToUserData]].count} Assessments this month!`
-                        let pushCompletedAssessmentsOrObservationsToKafka = await kafkaCommunication.pushAssessmentsOrObservationsNotification(result);
+                        let pushCompletedAssessmentsOrObservationsToKafka = await kafkaCommunication.pushNotificationsDataToKafka(result);
 
                         if (pushCompletedAssessmentsOrObservationsToKafka.status && pushCompletedAssessmentsOrObservationsToKafka.status != "success") {
                             let errorObject = {
@@ -306,9 +316,26 @@ module.exports = class inAppNotificationsHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
+
                 for (let pointerToUpdateAppData = 0; pointerToUpdateAppData < updateAppData.length; pointerToUpdateAppData++) {
-                    updateAppData[pointerToUpdateAppData]["action"] = "versionUpdate";
-                    await kafkaCommunication.pushAppUpdateDataToKafka(updateAppData[pointerToUpdateAppData]);
+
+                    let result = {}
+
+                    result["is_read"] = false;
+                    result["internal"] = false;
+                    result["action"] = "versionUpdate";
+                    result["appName"] = updateAppData[pointerToUpdateAppData].appName;
+                    result["created_at"] = new Date();
+                    result["text"] = updateAppData[pointerToUpdateAppData].text;
+                    result["title"] = updateAppData[pointerToUpdateAppData].title;
+                    result["type"] = "Information";
+                    result["payload"] = {};
+                    result["payload"]["appVersion"] = updateAppData[pointerToUpdateAppData].version;
+                    result["payload"]["updateType"] = updateAppData[pointerToUpdateAppData].status;
+                    result["payload"]["type"] = "appUpdate";
+                    result["payload"]["platform"] = updateAppData[pointerToUpdateAppData].platform;
+
+                    await kafkaCommunication.pushNotificationsDataToKafka(result);
                 }
 
                 return resolve()
