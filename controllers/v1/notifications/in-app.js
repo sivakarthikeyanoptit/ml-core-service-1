@@ -151,10 +151,10 @@ module.exports = class InApp {
 
                 let updateVersionData = await csv().fromString(req.files.updateVersion.data.toString());
 
-                let versionUpdateDocument = await notificationsHelper.updateAppVersion(updateVersionData)
+                await notificationsHelper.updateAppVersion(updateVersionData)
 
                 return resolve({
-                    message: req.t('markItReadNotification'),
+                    message: "Successfully Uploaded Version",
                     status: httpStatusCode.ok.status
                 })
             } catch (error) {
