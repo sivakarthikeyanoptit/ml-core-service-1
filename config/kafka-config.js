@@ -47,6 +47,28 @@ var connect = function (config) {
 
   }
 
+  if (config.topics["languagesTopic"] && config.topics["languagesTopic"] != "") {
+
+    let languageConsumer = new Consumer(
+      client,
+      [
+        { topic: config.topics["languagesTopic"], offset: 0, partition: 0 }
+      ],
+      {
+        autoCommit: true
+      }
+    );
+
+    languageConsumer.on('message', async function (message) {
+      notificationsConsumer.messageReceived(message)
+    });
+
+    languageConsumer.on('error', async function (error) {
+      notificationsConsumer.errorTriggered(error)
+    });
+
+  }
+
   return {
     kafkaProducer: producer,
     kafkaConsumer: kafka.Consumer,
