@@ -45,22 +45,38 @@ module.exports = class notificationsHelper {
 
                 for (let pointerToAllSetOfLanguage = 0; pointerToAllSetOfLanguage < allSetOfLanguages.length; pointerToAllSetOfLanguage++) {
 
-                    let pushLanguagesToKafka = await kafkaCommunication.pushLanguagesToKafka(allSetOfLanguages[pointerToAllSetOfLanguage]);
+
+                    // let pushLanguagesToKafka = await kafkaCommunication.pushLanguagesToKafka(allSetOfLanguages[pointerToAllSetOfLanguage]); --> could not push to kafka
                     let result = {}
+
+                    let languageId = allSetOfLanguages[pointerToAllSetOfLanguage].id; // Not required if kafka works
+
+                    // Since kafka is not working temporary fix.Not required if kafka works 
+
+                    delete allSetOfLanguages[pointerToAllSetOfLanguage].id;
+                    delete allSetOfLanguages[pointerToAllSetOfLanguage].action;
+                    //
+
+                    // Not required if kafka works 
+                    await elasticSearchHelper.pushLanguageData(languageId, allSetOfLanguages[pointerToAllSetOfLanguage])
+
+                    //
 
                     result["language"] = allSetOfLanguages[pointerToAllSetOfLanguage].id
 
-                    if (pushLanguagesToKafka.status != "success") {
-                        let errorObject = {
-                            message: `Failed to push to kafka`
-                        }
+                    // if (pushLanguagesToKafka.status != "success") {
+                    //     let errorObject = {
+                    //         message: `Failed to push to kafka`
+                    //     }
 
-                        result["message"] = "Fail to upload"
-                        slackClient.kafkaErrorAlert(errorObject)
-                        return;
-                    } else {
-                        result["message"] = "Successfully Uploaded"
-                    }
+                    //     result["message"] = "Fail to upload"
+                    //     slackClient.kafkaErrorAlert(errorObject)
+                    //     return;
+                    // } else {
+                    //     result["message"] = "Successfully Uploaded"
+                    // }
+
+                    result["message"] = "Successfully Uploaded"
 
                     responseData.push(result)
                 }
