@@ -21,6 +21,7 @@ var messageReceived = function (message) {
         await elastissearchHelper.updateAppVersion(parsedMessage);
 
       } else if (parsedMessage.action === "language") {
+        console.log(parsedMessage);
         console.log("elastic search");
         const id = parsedMessage.id;
         delete parsedMessage.id;

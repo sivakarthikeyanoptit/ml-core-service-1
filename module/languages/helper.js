@@ -2,7 +2,7 @@ const kafkaCommunication = require(ROOT_PATH + "/generics/helpers/kafka-communic
 let slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
 const csv = require("csvtojson");
 const elasticSearchHelper = require(ROOT_PATH + "/generics/helpers/elastic-search");
-const languageIndex = (process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX && process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX != "") ? process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX : "shikshalokam";
+const languageIndex = (process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX && process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX != "") ? process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX : "sl-languages-dev";
 const languageTypeName = (process.env.ELASTICSEARCH_SHIKSHALOKAM_TYPE && process.env.ELASTICSEARCH_SHIKSHALOKAM_TYPE != "") ? process.env.ELASTICSEARCH_SHIKSHALOKAM_TYPE : "i18next";
 
 module.exports = class notificationsHelper {
