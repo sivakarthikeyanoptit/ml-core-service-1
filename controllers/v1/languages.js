@@ -168,10 +168,7 @@ module.exports = class Languages {
 
                 let languageLists = await languagesHelpers.listAll()
 
-                return resolve({
-                    result: languageLists.data,
-                    message: languageLists.message
-                })
+                return resolve(languageLists)
 
             } catch (error) {
                 return reject({

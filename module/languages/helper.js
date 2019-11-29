@@ -4,6 +4,7 @@ const csv = require("csvtojson");
 const elasticSearchHelper = require(ROOT_PATH + "/generics/helpers/elastic-search");
 const languageIndex = (process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX && process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX != "") ? process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX : "sl-languages-dev";
 const languageTypeName = (process.env.ELASTICSEARCH_SHIKSHALOKAM_TYPE && process.env.ELASTICSEARCH_SHIKSHALOKAM_TYPE != "") ? process.env.ELASTICSEARCH_SHIKSHALOKAM_TYPE : "i18next";
+const allExistingLanguages = require(ROOT_PATH + "/generics/helpers/languages.json")
 
 module.exports = class notificationsHelper {
 
@@ -125,15 +126,22 @@ module.exports = class notificationsHelper {
             try {
                 let getLanguageDocument = await elasticSearchHelper.getAllLanguagesData()
 
-                let data = {};
+                let data = [];
 
-                if (Object.values(getLanguageDocument).length > 0) {
-                    data = getLanguageDocument
+                for (let pointerToLanguage = 0; pointerToLanguage < getLanguageDocument.length; pointerToLanguage++) {
+
+                    let languageId = getLanguageDocument[pointerToLanguage].id
+                    if (allExistingLanguages[languageId] !== undefined) {
+                        data.push({
+                            id: languageId,
+                            name: allExistingLanguages[languageId]
+                        })
+                    }
                 }
 
                 return resolve({
                     message: `Languages lists fetched successfully`,
-                    data: data
+                    result: data
                 })
 
             } catch (error) {
