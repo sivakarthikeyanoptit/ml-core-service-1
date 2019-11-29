@@ -58,25 +58,30 @@ module.exports = class inAppNotificationsHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let getNotificationDocument = await elasticSearchHelper.getNotificationData(userDetails, appName)
+                await elasticSearchHelper.pushAppVersionToLoggedInUser(userDetails, headers, appName);
 
-                let data = [];
+                let getNotificationDocument = await elasticSearchHelper.getNotificationData(userDetails, appName);
 
-                if (headers.platform && headers.appname) {
-                    data = getNotificationDocument.body._source.notifications.filter(item => item.payload.type === "appUpdate" && item.is_read === false && item.payload.platform === headers.platform)
+                let response = {
+                    count: 0,
+                    data: []
                 }
 
-                if (getNotificationDocument.statusCode !== 200) {
-                    return resolve({
-                        count: 0,
-                        data: []
-                    })
+
+                if (getNotificationDocument.statusCode === 200) {
+                    response["count"] = getNotificationDocument.body._source.notificationUnreadCount;
+
+                    if (headers.platform && headers.appname) {
+                        let data = getNotificationDocument.body._source.notifications.filter(item => item.payload.type === "appUpdate" && item.is_read === false && item.payload.platform === headers.platform)
+
+                        if (data.length > 0) {
+                            response["data"] = data
+                        }
+                    }
                 }
 
-                return resolve({
-                    count: getNotificationDocument.body._source.notificationUnreadCount,
-                    data: data
-                })
+                return resolve(response)
+
             } catch (error) {
                 return reject(error);
             }
