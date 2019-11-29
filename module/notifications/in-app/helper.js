@@ -322,7 +322,7 @@ module.exports = class inAppNotificationsHelper {
                     let result = {}
 
                     result["is_read"] = false;
-                    result["internal"] = false;
+                    result["internal"] = true;
                     result["action"] = "versionUpdate";
                     result["appName"] = updateAppData[pointerToUpdateAppData].appName;
                     result["created_at"] = new Date();
@@ -335,6 +335,7 @@ module.exports = class inAppNotificationsHelper {
                     result["payload"]["type"] = "appUpdate";
                     result["payload"]["platform"] = updateAppData[pointerToUpdateAppData].platform;
 
+                    // await elasticSearchHelper.updateAppVersion(result);
                     await kafkaCommunication.pushNotificationsDataToKafka(result);
                 }
 

@@ -13,65 +13,15 @@ var pushNotificationData = function (userId = "", notificatonData = {}) {
 
       if (userId == "") throw "Invalid user id."
 
-      let indexName = samikshaIndexName;
-
-      if (notificatonData.appName && notificatonData.appName == "unnati") {
-        indexName = unnatiIndexName
-      }
-
       let userNotificationDocument = await getNotificationData(userId, notificatonData.appName);
-
-
-      let notificationCreationObj = {
-        id: userId,
-        index: indexName,
-        type: samikshaNotificationTypeName
-      }
 
       if (userNotificationDocument.statusCode == 404) {
 
-        notificatonData.id = 0
-
-        notificationCreationObj["body"] = {
-          notificationCount: 1,
-          notificationUnreadCount: 1,
-          notifications: [
-            notificatonData
-          ]
-        }
-
-        const userNotificationDocCreation = await createOrUpdateData(notificationCreationObj)
-
-        if (!(userNotificationDocCreation.statusCode == 200 || userNotificationDocCreation.statusCode == 201)) {
-          throw new Error("Failed to create notifications for user in elastic search.")
-        }
+        await createInAppNotification(userId, notificatonData)
 
       } else if (userNotificationDocument.statusCode == 200) {
 
-        let notificationObject = userNotificationDocument.body._source
-
-        let arrayOfMaximumValue = notificationObject.notifications.map(item => {
-          return item.id
-        })
-
-        let maximumCount = Math.max(...arrayOfMaximumValue)
-
-        notificatonData.id = maximumCount + 1
-
-        notificationObject.notifications.push(notificatonData)
-
-        notificationCreationObj["body"] = {
-          doc: {
-            notificationCount: notificationObject.notificationCount + 1,
-            notificationUnreadCount: notificationObject.notificationUnreadCount + 1,
-            notifications: notificationObject.notifications
-          }
-        }
-        const userNotificationDocUpdation = await createOrUpdateData(notificationCreationObj, true)
-
-        if (userNotificationDocUpdation.statusCode !== 200 || userNotificationDocUpdation.body.result !== "updated") {
-          throw new Error("Failed to push notification to elastic search.")
-        }
+        await updateInAppNotification(userId, notificatonData, userNotificationDocument)
 
       } else {
         throw "Something went wrong!"
@@ -87,6 +37,96 @@ var pushNotificationData = function (userId = "", notificatonData = {}) {
     }
   });
 };
+
+var createInAppNotification = function (userId, notificationData) {
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      let indexName = samikshaIndexName;
+
+      if (notificationData.appName && notificationData.appName === "unnati") {
+        indexName = unnatiIndexName
+      }
+
+      let notificationCreationObj = {
+        id: userId,
+        index: indexName,
+        type: samikshaNotificationTypeName
+      }
+
+      notificationData.id = 0
+
+      notificationCreationObj["body"] = {
+        notificationCount: 1,
+        notificationUnreadCount: 1,
+        notifications: [
+          notificationData
+        ]
+      }
+
+      const userNotificationDocCreation = await createOrUpdateData(notificationCreationObj)
+
+      if (!(userNotificationDocCreation.statusCode == 200 || userNotificationDocCreation.statusCode == 201)) {
+        throw new Error("Failed to create notifications for user in elastic search.")
+      }
+
+      return resolve()
+    }
+    catch (error) {
+      return reject(error);
+    }
+  })
+}
+
+var updateInAppNotification = function (userId, notificationDataToBeAdded, currentNotifications) {
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      let indexName = samikshaIndexName;
+
+      if (notificationDataToBeAdded.appName && notificationDataToBeAdded.appName == "unnati") {
+        indexName = unnatiIndexName
+      }
+
+      let notificationUpdationObj = {
+        id: userId,
+        index: indexName,
+        type: samikshaNotificationTypeName
+      }
+
+      let notificationObject = currentNotifications.body._source
+
+      let arrayOfIds = notificationObject.notifications.map(item => {
+        return item.id
+      })
+
+      let maximumId = Math.max(...arrayOfIds)
+
+      notificationDataToBeAdded.id = maximumId + 1
+
+      notificationObject.notifications.push(notificationDataToBeAdded)
+
+      notificationUpdationObj["body"] = {
+        doc: {
+          notificationCount: notificationObject.notificationCount + 1,
+          notificationUnreadCount: notificationObject.notificationUnreadCount + 1,
+          notifications: notificationObject.notifications
+        }
+      }
+
+      const userNotificationDocUpdation = await createOrUpdateData(notificationUpdationObj, true)
+
+      if (userNotificationDocUpdation.statusCode !== 200 || userNotificationDocUpdation.body.result !== "updated") {
+        throw new Error("Failed to push notification to elastic search.")
+      }
+
+      return resolve()
+    }
+    catch (error) {
+      return reject(error);
+    }
+  })
+}
 
 var updateNotificationData = function (userId = "", notificatonNumber = 0, notificationData = {}, appName = "") {
 
@@ -381,14 +421,11 @@ var updateAppVersion = function (versionData) {
 
       let versionObj = { ...versionInfo }
 
+      versionData.action = "alertModal";
+
       if (appVersionDocument.statusCode === 404) {
 
-        versionData.action = "alertModal";
-        versionData.id = 0;
-
-        versionObj["body"] = {
-          versions: [versionData]
-        }
+        versionObj["body"] = versionData
 
         const appVersionCreation = await createOrUpdateData(versionObj);
 
@@ -398,26 +435,12 @@ var updateAppVersion = function (versionData) {
 
       } else if (appVersionDocument.statusCode == 200) {
 
-        let singleVersionObject = appVersionDocument.body._source;
+        let existingLatestVersion = appVersionDocument.body._source;
 
-        let checkIfminimumVersionExistsOrNot = singleVersionObject.versions.find(item => item.payload.appVersion === versionData.minimum_version);
-
-        if (checkIfminimumVersionExistsOrNot) {
-
-          let allVersionIds = singleVersionObject.versions.map(item => {
-            return item.id
-          });
-
-          let maximumAppVersionId = Math.max(...allVersionIds)
-
-          versionData.id = maximumAppVersionId + 1;
-
-          singleVersionObject.versions.push(notificatonData)
+        if (existingLatestVersion.payload.appVersion !== versionData.payload.appVersion) {
 
           versionObj["body"] = {
-            doc: {
-              versions: singleVersionObject.versions
-            }
+            doc: versionData
           }
 
           const appVersionUpdation = await createOrUpdateData(versionObj, true)
@@ -457,22 +480,23 @@ var pushAppVersionToLoggedInUser = function (userDetails, headers, appName) {
 
       let appVersionDocument = await getData(versionInfo);
 
-      let versionObj = { ...versionInfo }
-
       if (appVersionDocument.statusCode === 200) {
 
-        let versionData = appVersionDocument.body._source.versions;
-        let updateAppVersion = versionData[versionData.length - 1];
+        let versionData = appVersionDocument.body._source;
+        versionData["created_at"] = new Date();
 
-        if (updateAppVersion.payload.platform === headers.platform && updateAppVersion.payload.appVersion !== headers.appversion) {
+        let userNotificationDocument = await getNotificationData(userDetails, versionData.appName);
 
-          const pushAppVersionInNotificationData = await pushNotificationData(userDetails, updateAppVersion);
+        if (userNotificationDocument.statusCode === 404) {
+          await createInAppNotification(userDetails, versionData)
+        } else {
 
-          if (!pushAppVersionInNotificationData.success) {
-            throw new Error(`Failed to push app version for particular user.`)
+          let notificationData = userNotificationDocument.body._source.notifications.find(item => item.action === "alertModal" && item.payload.appVersion === versionData.payload.appVersion)
+
+          if (!notificationData) {
+            await updateInAppNotification(userDetails, versionData, userNotificationDocument)
           }
 
-          console.log("here");
         }
 
       }
@@ -727,7 +751,7 @@ var deleteData = function (data) {
       return reject(error)
     }
   })
-}
+};
 
 module.exports = {
   pushNotificationData: pushNotificationData,

@@ -167,5 +167,29 @@ module.exports = class InApp {
 
     }
 
+    async deleteBasedOnIndex(req) {
+        return new Promise(async (resolve, reject) => {
+
+            try {
+
+                await elasticsearch.client.indices.delete({
+                    index: req.params._id
+                })
+
+                return resolve({
+                    message: "Successfully deleted",
+                    status: httpStatusCode.ok.status
+                })
+            } catch (error) {
+                reject({
+                    status: error.status || httpStatusCode["internal_server_error"].status,
+                    message: error.message || httpStatusCode["internal_server_error"].message
+                })
+            }
+        })
+
+    }
+
+
 };
 
