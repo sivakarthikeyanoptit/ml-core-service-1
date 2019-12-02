@@ -1,7 +1,7 @@
 const elastissearchHelper = require(GENERIC_HELPERS_PATH + "/elastic-search");
 let processingUsersTrack = {}
 let slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
-let notificationsHelpers = require(ROOT_PATH + "/module/notifications/helper")
+let notificationsHelpers = require(ROOT_PATH + "/module/notifications/in-app/helper")
 
 var messageReceived = function (message) {
 
@@ -12,7 +12,14 @@ var messageReceived = function (message) {
       let parsedMessage = JSON.parse(message.value)
 
       if (parsedMessage.action === "deletion") {
+
         await elastissearchHelper.deleteReadOrUnReadNotificationData(parsedMessage.users, parsedMessage)
+
+      } else if (parsedMessage.action === "versionUpdate") {
+
+        delete parsedMessage.action;
+        await elastissearchHelper.updateAppVersion(parsedMessage);
+
       } else {
         const userId = parsedMessage.user_id
         delete parsedMessage.user_id
@@ -57,14 +64,13 @@ var messageReceived = function (message) {
   });
 };
 
-
 var errorTriggered = function (error) {
 
   return new Promise(function (resolve, reject) {
 
     try {
       let errorObject = {
-        message: `Kafka server is down on address ${error.address} and on port ${error.port}`
+        message: `Kafka server is down on address ${error.address} and on port ${error.port} for notifications`
       }
       slackClient.kafkaErrorAlert(errorObject)
       return resolve(error);

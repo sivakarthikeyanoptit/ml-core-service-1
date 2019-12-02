@@ -6,7 +6,7 @@
  */
 
 let samikshaService = require(ROOT_PATH + "/generics/helpers/samiksha");
-let notificationHelpers = require(ROOT_PATH + "/module/notifications/helper");
+let notificationHelpers = require(ROOT_PATH + "/module/notifications/in-app/helper");
 
 let pendingObservations = function () {
   nodeScheduler.scheduleJob(process.env.SCHEDULE_FOR_PENDING_OBSERVATION, () => {

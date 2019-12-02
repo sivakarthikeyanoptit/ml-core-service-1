@@ -1,7 +1,8 @@
-const kafkaCommunicationsOnOff = (!process.env.KAFKA_COMMUNICATIONS_ON_OFF || process.env.KAFKA_COMMUNICATIONS_ON_OFF != "OFF") ? "ON" : "OFF"
-const notificationsKafkaTopic = (process.env.NOTIFICATIONS_TOPIC && process.env.NOTIFICATIONS_TOPIC != "OFF") ? process.env.NOTIFICATIONS_TOPIC : "sl-notifications-dev"
+const kafkaCommunicationsOnOff = (!process.env.KAFKA_COMMUNICATIONS_ON_OFF || process.env.KAFKA_COMMUNICATIONS_ON_OFF != "OFF") ? "ON" : "OFF";
+const notificationsKafkaTopic = (process.env.NOTIFICATIONS_TOPIC && process.env.NOTIFICATIONS_TOPIC != "OFF") ? process.env.NOTIFICATIONS_TOPIC : "sl-notifications-dev";
+const languagesTopic = (process.env.LANGUAGE_TOPIC && process.env.LANGUAGE_TOPIC != "OFF") ? process.env.LANGUAGE_TOPIC : "sl-languages-dev";
 
-const pushAssessmentsOrObservationsNotification = function (message) {
+const pushNotificationsDataToKafka = function (message) {
   return new Promise(async (resolve, reject) => {
     try {
 
@@ -18,13 +19,13 @@ const pushAssessmentsOrObservationsNotification = function (message) {
   })
 }
 
-const pushDeletionNotificationsToKafka = function (deleteMessage) {
+const pushLanguagesToKafka = function (language) {
   return new Promise(async (resolve, reject) => {
     try {
 
       let kafkaPushStatus = await pushMessageToKafka([{
-        topic: notificationsKafkaTopic,
-        messages: JSON.stringify(deleteMessage)
+        topic: languagesTopic,
+        messages: JSON.stringify(language)
       }])
 
       return resolve(kafkaPushStatus)
@@ -69,7 +70,7 @@ const pushMessageToKafka = function (payload) {
 }
 
 module.exports = {
-  pushAssessmentsOrObservationsNotification: pushAssessmentsOrObservationsNotification,
-  pushDeletionNotificationsToKafka: pushDeletionNotificationsToKafka
+  pushNotificationsDataToKafka: pushNotificationsDataToKafka,
+  pushLanguagesToKafka: pushLanguagesToKafka
 };
 

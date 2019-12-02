@@ -35,7 +35,7 @@ let deleteReadNotification = function () {
 
         for (let pointerToReadNotifications = 0; pointerToReadNotifications < readNotificationsArray.length; pointerToReadNotifications++) {
 
-          let pushDeleteReadNotificationsToKafka = await kafkaCommunication.pushDeletionNotificationsToKafka(readNotificationsArray[pointerToReadNotifications]);
+          let pushDeleteReadNotificationsToKafka = await kafkaCommunication.pushNotificationsDataToKafka(readNotificationsArray[pointerToReadNotifications]);
 
           if (pushDeleteReadNotificationsToKafka.status != "success") {
             let errorObject = {

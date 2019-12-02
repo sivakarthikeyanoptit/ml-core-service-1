@@ -33,12 +33,30 @@ module.exports = function () {
   });
 
   //load base v1 controllers
-  fs.readdirSync(ROOT_PATH + '/controllers/v1/').forEach(function (file) {
-    if (file.match(/\.js$/) !== null) {
-      var name = file.replace('Controller.js', '');
-      global[name + 'BaseController'] = require(ROOT_PATH + '/controllers/v1/' + file);
-    }
+
+  let pathToController = ROOT_PATH + '/controllers/v1/'
+  fs.readdirSync(pathToController).forEach(function (file) {
+
+    checkWhetherFolderExistsOrNor(ROOT_PATH + '/controllers/v1/', file)
   });
+
+  function checkWhetherFolderExistsOrNor(pathToFolder, file) {
+
+    let folderExists = fs.lstatSync(pathToFolder + file).isDirectory();
+
+    if (folderExists) {
+      fs.readdirSync(pathToFolder + file).forEach(function (folderOrFile) {
+        checkWhetherFolderExistsOrNor(pathToFolder + file + "/", folderOrFile)
+      })
+
+    } else {
+      if (file.match(/\.js$/) !== null) {
+        var name = file.replace('.js', '');
+        global[name + 'BaseController'] = require(pathToFolder + file);
+      }
+    }
+
+  }
 
   //load schema files
   global.schemas = new Array

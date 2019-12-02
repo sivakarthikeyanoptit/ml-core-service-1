@@ -1,8 +1,10 @@
 const samikshaIndexName = (process.env.ELASTICSEARCH_SAMIKSHA_INDEX && process.env.ELASTICSEARCH_SAMIKSHA_INDEX != "") ? process.env.ELASTICSEARCH_SAMIKSHA_INDEX : "samiksha"
 const samikshaNotificationTypeName = (process.env.ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE && process.env.ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE != "") ? process.env.ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE : "user-notification"
 const unnatiIndexName = (process.env.ELASTICSEARCH_UNNATI_INDEX && process.env.ELASTICSEARCH_UNNATI_INDEX != "") ? process.env.ELASTICSEARCH_UNNATI_INDEX : "unnati";
+const languageIndex = (process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX && process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX != "") ? process.env.ELASTICSEARCH_SHIKSHALOKAM_INDEX : "sl-languages-dev";
+const versionIndex = (process.env.ELASTICSEARCH_APP_RELEASES_INDEX && process.env.ELASTICSEARCH_APP_RELEASES_INDEX != "") ? process.env.ELASTICSEARCH_APP_RELEASES_INDEX : "sl-app-releases";
+const languageTypeName = (process.env.ELASTICSEARCH_SHIKSHALOKAM_TYPE && process.env.ELASTICSEARCH_SHIKSHALOKAM_TYPE != "") ? process.env.ELASTICSEARCH_SHIKSHALOKAM_TYPE : "i18next";
 let moment = require("moment-timezone")
-
 
 var pushNotificationData = function (userId = "", notificatonData = {}) {
 
@@ -11,64 +13,15 @@ var pushNotificationData = function (userId = "", notificatonData = {}) {
 
       if (userId == "") throw "Invalid user id."
 
-      let indexName = samikshaIndexName;
-      if (notificatonData.appName && notificatonData.appName == "unnati") {
-        indexName = unnatiIndexName
-      }
       let userNotificationDocument = await getNotificationData(userId, notificatonData.appName);
-
 
       if (userNotificationDocument.statusCode == 404) {
 
-        notificatonData.id = 0
-
-        const userNotificationDocCreation = await elasticsearch.client.create({
-          id: userId,
-          index: indexName,
-          type: samikshaNotificationTypeName,
-          body: {
-            notificationCount: 1,
-            notificationUnreadCount: 1,
-            notifications: [
-              notificatonData
-            ]
-          }
-        })
-
-        if (!(userNotificationDocCreation.statusCode == 200 || userNotificationDocCreation.statusCode == 201)) {
-          throw new Error("Failed to create push notification for user in elastic search.")
-        }
+        await createInAppNotification(userId, notificatonData)
 
       } else if (userNotificationDocument.statusCode == 200) {
 
-        let notificationObject = userNotificationDocument.body._source
-
-        let arrayOfMaximumValue = notificationObject.notifications.map(item => {
-          return item.id
-        })
-
-        let maximumCount = Math.max(...arrayOfMaximumValue)
-
-        notificatonData.id = maximumCount + 1
-
-        notificationObject.notifications.push(notificatonData)
-
-        const userNotificationDocUpdation = await elasticsearch.client.update({
-          id: userId,
-          index: indexName,
-          type: samikshaNotificationTypeName,
-          body: {
-            doc: {
-              notificationCount: notificationObject.notificationCount + 1,
-              notificationUnreadCount: notificationObject.notificationUnreadCount + 1,
-              notifications: notificationObject.notifications
-            }
-          }
-        })
-
-        if (userNotificationDocUpdation.statusCode !== 200 || userNotificationDocUpdation.body.result !== "updated") {
-          throw new Error("Failed to push notification to elastic search.")
-        }
+        await updateInAppNotification(userId, notificatonData, userNotificationDocument)
 
       } else {
         throw "Something went wrong!"
@@ -83,6 +36,96 @@ var pushNotificationData = function (userId = "", notificatonData = {}) {
       return reject(error);
     }
   });
+};
+
+var createInAppNotification = function (userId, notificationData) {
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      let indexName = samikshaIndexName;
+
+      if (notificationData.appName && notificationData.appName === "unnati") {
+        indexName = unnatiIndexName
+      }
+
+      let notificationCreationObj = {
+        id: userId,
+        index: indexName,
+        type: samikshaNotificationTypeName
+      }
+
+      notificationData.id = 0
+
+      notificationCreationObj["body"] = {
+        notificationCount: 1,
+        notificationUnreadCount: 1,
+        notifications: [
+          notificationData
+        ]
+      }
+
+      const userNotificationDocCreation = await createOrUpdateData(notificationCreationObj)
+
+      if (!(userNotificationDocCreation.statusCode == 200 || userNotificationDocCreation.statusCode == 201)) {
+        throw new Error("Failed to create notifications for user in elastic search.")
+      }
+
+      return resolve()
+    }
+    catch (error) {
+      return reject(error);
+    }
+  })
+};
+
+var updateInAppNotification = function (userId, notificationDataToBeAdded, currentNotifications) {
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      let indexName = samikshaIndexName;
+
+      if (notificationDataToBeAdded.appName && notificationDataToBeAdded.appName == "unnati") {
+        indexName = unnatiIndexName
+      }
+
+      let notificationUpdationObj = {
+        id: userId,
+        index: indexName,
+        type: samikshaNotificationTypeName
+      }
+
+      let notificationObject = currentNotifications.body._source
+
+      let arrayOfIds = notificationObject.notifications.map(item => {
+        return item.id
+      })
+
+      let maximumId = Math.max(...arrayOfIds)
+
+      notificationDataToBeAdded.id = maximumId + 1
+
+      notificationObject.notifications.push(notificationDataToBeAdded)
+
+      notificationUpdationObj["body"] = {
+        doc: {
+          notificationCount: notificationObject.notificationCount + 1,
+          notificationUnreadCount: notificationObject.notificationUnreadCount + 1,
+          notifications: notificationObject.notifications
+        }
+      }
+
+      const userNotificationDocUpdation = await createOrUpdateData(notificationUpdationObj, true)
+
+      if (userNotificationDocUpdation.statusCode !== 200 || userNotificationDocUpdation.body.result !== "updated") {
+        throw new Error("Failed to push notification to elastic search.")
+      }
+
+      return resolve()
+    }
+    catch (error) {
+      return reject(error);
+    }
+  })
 };
 
 var updateNotificationData = function (userId = "", notificatonNumber = 0, notificationData = {}, appName = "") {
@@ -119,7 +162,7 @@ var updateNotificationData = function (userId = "", notificatonNumber = 0, notif
           matchedNotificationData[keyToBeUpdated] = notificationData[keyToBeUpdated]
         })
 
-        const userNotificationDocUpdation = await elasticsearch.client.update({
+        let updateData = {
           id: userId,
           index: indexName,
           type: samikshaNotificationTypeName,
@@ -130,7 +173,9 @@ var updateNotificationData = function (userId = "", notificatonNumber = 0, notif
               notifications: notificationObject.notifications
             }
           }
-        })
+        }
+
+        const userNotificationDocUpdation = await createOrUpdateData(updateData, true)
 
         if (userNotificationDocUpdation.statusCode !== 200) {
           throw "Failed to push notification to elastic search."
@@ -161,19 +206,19 @@ var getNotificationData = function (userId = "", appName = "") {
       if (userId == "") throw "Invalid user id."
 
 
+      let notificationInfo = {};
+
       let indexName = samikshaIndexName;
+
       if (appName && appName == "unnati") {
         indexName = unnatiIndexName;
       }
 
-      const userNotificationDocument = await elasticsearch.client.get({
-        id: userId,
-        index: indexName,
-        type: samikshaNotificationTypeName
-      }, {
-          ignore: [404],
-          maxRetries: 3
-        })
+      notificationInfo["id"] = userId;
+      notificationInfo["index"] = indexName;
+      notificationInfo["type"] = samikshaNotificationTypeName;
+
+      const userNotificationDocument = await getData(notificationInfo)
 
       return resolve(userNotificationDocument)
 
@@ -182,62 +227,6 @@ var getNotificationData = function (userId = "", appName = "") {
     }
   });
 };
-
-var getAllIndexData = function (appName = "") {
-  return new Promise(async function (resolve, reject) {
-    try {
-
-      if (!elasticsearch.client) throw "Elastic search is down."
-
-
-      let indexName = samikshaIndexName;
-      if (appName && appName === "unnati") {
-        indexName = unnatiIndexName
-      }
-
-
-      const checkIndexExistsOrNot = await elasticsearch.client.indices.exists({
-        index: indexName
-      })
-
-      const checkTypeExistsOrNot = await elasticsearch.client.indices.existsType({
-        index: indexName,
-        type: samikshaNotificationTypeName
-      })
-
-      let response = [];
-
-      if (checkIndexExistsOrNot.statusCode !== 404 && checkTypeExistsOrNot.statusCode !== 404) {
-
-        const userNotificationDocument = await elasticsearch.client.search({
-          index: indexName,
-          type: samikshaNotificationTypeName,
-          size: 1000
-        })
-
-        let allIndexData = [];
-
-        if (userNotificationDocument.statusCode === 200 && userNotificationDocument.body.hits.hits.length > 0) {
-
-          userNotificationDocument.body.hits.hits.forEach(eachUserNotification => {
-            let userNotification = _.merge({ userId: eachUserNotification._id }, eachUserNotification._source)
-
-            allIndexData.push(userNotification)
-
-          })
-
-          response = allIndexData
-
-        }
-      }
-
-      return resolve(response)
-
-    } catch (error) {
-      return reject(error);
-    }
-  })
-}
 
 var deleteReadOrUnReadNotificationData = function (users = "all", notificationData) {
 
@@ -250,27 +239,30 @@ var deleteReadOrUnReadNotificationData = function (users = "all", notificationDa
         appIndex = notificationData.condition.index
       }
 
-      let allIndexedData = await getAllIndexData(appIndex);
+      let indexName = samikshaIndexName;
+
+      if (appIndex === "unnati") {
+        indexName = unnatiIndexName
+      }
+
+      let allData = await searchForAllData(indexName, samikshaNotificationTypeName);
 
       let currentDate = moment(new Date());
-      let allUserData;
+      let allUserData = allData;
 
       if (Array.isArray(users) && users.length > 0) {
 
-        allUserData = allIndexedData.filter(singleIndexData => {
-          if (users.indexOf(singleIndexData.userId) !== -1) {
+        allUserData = allData.filter(singleIndexData => {
+          if (users.indexOf(singleIndexData.id) !== -1) {
             return singleIndexData.notifications
           }
         })
 
-      } else {
-
-        allUserData = allIndexedData;
       }
 
       for (let pointerToIndexData = 0; pointerToIndexData < allUserData.length; pointerToIndexData++) {
 
-        let userId = allUserData[pointerToIndexData].userId;
+        let userId = allUserData[pointerToIndexData].id;
         let notificationsSize = allUserData[pointerToIndexData].notifications.length
 
         for (let notificationIndex = 0; notificationIndex < notificationsSize; notificationIndex++) {
@@ -318,7 +310,7 @@ var deleteNotificationData = function (userId, notificationId, appIndex) {
 
         if (notificationObject.notifications.length > 0) {
 
-          userNotificationDocDeletion = await elasticsearch.client.update({
+          let updateData = {
             id: userId,
             index: indexName,
             type: samikshaNotificationTypeName,
@@ -329,10 +321,13 @@ var deleteNotificationData = function (userId, notificationId, appIndex) {
                 notifications: notificationObject.notifications
               }
             }
-          })
+          }
+
+          userNotificationDocDeletion = await createOrUpdateData(updateData, true)
+
         } else {
 
-          userNotificationDocDeletion = await elasticsearch.client.delete({
+          userNotificationDocDeletion = await deleteData({
             id: userId,
             index: indexName,
             type: samikshaNotificationTypeName
@@ -349,13 +344,425 @@ var deleteNotificationData = function (userId, notificationId, appIndex) {
       return reject(error);
     }
   })
-}
+};
+
+var pushLanguageData = function (languageId = "", languageData = {}) {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (languageId == "") throw "Invalid language id."
+
+      let languageInfo = {};
+
+      languageInfo["id"] = languageId
+      languageInfo["index"] = languageIndex;
+      languageInfo["type"] = languageTypeName;
+
+      let languageDocument = await getData(languageInfo);
+
+      let languageObj = { ...languageInfo }
+
+      if (languageDocument.statusCode === 404) {
+
+        languageObj["body"] = {
+          translate: languageData
+        }
+
+        console.log("pushed to elastic search");
+        const languageDocCreation = await createOrUpdateData(languageObj)
+
+        if (!(languageDocCreation.statusCode == 200 || languageDocCreation.statusCode == 201)) {
+          throw new Error(`Failed to push language ${languageId} in elastic search.`)
+        }
+
+      } else if (languageDocument.statusCode == 200) {
+
+        languageObj["body"] = {
+          doc: {
+            translate: languageData
+          }
+        }
+
+        const languageDocUpdation = await createOrUpdateData(languageObj, true)
+
+        if (languageDocUpdation.statusCode !== 200) {
+          throw new Error("Failed to push notification to elastic search.")
+        }
+
+      } else {
+        throw "Something went wrong!"
+      }
+
+      return resolve({
+        success: true,
+        message: "Notification successfully pushed to elastic search."
+      })
+
+    } catch (error) {
+      return reject(error);
+    }
+  });
+};
+
+var updateAppVersion = function (versionData) {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (versionData.appName == "") throw "Invalid appName."
+
+      let versionInfo = {};
+
+      versionInfo["id"] = versionData.appName
+      versionInfo["index"] = versionIndex;
+      versionInfo["type"] = samikshaNotificationTypeName;
+
+      let appVersionDocument = await getData(versionInfo);
+
+      let versionObj = { ...versionInfo }
+
+      versionData.action = "alertModal";
+
+      if (appVersionDocument.statusCode === 404) {
+
+        versionObj["body"] = versionData
+
+        const appVersionCreation = await createOrUpdateData(versionObj);
+
+        if (!(appVersionCreation.statusCode == 200 || appVersionCreation.statusCode == 201)) {
+          throw new Error(`Failed to push app version in elastic search.`)
+        }
+
+      } else if (appVersionDocument.statusCode == 200) {
+
+        let existingLatestVersion = appVersionDocument.body._source;
+
+        if (existingLatestVersion.payload.appVersion !== versionData.payload.appVersion) {
+
+          versionObj["body"] = {
+            doc: versionData
+          }
+
+          const appVersionUpdation = await createOrUpdateData(versionObj, true)
+
+          if (appVersionUpdation.statusCode !== 200) {
+            throw new Error("Failed to push notification to elastic search.")
+          }
+
+        }
+
+      } else {
+        throw "Something went wrong!"
+      }
+
+      return resolve({
+        success: true
+      })
+
+    } catch (error) {
+      return reject(error);
+    }
+  });
+};
+
+var pushAppVersionToLoggedInUser = function (userDetails, headers, appName) {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (headers.appName == "") throw "Invalid appName."
+
+      let versionInfo = {};
+
+      versionInfo["id"] = headers.appname
+      versionInfo["index"] = versionIndex;
+      versionInfo["type"] = samikshaNotificationTypeName;
+
+      let appVersionDocument = await getData(versionInfo);
+
+      if (appVersionDocument.statusCode === 200) {
+
+        let versionData = appVersionDocument.body._source;
+        versionData["created_at"] = new Date();
+
+        let userNotificationDocument = await getNotificationData(userDetails, versionData.appName);
+
+        if (userNotificationDocument.statusCode === 404) {
+          await createInAppNotification(userDetails, versionData)
+        } else {
+
+          let notificationData = userNotificationDocument.body._source.notifications.find(item => item.action === "alertModal" && item.payload.appVersion === versionData.payload.appVersion)
+
+          if (!notificationData) {
+            await updateInAppNotification(userDetails, versionData, userNotificationDocument)
+          }
+
+        }
+
+      }
+
+      return resolve({
+        success: true
+      })
+
+    } catch (error) {
+      return reject(error);
+    }
+  });
+};
+
+var getLanguageData = function (languageId = "") {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (!elasticsearch.client) throw "Elastic search is down."
+
+      if (languageId == "") throw "Invalid language id."
+
+      const languageDocument = await getData(languageId, {
+        index: languageIndex,
+        type: languageTypeName
+      })
+
+      return resolve(languageDocument)
+
+    } catch (error) {
+      return reject(error);
+    }
+  });
+};
+
+var getAllLanguagesData = function () {
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (!elasticsearch.client) throw "Elastic search is down."
+
+      const checkIndexExistsOrNot = await indexExistOrNot(languageIndex)
+
+      const checkTypeExistsOrNot = await typeExistsOrNot(languageIndex, languageTypeName)
+
+      if (checkIndexExistsOrNot.statusCode !== 404 && checkTypeExistsOrNot.statusCode !== 404) {
+
+        const userNotificationDocument = await searchForAllData(languageIndex, languageTypeName)
+        return resolve(userNotificationDocument)
+      }
+
+    } catch (error) {
+      return reject(error);
+    }
+  })
+};
+
+var getData = function (data) {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (!data.id) {
+        throw "id is required"
+      }
+
+      if (!data.index) {
+        throw "index is required"
+      }
+
+      if (!data.type) {
+        throw "type is required"
+      }
+
+      const result = await elasticsearch.client.get({
+        id: data.id,
+        index: data.index,
+        type: data.type
+      }, {
+          ignore: [404],
+          maxRetries: 3
+        })
+
+      return resolve(result)
+
+    } catch (error) {
+      return reject(error)
+    }
+  })
+};
+
+var createOrUpdateData = function (data, update = false) {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (!data.id) {
+        throw "id is required"
+      }
+
+      if (!data.index) {
+        throw "index is required"
+      }
+
+      if (!data.type) {
+        throw "type is required"
+      }
+
+      if (!data.body) {
+        throw "body is required"
+      }
+
+      let result
+
+      if (update) {
+        result = await elasticsearch.client.update({
+          id: data.id,
+          index: data.index,
+          type: data.type,
+          body: data.body
+        })
+      } else {
+        result = await elasticsearch.client.create({
+          id: data.id,
+          index: data.index,
+          type: data.type,
+          body: data.body
+        })
+      }
+
+      return resolve(result)
+
+    } catch (error) {
+      return reject(error)
+    }
+  })
+};
+
+var indexExistOrNot = function (index) {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (!index) {
+        throw "index is not found"
+      }
+
+      let result = await elasticsearch.client.indices.exists({
+        index: index
+      })
+
+
+      return resolve(result)
+
+    } catch (error) {
+      return reject(error)
+    }
+  })
+};
+
+var typeExistsOrNot = function (index, type) {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (!index) {
+        throw "index is required"
+      }
+
+      if (!type) {
+        throw "type is required"
+      }
+
+      let result = await elasticsearch.client.indices.existsType({
+        index: index,
+        type: type
+      })
+
+
+      return resolve(result)
+
+    } catch (error) {
+      return reject(error)
+    }
+  })
+};
+
+var searchForAllData = function (index, type) {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (!index) {
+        throw "index is required"
+      }
+
+      if (!type) {
+        throw "type is required"
+      }
+
+      const result = await elasticsearch.client.search({
+        index: index,
+        type: type,
+        size: 1000
+      })
+
+      let response = []
+
+      if (result.statusCode === 200 && result.body.hits.hits.length > 0) {
+
+        result.body.hits.hits.forEach(eachResultData => {
+          response.push(_.merge({ id: eachResultData._id }, eachResultData._source))
+        })
+      }
+
+      return resolve(response)
+
+    } catch (error) {
+      return reject(error)
+    }
+  })
+};
+
+var deleteData = function (data) {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (!data.id) {
+        throw "id is required"
+      }
+
+      if (!data.index) {
+        throw "index is required"
+      }
+
+      if (!data.type) {
+        throw "type is required"
+      }
+
+      let result = await elasticsearch.client.delete({
+        id: data.id,
+        index: data.index,
+        type: data.type
+      })
+
+      return resolve(result)
+
+    } catch (error) {
+      return reject(error)
+    }
+  })
+};
 
 module.exports = {
   pushNotificationData: pushNotificationData,
   getNotificationData: getNotificationData,
   updateNotificationData: updateNotificationData,
-  getAllIndexData: getAllIndexData,
   deleteReadOrUnReadNotificationData: deleteReadOrUnReadNotificationData,
-  deleteNotificationData: deleteNotificationData
+  deleteNotificationData: deleteNotificationData,
+  pushLanguageData: pushLanguageData,
+  getLanguageData: getLanguageData,
+  getAllLanguagesData: getAllLanguagesData,
+  getData: getData,
+  updateAppVersion: updateAppVersion,
+  pushAppVersionToLoggedInUser: pushAppVersionToLoggedInUser
 };

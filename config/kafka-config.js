@@ -23,29 +23,9 @@ var connect = function (config) {
     console.error.bind(console, "kafka producer creation error!")
   })
 
-  Consumer = kafka.Consumer
-
-  if (config.topics["notificationsTopic"] && config.topics["notificationsTopic"] != "") {
-
-    let consumer = new Consumer(
-      client,
-      [
-        { topic: config.topics["notificationsTopic"], offset: 0, partition: 0 }
-      ],
-      {
-        autoCommit: true
-      }
-    );
-
-    consumer.on('message', async function (message) {
-      notificationsConsumer.messageReceived(message)
-    });
-
-    consumer.on('error', async function (error) {
-      notificationsConsumer.errorTriggered(error)
-    });
-
-  }
+  // Consumer = kafka.Consumer;
+  sendToKafkaConsumers(config.topics["notificationsTopic"]);
+  sendToKafkaConsumers(config.topics["languagesTopic"], true);
 
   return {
     kafkaProducer: producer,
@@ -55,5 +35,42 @@ var connect = function (config) {
   };
 
 };
+
+var sendToKafkaConsumers = function (topic, language = false) {
+
+  let Consumer = kafka.Consumer;
+
+  if (topic && topic != "") {
+
+    let consumer = new Consumer(
+      client,
+      [
+        { topic: topic, offset: 0, partition: 0 }
+      ],
+      {
+        autoCommit: true
+      }
+    );
+
+    consumer.on('message', async function (message) {
+
+      if (language) {
+        languagesConsumer.messageReceived(message)
+      } else {
+        notificationsConsumer.messageReceived(message)
+      }
+    });
+
+    consumer.on('error', async function (error) {
+
+      if (language) {
+        languagesConsumer.errorTriggered(error);
+      } else {
+        notificationsConsumer.errorTriggered(error);
+      }
+    });
+
+  }
+}
 
 module.exports = connect;
