@@ -20,14 +20,6 @@ var messageReceived = function (message) {
         delete parsedMessage.action;
         await elastissearchHelper.updateAppVersion(parsedMessage);
 
-      } else if (parsedMessage.action === "language") {
-        console.log(parsedMessage);
-        console.log("elastic search");
-        const id = parsedMessage.id;
-        delete parsedMessage.id;
-        delete parsedMessage.action;
-
-        await elastissearchHelper.pushLanguageData(id, parsedMessage)
       } else {
         const userId = parsedMessage.user_id
         delete parsedMessage.user_id
@@ -72,14 +64,13 @@ var messageReceived = function (message) {
   });
 };
 
-
 var errorTriggered = function (error) {
 
   return new Promise(function (resolve, reject) {
 
     try {
       let errorObject = {
-        message: `Kafka server is down on address ${error.address} and on port ${error.port}`
+        message: `Kafka server is down on address ${error.address} and on port ${error.port} for notifications`
       }
       slackClient.kafkaErrorAlert(errorObject)
       return resolve(error);
@@ -89,7 +80,6 @@ var errorTriggered = function (error) {
 
   });
 };
-
 
 module.exports = {
   messageReceived: messageReceived,

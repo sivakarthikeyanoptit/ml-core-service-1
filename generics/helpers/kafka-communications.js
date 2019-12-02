@@ -1,6 +1,6 @@
 const kafkaCommunicationsOnOff = (!process.env.KAFKA_COMMUNICATIONS_ON_OFF || process.env.KAFKA_COMMUNICATIONS_ON_OFF != "OFF") ? "ON" : "OFF";
 const notificationsKafkaTopic = (process.env.NOTIFICATIONS_TOPIC && process.env.NOTIFICATIONS_TOPIC != "OFF") ? process.env.NOTIFICATIONS_TOPIC : "sl-notifications-dev";
-const i18NextTopic = (process.env.LANGUAGE_TOPIC && process.env.LANGUAGE_TOPIC != "OFF") ? process.env.LANGUAGE_TOPIC : "sl-languages-dev";
+const languagesTopic = (process.env.LANGUAGE_TOPIC && process.env.LANGUAGE_TOPIC != "OFF") ? process.env.LANGUAGE_TOPIC : "sl-languages-dev";
 
 const pushNotificationsDataToKafka = function (message) {
   return new Promise(async (resolve, reject) => {
@@ -24,7 +24,7 @@ const pushLanguagesToKafka = function (language) {
     try {
 
       let kafkaPushStatus = await pushMessageToKafka([{
-        topic: i18NextTopic,
+        topic: languagesTopic,
         messages: JSON.stringify(language)
       }])
 
@@ -72,6 +72,5 @@ const pushMessageToKafka = function (payload) {
 module.exports = {
   pushNotificationsDataToKafka: pushNotificationsDataToKafka,
   pushLanguagesToKafka: pushLanguagesToKafka
-
 };
 
