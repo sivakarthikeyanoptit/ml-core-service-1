@@ -1,61 +1,79 @@
 //dependencies
-const kafka = require('kafka-node')
+let kafka = require('kafka-node');
+
+/**
+  * Kafka configuration.
+  * @function
+  * @name connect
+  * @param {Object} config all kafka configurations.
+  * @returns {Promise} returns a promise.
+*/
 
 var connect = function (config) {
 
-  Producer = kafka.Producer
-  KeyedMessage = kafka.KeyedMessage
-  client = new kafka.KafkaClient({
+  let kafkaProducer = kafka.Producer;
+  let keyedMessage = kafka.KeyedMessage;
+  let client = new kafka.KafkaClient({
     kafkaHost: config.host
-  })
-
-  client.on('error', function (error) {
-    console.error.bind(console, "kafka connection error!")
   });
 
-  producer = new Producer(client)
+  client.on('error', function (error) {
+    logger.error("kafka connection error!");
+  });
+
+  producer = new kafkaProducer(client)
 
   producer.on('ready', function () {
-    console.log("Connected to Kafka");
+    logger.info('Connected to Kafka');
   });
 
   producer.on('error', function (err) {
-    console.error.bind(console, "kafka producer creation error!")
+    logger.error("kafka producer creation error!");
   })
 
-  // Consumer = kafka.Consumer;
-  sendToKafkaConsumers(config.topics["notificationsTopic"]);
-  sendToKafkaConsumers(config.topics["languagesTopic"], true);
+  _sendToKafkaConsumers(config.topics["notificationsTopic"],client, true);
+  _sendToKafkaConsumers(config.topics["languagesTopic"],client,true);
+  _sendToKafkaConsumers(config.topics["emailTopic"],client, false);
 
   return {
     kafkaProducer: producer,
     kafkaConsumer: kafka.Consumer,
     kafkaClient: client,
-    kafkaKeyedMessage: KeyedMessage
+    kafkaKeyedMessage: keyedMessage
   };
 
 };
 
-var sendToKafkaConsumers = function (topic, language = false) {
+/**
+  * Send data based on topic to kafka consumers
+  * @function
+  * @name _sendToKafkaConsumers
+  * @param {String} topic - name of kafka topic.
+  * @param {Boolean} [commit = false] - kafka commit. By default set to false.
+*/
 
-  let Consumer = kafka.Consumer;
+var _sendToKafkaConsumers = function (topic,client, commit = false) {
+
+  let kafkaConsumer = kafka.Consumer;
 
   if (topic && topic != "") {
 
-    let consumer = new Consumer(
+    let consumer = new kafkaConsumer(
       client,
       [
         { topic: topic, offset: 0, partition: 0 }
       ],
       {
-        autoCommit: true
+        autoCommit: commit
       }
     );
 
     consumer.on('message', async function (message) {
 
-      if (language) {
+      if (topic === process.env.LANGUAGE_TOPIC) {
         languagesConsumer.messageReceived(message)
+      } else if (topic === process.env.EMAIL_TOPIC) {
+        emailConsumer.messageReceived(message, consumer)
       } else {
         notificationsConsumer.messageReceived(message)
       }
@@ -63,14 +81,17 @@ var sendToKafkaConsumers = function (topic, language = false) {
 
     consumer.on('error', async function (error) {
 
-      if (language) {
+      if (topic === process.env.LANGUAGE_TOPIC) {
         languagesConsumer.errorTriggered(error);
-      } else {
+      } else if (topic === process.env.EMAIL_TOPIC) {
+        emailConsumer.errorTriggered(message, consumer)
+      }
+      else {
         notificationsConsumer.errorTriggered(error);
       }
     });
 
   }
-}
+};
 
 module.exports = connect;

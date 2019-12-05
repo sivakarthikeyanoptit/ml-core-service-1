@@ -5,23 +5,38 @@
  * Description : Pending Observations notification of samiksha should be showned in the app in every 15 days.
  */
 
-let samikshaService = require(ROOT_PATH + "/generics/helpers/samiksha");
-let notificationHelpers = require(ROOT_PATH + "/module/notifications/in-app/helper");
+// dependencies
+
+const samikshaService = require(ROOT_PATH + "/generics/helpers/samiksha");
+const notificationsHelper = require(ROOT_PATH + "/module/notifications/in-app/helper");
+
+/**
+  * Pending Observations notification of samiksha should be showned in the app in every 15 days.
+  * @function
+  * @name pendingObservations
+  * @returns {Promise} return a Promise.
+*/
 
 let pendingObservations = function () {
   nodeScheduler.scheduleJob(process.env.SCHEDULE_FOR_PENDING_OBSERVATION, () => {
 
-    console.log("<----- Pending Observations cron started ---->", new Date());
+    logger.info("<----- Pending Observations cron started ---->", new Date());
 
     return new Promise(async (resolve, reject) => {
-      let pendingObservations = await samikshaService.pendingObservations()
+      try{
+        let pendingObservations = await samikshaService.pendingObservations();
 
-      if (pendingObservations.result.length > 0) {
-        await notificationHelpers.pendingAssessmentsOrObservations(pendingObservations.result, true)
+        if (pendingObservations.result.length > 0) {
+          await notificationsHelper.pendingAssessmentsOrObservations(
+            pendingObservations.result, true
+          );
+        }
+  
+        logger.info("<----- Pending Observations cron stopped --->", new Date());
+        resolve();
+      } catch(error){
+        return reject(error);
       }
-
-      console.log("<----- Pending Observations cron stopped --->", new Date());
-      resolve()
 
     })
 
