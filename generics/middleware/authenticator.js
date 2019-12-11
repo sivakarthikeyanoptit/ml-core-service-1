@@ -1,10 +1,17 @@
-const jwtDecode = require('jwt-decode');
-let slackClient = require("../helpers/slack-communications");
-var ApiInterceptor = require("./lib/api-interceptor");
-var messageUtil = require("./lib/message-util");
-var responseCode = require("../http-status-codes");
+/**
+ * name : middleware/authenticator.js
+ * author : Aman Jung Karki
+ * Date : 15-Nov-2019
+ * Description : Keycloak authentication.
+ */
 
-var shikshalokam = require("../helpers/shikshalokam");
+// dependencies
+const jwtDecode = require('jwt-decode');
+const slackClient = require("../helpers/slack-communications");
+const interceptor = require("./lib/api-interceptor");
+const messageUtil = require("./lib/message-util");
+let responseCode = require("../http-status-codes");
+const shikshalokam = require("../helpers/shikshalokam");
 
 var reqMsg = messageUtil.REQUEST;
 var keyCloakConfig = {
@@ -30,11 +37,22 @@ var respUtil = function (resp) {
 var tokenAuthenticationFailureMessageToSlack = function (req, token, msg) {
   let jwtInfomration = jwtDecode(token)
   jwtInfomration["x-authenticated-user-token"] = token
-  const tokenByPassAllowedLog = { method: req.method, url: req.url, headers: req.headers, body: req.body, errorMsg: msg, customFields: jwtInfomration }
-  slackClient.sendExceptionLogMessage(tokenByPassAllowedLog)
+  const tokenByPassAllowedLog = { 
+    method: req.method, 
+    url: req.url, 
+    headers: req.headers, 
+    body: req.body,
+    errorMsg: msg, 
+    customFields: 
+    jwtInfomration, 
+    slackErrorName: process.env.SLACK_ERROR_NAME,
+    color: process.env.SLACK_ERROR_MESSAGE_COLOR
+  }
+
+  slackClient.sendMessageToSlack(tokenByPassAllowedLog)
 }
 
-var apiInterceptor = new ApiInterceptor(keyCloakConfig, cacheConfig);
+var apiInterceptor = new interceptor(keyCloakConfig, cacheConfig);
 var removedHeaders = [
   "host",
   "origin",
@@ -69,6 +87,11 @@ module.exports = async function (req, res, next) {
   if (!req.rspObj) req.rspObj = {};
   var rspObj = req.rspObj;
 
+  if (req.path.includes("slack")) {
+    next();
+    return
+  }
+
   if (!token) {
     rspObj.errCode = reqMsg.TOKEN.MISSING_CODE;
     rspObj.errMsg = reqMsg.TOKEN.MISSING_MESSAGE;
@@ -82,7 +105,11 @@ module.exports = async function (req, res, next) {
       rspObj.errCode = reqMsg.TOKEN.INVALID_CODE;
       rspObj.errMsg = reqMsg.TOKEN.INVALID_MESSAGE;
       rspObj.responseCode = responseCode.UNAUTHORIZED_ACCESS;
-      tokenAuthenticationFailureMessageToSlack(req, token, "TOKEN VERIFICATION WITH KEYCLOAK FAILED")
+      
+      tokenAuthenticationFailureMessageToSlack(
+        req,
+        token, "TOKEN VERIFICATION WITH KEYCLOAK FAILED"
+      );
       return res.status(401).send(respUtil(rspObj));
     } else {
       req.rspObj.userId = tokenData.userId;
@@ -101,7 +128,12 @@ module.exports = async function (req, res, next) {
             req.userDetails.allRoles = await getAllRoles(req.userDetails);
             next();
           } else {
-            tokenAuthenticationFailureMessageToSlack(req, token, "TOKEN VERIFICATION - FAILED TO GET USER DETAIL FROM LEARNER SERVICE")
+            tokenAuthenticationFailureMessageToSlack(
+              req, 
+              token, 
+              "TOKEN VERIFICATION - FAILED TO GET USER DETAIL FROM Kendra SERVICE"
+            );
+
             rspObj.errCode = reqMsg.TOKEN.INVALID_CODE;
             rspObj.errMsg = reqMsg.TOKEN.INVALID_MESSAGE;
             rspObj.responseCode = responseCode.UNAUTHORIZED_ACCESS;
@@ -109,7 +141,12 @@ module.exports = async function (req, res, next) {
           }
         })
         .catch(error => {
-          tokenAuthenticationFailureMessageToSlack(req, token, "TOKEN VERIFICATION - ERROR FETCHING USER DETAIL FROM LEARNER SERVICE")
+          tokenAuthenticationFailureMessageToSlack(
+            req, 
+            token, 
+            "TOKEN VERIFICATION - ERROR FETCHING USER DETAIL FROM Kendra SERVICE"
+          );
+
           return res.status(401).send(error);
         });
     }

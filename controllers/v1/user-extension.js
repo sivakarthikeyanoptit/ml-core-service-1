@@ -1,4 +1,4 @@
-const userExtensionHelper = require(ROOT_PATH + "/module/user-extension/helper")
+const userExtensionHelper = require(ROOT_PATH + "/module/user-extension/helper");
 
 module.exports = class UserExtension extends Abstract {
   

@@ -5,25 +5,37 @@
  * Description : All Completed Assessments notifications of samiksha should be showned once in a month.
  */
 
-let samikshaService = require(ROOT_PATH + "/generics/helpers/samiksha");
-let notificationHelpers = require(ROOT_PATH + "/module/notifications/in-app/helper");
+// dependencies
+const samikshaService = require(ROOT_PATH + "/generics/helpers/samiksha");
+const notificationsHelper = require(ROOT_PATH + "/module/notifications/in-app/helper");
+
+/**
+  * Completed Assessment functionality. 
+  * @function
+  * @name completedAssessment
+  * @returns {Promise} return a Promise.
+*/
 
 let completedAssessment = function () {
   nodeScheduler.scheduleJob(process.env.SCHEDULE_FOR_COMPLETED_ASSESSMENT, () => {
 
-    console.log("<---- Completed Assessment cron started ---->", new Date());
+    logger.info("<---- Completed Assessment cron started ---->", new Date());
 
     return new Promise(async (resolve, reject) => {
-      let completedAssessments = await samikshaService.completedAssessments()
+      try{
+        let completedAssessments = await samikshaService.completedAssessments();
 
-      if (completedAssessments.result.length > 0) {
-
-        await notificationHelpers.completedAssessmentsOrObservations(completedAssessments.result)
-
+        if (completedAssessments.result.length > 0) {
+  
+          await notificationsHelper.completedAssessmentsOrObservations(completedAssessments.result);
+  
+        }
+  
+        logger.info("<--- Completed Assessment cron stopped ---->", new Date());
+        resolve();
+      } catch(error){
+        return reject(error);
       }
-
-      console.log("<--- Completed Assessment cron stopped ---->", new Date());
-      resolve()
 
     })
 
