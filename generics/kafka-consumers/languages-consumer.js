@@ -29,10 +29,13 @@ var messageReceived = function (message) {
       if (parsedMessage.action === "language") {
 
         let id = parsedMessage.id;
+        let appName = parsedMessage.appname;
+
+        delete parsedMessage.appName;
         delete parsedMessage.id;
         delete parsedMessage.action;
 
-        await elasticSearchHelper.pushLanguageData(id, parsedMessage);
+        await elasticSearchHelper.pushLanguageData(id, parsedMessage,appName);
         logger.info("---------- Language Pack Consumer Ends -------------");
       }
       

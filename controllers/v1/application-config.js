@@ -18,7 +18,7 @@ module.exports = class Languages {
       * @returns {JSON} Response consists of message and result.Result consists of language data uploaded.
      */
 
-    upload(req) {
+    uploadConfigurations(req) {
 
         console.log("upload files");
 
@@ -76,7 +76,7 @@ module.exports = class Languages {
       * @returns {JSON} Response consists of details of a application config.
      */
 
-    list(req) {
+    listConfigurations(req) {
         return new Promise(async (resolve, reject) => {
 
             try {
@@ -96,6 +96,218 @@ module.exports = class Languages {
                     error.message || 
                     httpStatusCode["internal_server_error"].message
                 });
+            }
+        })
+    }
+
+
+    /**
+    * @api {post} /kendra/api/v1/application-config/uploadLanguages 
+    * Upload Languages
+    * @apiVersion 1.0.0
+    * @apiGroup Language
+    * @apiHeader {String} X-authenticated-user-token Authenticity token
+    * @apiSampleRequest /kendra/api/v1/application-config/uploadLanguages
+    * @apiParam {File} language Mandatory language file of type CSV.
+    * @apiUse successBody
+    * @apiUse errorBody
+    */
+
+    /**
+      * Upload languages via csv.
+      * @method
+      * @name uploadLanguages
+      * @param  {Request} req request body.Req consists of languages csv to upload.
+      * @returns {JSON} Response consists of message and result.Result consists of language data uploaded.
+     */
+
+    uploadLanguages(req) {
+
+        return new Promise(async (resolve, reject) => {
+
+            try {
+
+                if (!req.files || !req.files.language) {
+                    throw { 
+                        status: httpStatusCode["bad_request"].status, 
+                        message: httpStatusCode["bad_request"].message 
+                    };
+                }
+
+                let languageUploadedData = await appConfigHelper.uploadLanguages
+                (req.files,req.headers.appname?req.headers.appname:"");
+
+                return resolve({
+                    message: "Language uploaded successfully",
+                    result: languageUploadedData
+                })
+
+            } catch (error) {
+
+                return reject({
+                    status: 
+                    error.status || 
+                    httpStatusCode["internal_server_error"].status,
+
+                    message: 
+                    error.message || 
+                    httpStatusCode["internal_server_error"].message
+                })
+
+            }
+
+
+        })
+    }
+
+    /**
+    * @api {get} /kendra/api/v1/application-config/listLanguage/:languageId 
+    * Upload Language
+    * @apiVersion 1.0.0
+    * @apiGroup Language
+    * @apiHeader {String} X-authenticated-user-token Authenticity token
+    * @apiSampleRequest /kendra/api/v1/application-config/listLanguage/en
+    * @apiUse successBody
+    * @apiUse errorBody
+    */
+
+    /**
+      * List details of the language.
+      * @method
+      * @name listLanguage
+      * @param  {Request} req request body.req params consists of languageId and
+      * appname(as headers if provided).
+      * @returns {JSON} Response consists of message and result.
+      * Result consists of details of the language.
+     */
+
+    listLanguage(req) {
+        return new Promise(async (resolve, reject) => {
+
+            try {
+
+                let languageLists = 
+                await appConfigHelper.listLanguage(
+                    req.params._id,
+                    req.headers.appname?req.headers.appname:""
+                    );
+
+                return resolve({
+                    result: languageLists.data,
+                    message: languageLists.message
+                });
+
+            } catch (error) {
+                return reject({
+                    status: 
+                    error.status || 
+                    httpStatusCode["internal_server_error"].status,
+
+                    message: 
+                    error.message || 
+                    httpStatusCode["internal_server_error"].message
+                });
+            }
+        })
+    }
+
+        /**
+    * @api {post} /kendra/api/v1/application-config/listAllLanguages 
+    * Upload Language
+    * @apiVersion 1.0.0
+    * @apiGroup Language
+    * @apiHeader {String} X-authenticated-user-token Authenticity token
+    * @apiSampleRequest /kendra/api/v1/application-config/listAllLanguages
+    * @apiUse successBody
+    * @apiUse errorBody
+    */
+
+    /**
+      * List of all languages.
+      * @method
+      * @name listAllLanguages
+      * @param  {Request} req request body.req params consists of languageId and
+      * appname(as headers if provided).
+      * @returns {JSON} Response consists of message and result.
+      * Result consists of of all languages.
+     */
+
+    listAllLanguages(req) {
+        return new Promise(async (resolve, reject) => {
+
+            try {
+
+                let languageLists = 
+                await appConfigHelper.listAllLanguages(
+                    req.headers.appname?req.headers.appname:""
+                );
+
+                return resolve({
+                    result: languageLists.result,
+                    message: languageLists.message
+                });
+
+            } catch (error) {
+                return reject({
+                    status: 
+                    error.status || 
+                    httpStatusCode["internal_server_error"].status,
+
+                    message: 
+                    error.message || 
+                    httpStatusCode["internal_server_error"].message
+                });
+            }
+        })
+    }
+
+    // Dirty fix - Till the time product team gives the csv. 
+    // We can change JSON into csv we want.
+
+    translateIntoCsv(req) {
+        return new Promise(async (resolve, reject) => {
+
+            try {
+
+                const fileName = `translate-language-to-csv`;
+                let fileStream = new csvFileStream(fileName);
+                let input = fileStream.initStream();
+
+                (async function () {
+                    await fileStream.getProcessorPromise();
+                    return resolve({
+                        isResponseAStream: true,
+                        fileNameWithPath: fileStream.fileNameWithPath()
+                    });
+                })();
+
+                let jsonKey = Object.keys(req.body);
+
+                for (let pointer = 0; pointer < jsonKey.length; pointer++) {
+
+                    let eachJsonKey = Object.keys(req.body[jsonKey[pointer]]);
+
+                    for (let pointerToEachJson = 0; 
+                        pointerToEachJson < eachJsonKey.length; 
+                        pointerToEachJson++) {
+
+                            let language = {};
+
+                            language["key"] = 
+                            jsonKey[pointer] + "_" + eachJsonKey[pointerToEachJson];
+
+                            language["en"] = 
+                            req.body[jsonKey[pointer]][eachJsonKey[pointerToEachJson]];
+
+                            input.push(language);
+                    }
+
+                }
+
+                input.push(null);
+            }
+            catch (error) {
+                return reject(error);
             }
         })
     }

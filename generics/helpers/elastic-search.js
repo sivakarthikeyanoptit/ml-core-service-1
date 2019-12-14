@@ -15,14 +15,21 @@ gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE")
 const UNNATI_INDEX = 
 gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_UNNATI_INDEX");
 
-const LANGUAGE_INDEX = 
-gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_SHIKSHALOKAM_INDEX");
+const DEFAULT_LANGUAGE_INDEX = 
+gen.utils.checkIfEnvDataExistsOrNot("SAMIKSHA_LANGUAGE_INDEX");
+
+const DEFAULT_LANGUGAE_TYPE = 
+gen.utils.checkIfEnvDataExistsOrNot("SAMIKSHA_LANGUAGE_TYPE");
+
+const UNNATI_LANGUAGE_INDEX = 
+gen.utils.checkIfEnvDataExistsOrNot("UNNATI_LANGUAGE_INDEX");
+
+const UNNATI_LANGUAGE_TYPE = 
+gen.utils.checkIfEnvDataExistsOrNot("UNNATI_LANGUAGE_TYPE");
 
 const APP_VERSION_INDEX = 
 gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_APP_RELEASES_INDEX");
 
-const LANGUGAE_TYPE = 
-gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_SHIKSHALOKAM_TYPE");
 
 let moment = require("moment-timezone");
 
@@ -497,18 +504,25 @@ var deleteNotificationData = function (userId, notificationId, appIndex) {
 */
 
 
-var pushLanguageData = function (languageId = "", languageData = {}) {
+var pushLanguageData = function (languageId = "", languageData = {},appName) {
 
   return new Promise(async function (resolve, reject) {
     try {
 
-      if (languageId == "") throw "Invalid language id."
+      if (languageId == "") {
+        throw "Invalid language id.";
+      }
 
       let languageInfo = {};
+      languageInfo["index"] = DEFAULT_LANGUAGE_INDEX;
+      languageInfo["type"] = DEFAULT_LANGUGAE_TYPE;
+      
+      if(appName !== "" && appName === "unnati") {
+        languageInfo["index"] = UNNATI_LANGUAGE_INDEX;
+        languageInfo["type"] = UNNATI_LANGUAGE_TYPE;
+      }
 
-      languageInfo["id"] = languageId
-      languageInfo["index"] = LANGUAGE_INDEX;
-      languageInfo["type"] = LANGUGAE_TYPE;
+      languageInfo["id"] = languageId;
 
       let languageDocument = await getData(languageInfo);
 
@@ -728,25 +742,37 @@ var getLanguageData = function (languageId = "") {
   * @returns {Promise} returns a promise.
 */
 
-var getAllLanguagesData = function () {
+var getAllLanguagesData = function (appName) {
   return new Promise(async function (resolve, reject) {
     try {
 
-      if (!elasticsearch.client) throw "Elastic search is down.";
+      if (!elasticsearch.client) {
+        throw "Elastic search is down.";
+      }
 
-      const checkIndexExistsOrNot = await _indexExistOrNot(LANGUAGE_INDEX);
+      let languageIndex = DEFAULT_LANGUAGE_INDEX;
+      let languageType = DEFAULT_LANGUGAE_TYPE;
+
+      if(appName === "unnati"){
+        languageIndex = UNNATI_LANGUAGE_INDEX;
+        languageType = UNNATI_LANGUAGE_TYPE;
+      }
+
+      const checkIndexExistsOrNot = await _indexExistOrNot(languageIndex);
 
       const checkTypeExistsOrNot = 
-      await _typeExistsOrNot(LANGUAGE_INDEX, LANGUGAE_TYPE);
+      await _typeExistsOrNot(languageIndex, languageType);
+
+      let userNotificationDocument = [];
 
       if (checkIndexExistsOrNot.statusCode !== 404 && 
         checkTypeExistsOrNot.statusCode !== 404) {
 
-          const userNotificationDocument = 
-          await _searchForAllData(LANGUAGE_INDEX, LANGUGAE_TYPE);
-          
-          return resolve(userNotificationDocument);
+          userNotificationDocument = 
+          await _searchForAllData(languageIndex, languageType);
       }
+      
+      return resolve(userNotificationDocument);
 
     } catch (error) {
       return reject(error);
