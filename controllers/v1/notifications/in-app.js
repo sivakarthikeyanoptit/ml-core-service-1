@@ -127,7 +127,8 @@ module.exports = class InAppNotifications {
                     message: req.t('unreadNotifocation'),
                     status: httpStatusCode.ok.status,
                     result: {
-                        count: unReadCountDocument.count
+                        count: unReadCountDocument.count,
+                        data: unReadCountDocument.data
                     }
                 });
 
@@ -225,7 +226,7 @@ module.exports = class InAppNotifications {
             let updateVersionData = 
             await csv().fromString(req.files.updateVersion.data.toString());
 
-            await notificationsHelper.updateAppVersion(updateVersionData)
+            await notificationsHelper.updateAppVersion(updateVersionData);
 
             return resolve({
                 message: "Successfully Uploaded Version",

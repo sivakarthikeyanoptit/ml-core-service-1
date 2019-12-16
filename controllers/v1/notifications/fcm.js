@@ -195,7 +195,8 @@ module.exports = class Fcm {
 
                         if (matchDeviceData.length > 0) {
 
-                            await Promise.all(matchDeviceData.map(async device => {
+                            await Promise.all(matchDeviceData.map(
+                                async device => {
 
                                 if (element.message && element.title) {
 

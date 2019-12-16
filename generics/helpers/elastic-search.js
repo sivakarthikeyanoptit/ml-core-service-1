@@ -26,6 +26,15 @@ gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_SHIKSHALOKAM_TYPE");
 
 let moment = require("moment-timezone");
 
+
+const ALL_CONFIG_TYPE = 
+gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_ALL_CONFIG_TYPE");
+
+const APPLICATION_CONFIG_INDEX = 
+gen.utils.checkIfEnvDataExistsOrNot("APPLICATION_CONFIG_INDEX")
+
+
+
 /**
   * Push notification data to elastic search.
   * @function
@@ -907,9 +916,12 @@ var _typeExistsOrNot = function (index, type) {
         type: type
       });
 
+      console.log("result",result);
       return resolve(result);
 
     } catch (error) {
+
+      console.log("err",error);
       return reject(error);
     }
   })
@@ -999,6 +1011,135 @@ var _deleteData = function (data) {
   })
 };
 
+/**
+  *  Get the list of all the languages.
+  * @function
+  * @name getAllLanguagesData
+  * @returns {Promise} returns a promise.
+*/
+
+var getAllApplicationConfig = function () {
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      
+
+      if (!elasticsearch.client) throw "Elastic search is down.";
+
+      const checkIndexExistsOrNot = await _indexExistOrNot(APPLICATION_CONFIG_INDEX);
+
+      const checkTypeExistsOrNot = 
+      await _typeExistsOrNot(APPLICATION_CONFIG_INDEX, ALL_CONFIG_TYPE);
+
+      if (checkIndexExistsOrNot.statusCode !== 404 && 
+        checkTypeExistsOrNot.statusCode !== 404) {
+
+          const allConfig = 
+          await _searchForAllData(APPLICATION_CONFIG_INDEX, ALL_CONFIG_TYPE);
+          
+          return resolve(allConfig);
+      }
+
+    } catch (error) {
+      return reject(error);
+    }
+  })
+};
+
+var pushAppConfigData = function (confgData = {}) {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      // console.log("chnages",confgData.id);
+      if (!confgData.id || confgData.id == "") throw "Invalid confg id."
+
+      let configObj = {};
+
+      configObj["id"] = confgData.id
+      configObj["index"] = APPLICATION_CONFIG_INDEX;
+      configObj["type"] = ALL_CONFIG_TYPE;
+
+       let configDocument = await getData(configObj);
+
+      //  console.log("configDocument",configObj);
+
+      let appConfigObj = configObj;
+      if (configDocument.statusCode === 404) {
+
+       
+        confgData.version = "0.0.1";
+        appConfigObj["body"] ={
+          doc:{
+            config:confgData,
+            version:version
+            
+          }
+        } 
+        const configDocCreation = await _createOrUpdateData(appConfigObj)
+
+        if (
+          !(configDocCreation.statusCode == 200 || 
+            configDocCreation.statusCode == 201)
+            ) {
+          throw new Error(`Failed to push language ${confgData.id} in elastic search.`)
+        }
+
+      } else if (configDocument.statusCode == 200) {
+
+        // console.log("configDocument",configDocument.body['_source']['config'].version); 
+
+        let currentV = configDocument.body['_source']['config'].version;
+
+        // console.log("currentV",currentV)
+        let versionChange = currentV.split(".");
+
+        // console.log("versionChange",versionChange);
+        if( confgData.updateType && confgData.updateType=='major'){
+
+          version = ( parseInt(versionChange[0]) + 1 ) + "."+ parseInt(versionChange[1]) + "." + parseInt(versionChange[2]);
+          delete confgData.updateType;
+         
+        }else if( confgData.updateType && confgData.updateType=='minor'){
+          version = parseInt(versionChange[0]) + "."+ ( parseInt(versionChange[1]) + 1 ) + "." + parseInt(versionChange[2]);
+          delete confgData.updateType;
+        }else {
+          // version = versionChange[2] + 1
+          delete confgData.updateType;
+          version =  parseInt(versionChange[0]) + "."+ parseInt(versionChange[1]) + "." + ( parseInt(versionChange[2]) + 1 );
+        }
+
+        confgData.version =version;
+        // console.log("version--",version);
+
+        appConfigObj["body"] ={
+          doc:{
+            config:confgData
+          }
+        } 
+        const configDataUpdate = await _createOrUpdateData(appConfigObj, true);
+
+        if (configDataUpdate.statusCode !== 200) {
+          throw new Error("Failed to push notification to elastic search.");
+        }else{
+          console.log("pushed to elastic search");
+        }
+
+      } else {
+        throw "Something went wrong!"
+      }
+
+      return resolve({
+        success: true,
+        message: "Notification successfully pushed to elastic search."
+      })
+
+    } catch (error) {
+      return reject(error);
+    }
+  });
+};
+
 module.exports = {
   pushNotificationData: pushNotificationData,
   getNotificationData: getNotificationData,
@@ -1010,5 +1151,7 @@ module.exports = {
   getAllLanguagesData: getAllLanguagesData,
   getData: getData,
   updateAppVersion: updateAppVersion,
-  pushAppVersionToLoggedInUser: pushAppVersionToLoggedInUser
+  pushAppVersionToLoggedInUser: pushAppVersionToLoggedInUser,
+  getAllApplicationConfig:getAllApplicationConfig,
+  pushAppConfigData:pushAppConfigData
 };

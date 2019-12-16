@@ -18,7 +18,7 @@
   "author": "Shikshalokam <info@shikshalokam.com>",
   "license": "ISC",
   "dependencies": {
-    "@elastic/elasticsearch": "^7.4.0",
+    "@elastic/elasticsearch": "^6.7.1",
     "body-parser": "^1.18.2",
     "bunyan": "^1.8.12",
     "bunyan-format": "^0.2.1",

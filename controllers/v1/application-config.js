@@ -20,10 +20,9 @@ module.exports = class Languages {
 
     upload(req) {
 
-        console.log("upload files");
+        // console.log("upload files");
 
         return new Promise(async (resolve, reject) => {
-
             try {
 
                 if (!req.files || !req.files) {
@@ -32,9 +31,7 @@ module.exports = class Languages {
                         message: httpStatusCode["bad_request"].message 
                     };
                 }
-
                 let data = await appConfigHelper.upload(req);
-
                 return resolve({
                     message: "App config Uploaded succesfully",
                     result: data

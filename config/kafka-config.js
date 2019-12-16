@@ -31,9 +31,11 @@ var connect = function (config) {
     logger.error("kafka producer creation error!");
   })
 
-  _sendToKafkaConsumers(config.topics["notificationsTopic"],client, true);
-  _sendToKafkaConsumers(config.topics["languagesTopic"],client,true);
-  _sendToKafkaConsumers(config.topics["emailTopic"],client, false);
+  
+  // _sendToKafkaConsumers(config.topics["notificationsTopic"],client, true);
+  // _sendToKafkaConsumers(config.topics["languagesTopic"],client,true);
+  // _sendToKafkaConsumers(config.topics["emailTopic"],client, false);
+  _sendToKafkaConsumers(config.topics["appConfigTopic"],client, true);
 
   return {
     kafkaProducer: producer,
@@ -55,7 +57,6 @@ var connect = function (config) {
 var _sendToKafkaConsumers = function (topic,client, commit = false) {
 
   let kafkaConsumer = kafka.Consumer;
-
   if (topic && topic != "") {
 
     let consumer = new kafkaConsumer(
@@ -70,7 +71,10 @@ var _sendToKafkaConsumers = function (topic,client, commit = false) {
 
     consumer.on('message', async function (message) {
 
-      if (topic === process.env.LANGUAGE_TOPIC) {
+      if (topic === process.env.APPLICATION_CONFIG_TOPIC) {
+        applicationconfigConsumer.messageReceived(message);
+      }
+      else if (topic === process.env.LANGUAGE_TOPIC) {
         languagesConsumer.messageReceived(message)
       } else if (topic === process.env.EMAIL_TOPIC) {
         emailConsumer.messageReceived(message, consumer)

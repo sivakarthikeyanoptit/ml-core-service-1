@@ -103,7 +103,12 @@ const configuration = {
 
       emailTopic: 
       process.env.EMAIL_TOPIC || 
-      process.env.DEFAULT_EMAIL_TOPIC
+      process.env.DEFAULT_EMAIL_TOPIC,
+
+      appConfigTopic: 
+      process.env.APPLICATION_CONFIG_TOPIC || 
+      process.env.DEFAULT_APPLICATION_CONFIG_TOPIC
+
     }
   },
   elasticSearchConfig: {

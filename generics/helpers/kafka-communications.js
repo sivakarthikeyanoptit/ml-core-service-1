@@ -19,6 +19,10 @@ gen.utils.checkIfEnvDataExistsOrNot("LANGUAGE_TOPIC");
 const EMAIL_TOPIC = 
 gen.utils.checkIfEnvDataExistsOrNot("EMAIL_TOPIC");
 
+
+const APP_CONFIG_TOPIC = 
+gen.utils.checkIfEnvDataExistsOrNot("APPLICATION_CONFIG_TOPIC");
+
 /**
   * Push notifications message to kafka.
   * @function
@@ -95,6 +99,30 @@ let pushEmailToKafka = function (email) {
   })
 }
 
+
+/**
+  * Push Application Config data to kafka.
+  * @function
+  * @name pushApplicationConfigToKafka
+  * @param {Object} configData - configData data.
+  * @returns {Promise} returns a promise.
+*/
+
+let pushApplicationConfigToKafka = function (configData) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let kafkaPushStatus = await _pushMessageToKafka([{
+        topic: APP_CONFIG_TOPIC,
+        messages: JSON.stringify(configData)
+      }])
+      return resolve(kafkaPushStatus)
+    } catch (error) {
+      return reject(error);
+    }
+  })
+}
+
+
 /**
   * Push to producer in kafka.
   * @function
@@ -109,9 +137,9 @@ let _pushMessageToKafka = function (payload) {
     if (KAFKA_COMMUNICATION_ON_OFF != "ON") {
       throw reject("Kafka configuration is not done")
     }
-
     kafkaConnectionObject.kafkaProducer.send(payload, (err, data) => {
       if (err) {
+      
         return reject("Kafka push to topic " + payload[0].topic + " failed.")
       } else {
         logger.info("Pushed to kafka");
@@ -136,8 +164,12 @@ let _pushMessageToKafka = function (payload) {
   })
 }
 
+
+
+
 module.exports = {
   pushNotificationsDataToKafka: pushNotificationsDataToKafka,
   pushLanguagesToKafka: pushLanguagesToKafka,
-  pushEmailToKafka: pushEmailToKafka
+  pushEmailToKafka: pushEmailToKafka,
+  pushApplicationConfigToKafka:pushApplicationConfigToKafka
 };

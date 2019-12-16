@@ -10,7 +10,6 @@
 let fs = require("fs");
 
 module.exports = (req, res, next) => {
-
     let validatorPath;
     if (req.params.file) {
         validatorPath =

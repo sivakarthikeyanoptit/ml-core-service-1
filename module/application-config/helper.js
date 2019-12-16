@@ -17,6 +17,9 @@ const csv = require("csvtojson");
 const elasticSearchHelper = require(ROOT_PATH + "/generics/helpers/elastic-search");
 
 
+
+const upload_type = 
+gen.utils.checkIfEnvDataExistsOrNot("APPLICATION_CONFIG_UPLOAD_TYPE");
 /**
     * appicationConfigHelper
     * @class
@@ -39,12 +42,31 @@ module.exports = class appicationConfigHelper {
 
                 let configData = await csv().fromString(req.files.configFile.data.toString());
                 let type = req.query['config-type'];
-                    await Promise.all(configData.map( async function(ele){
+                let uploadType = upload_type;
+
+              
+                // console.log("req.headers",req.headers.uploadType);
+                if(req.headers.uploadType){
+                    uploadType = req.headers.uploadType;
+                }
+                    await Promise.all(configData.map( async function(ele,index){
                     
                         let keys = Object.keys(ele);
                         if(keys.includes('key') && keys.includes('value') && keys.includes('isActive')){
-                            ele.id=ele.value;
-                            delete ele.value;
+                            ele.id= ele.value;
+
+                            if(ele.is_active){
+                                ele.is_active = ( ele.is_active == 'true' || ele.is_active == 'TRUE' );
+                            }else{
+                                ele.is_active =true;
+                            }
+                            
+                            ele.created_at=Date.now();
+
+                            ele.updateType = uploadType;
+                            // console.log("uploadType",uploadType);
+                            // ele.isActive = Boolean.parse(ele.isActive)
+                            //  ele.value;
                             await kafkaCommunication.pushApplicationConfigToKafka(ele);
 
                         }else{
@@ -73,10 +95,12 @@ module.exports = class appicationConfigHelper {
                 let document = 
                 await elasticSearchHelper.getAllApplicationConfig()
 
-                let data = [];
+               let group = document.reduce((p,c) => (p[c.type] ? p[c.type].push(c) : p[c.type] = [c],p) ,{}),
+                newData = Object.keys(group).map(k => ({info: k, obj: group[k]}));
+
                 return resolve({
                     message: `config list fetched successfully`,
-                    result: document
+                    result: group
                 })
 
             } catch (error) {
