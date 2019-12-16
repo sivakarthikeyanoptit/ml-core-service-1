@@ -41,12 +41,12 @@ module.exports = class appicationConfigHelper {
     /**
       * upload all the application configaration.
       * @method
-      * @name upload
+      * @name uploadConfigurations
       * @param {Object[]} files consists array of languages to upload. 
       * @returns {Promise} returns a promise.
      */
 
-    static upload(req) {
+    static uploadConfigurations(req) {
         return new Promise(async function(resolve, reject) {
             try {
 
@@ -74,12 +74,12 @@ module.exports = class appicationConfigHelper {
          /**
       * List all application Configrations.
       * @method
-      * @name listAll
+      * @name listConfigurations
       * @returns {Promise} returns a promise.
      */
 
 
-    static listAll() {
+    static listConfigurations() {
 
         return new Promise(async (resolve, reject) => {
             try {

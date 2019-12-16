@@ -10,30 +10,42 @@ const fs = require("fs");
     * @class
 */
 module.exports = class Languages {
+     
     /**
-      * Upload languages via csv.
+    * @api {get} /kendra/api/v1/application-config/uploadConfigurations
+    * config List
+    * @apiVersion 1.0.0
+    * @apiGroup Language
+    * @apiSampleRequest /kendra/api/v1/application-config/uploadConfigurations
+    * @apiParam {File} configFile Mandatory configFile file of type CSV.
+    * @apiHeader {String} X-authenticated-user-token Authenticity token  
+    * @apiUse successBody
+    * @apiUse errorBody
+    */
+
+    /**
+      * Upload configurations via csv.
       * @method
-      * @name upload
-      * @param  {Request} req request body.Req consists of languages csv to upload.
+      * @name uploadConfigurations
+      * @param  {Request} req request body.
+      * Req consists of configurations csv to upload.
       * @returns {JSON} Response consists of message and result.Result consists of language data uploaded.
-     */
+    */
 
     uploadConfigurations(req) {
-
-        console.log("upload files");
 
         return new Promise(async (resolve, reject) => {
 
             try {
 
-                if (!req.files || !req.files) {
+                if (!req.files || !req.files.configFile) {
                     throw { 
                         status: httpStatusCode["bad_request"].status, 
                         message: httpStatusCode["bad_request"].message 
                     };
                 }
 
-                let data = await appConfigHelper.upload(req);
+                let data = await appConfigHelper.uploadConfigurations(req);
 
                 return resolve({
                     message: "App config Uploaded succesfully",
@@ -58,11 +70,11 @@ module.exports = class Languages {
         })
     }
         /**
-    * @api {get} /kendra/api/v1/application-config/list/:configType 
+    * @api {get} /kendra/api/v1/application-config/listConfigurations 
     * config List
     * @apiVersion 1.0.0
     * @apiGroup Language
-    * @apiSampleRequest /kendra/api/v1/application-config/list/category
+    * @apiSampleRequest /kendra/api/v1/application-config/listConfigurations
     * @apiHeader {String} X-authenticated-user-token Authenticity token  
     * @apiUse successBody
     * @apiUse errorBody
@@ -71,7 +83,7 @@ module.exports = class Languages {
     /**
       * Details of the specific application config.
       * @method
-      * @name list
+      * @name listConfigurations
       * @param  {Request} req request body.
       * @returns {JSON} Response consists of details of a application config.
      */
@@ -80,7 +92,9 @@ module.exports = class Languages {
         return new Promise(async (resolve, reject) => {
 
             try {
-                let applicationConfig = await appConfigHelper.listAll();
+                let applicationConfig = 
+                await appConfigHelper.listConfigurations();
+                
                 return resolve({
                     result: applicationConfig,
                     message: "configaration retrived succesfully"
@@ -175,8 +189,9 @@ module.exports = class Languages {
       * List details of the language.
       * @method
       * @name listLanguage
-      * @param  {Request} req request body.req params consists of languageId and
-      * appname(as headers if provided).
+      * @param  {Request} req request body.
+      * Params consists of languageId and
+      * appname - name of the app (as headers if provided).
       * @returns {JSON} Response consists of message and result.
       * Result consists of details of the language.
      */
@@ -211,7 +226,7 @@ module.exports = class Languages {
         })
     }
 
-        /**
+    /**
     * @api {post} /kendra/api/v1/application-config/listAllLanguages 
     * Upload Language
     * @apiVersion 1.0.0
@@ -226,8 +241,8 @@ module.exports = class Languages {
       * List of all languages.
       * @method
       * @name listAllLanguages
-      * @param  {Request} req request body.req params consists of languageId and
-      * appname(as headers if provided).
+      * @param  {Request} req request body.
+      * appname - name of the app. (as headers if provided).
       * @returns {JSON} Response consists of message and result.
       * Result consists of of all languages.
      */
