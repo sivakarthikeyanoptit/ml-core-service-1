@@ -1,6 +1,15 @@
 //dependencies
 let kafka = require('kafka-node');
 
+let LANGUAGE_TOPIC = process.env.LANGUAGE_TOPIC || 
+process.env.DEFAULT_LANGUAGE_TOPIC;
+
+let EMAIL_TOPIC = process.env.EMAIL_TOPIC || 
+process.env.DEFAULT_EMAIL_TOPIC;
+
+let NOTIFICATIONS_TOPIC = process.env.EMAIL_TOPIC || 
+process.env.DEFAULT_EMAIL_TOPIC;
+
 /**
   * Kafka configuration.
   * @function
@@ -70,23 +79,22 @@ var _sendToKafkaConsumers = function (topic,client, commit = false) {
 
     consumer.on('message', async function (message) {
 
-      if (topic === process.env.LANGUAGE_TOPIC) {
+      if (message && message.topic === LANGUAGE_TOPIC) {
         languagesConsumer.messageReceived(message)
-      } else if (topic === process.env.EMAIL_TOPIC) {
+      } else if (message && message.topic === EMAIL_TOPIC) {
         emailConsumer.messageReceived(message, consumer)
-      } else {
+      } else if (message && message.topic === NOTIFICATIONS_TOPIC) {
         notificationsConsumer.messageReceived(message)
       }
     });
 
     consumer.on('error', async function (error) {
 
-      if (topic === process.env.LANGUAGE_TOPIC) {
+      if (error.topics[0] === LANGUAGE_TOPIC) {
         languagesConsumer.errorTriggered(error);
-      } else if (topic === process.env.EMAIL_TOPIC) {
-        emailConsumer.errorTriggered(message, consumer)
-      }
-      else {
+      } else if (error.topics[0] === EMAIL_TOPIC) {
+        emailConsumer.errorTriggered(error)
+      } else if(error.topics[0] === NOTIFICATIONS_TOPIC){
         notificationsConsumer.errorTriggered(error);
       }
     });
