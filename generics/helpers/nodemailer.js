@@ -37,7 +37,7 @@ function sendEmail(SingleMessage, consumer = "") {
         };
 
         if (emailData.success) {
-            consumer.commitOffsets(true)
+            consumer.options.autoCommit = true;
             response.success = true;
         } else {
 
@@ -54,9 +54,15 @@ function sendEmail(SingleMessage, consumer = "") {
 
                 let errorMsg = {};
                 errorMsg["slackErrorName"] = "Nodemailer error !!";
-                errorMsg["Environment"] = gen.utils.checkIfEnvDataExistsOrNot("NODE_ENV");
+
+                errorMsg["Environment"] = 
+                gen.utils.checkIfEnvDataExistsOrNot("NODE_ENV");
+
                 errorMsg["error"] = emailData.error.message;
-                errorMsg["color"] = gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_MESSAGE_COLOR");
+
+                errorMsg["color"] = 
+                gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_MESSAGE_COLOR");
+
                 slackClient.sendMessageToSlack(errorMsg)
             }
         }
@@ -93,7 +99,7 @@ function _send(SingleMail) {
             message["cc"] = SingleMail.bcc
         }
 
-        smtpServer.sendMail(message, (err, info) => {
+        smtpTransporter.sendMail(message, (err, info) => {
 
             let response = {};
 

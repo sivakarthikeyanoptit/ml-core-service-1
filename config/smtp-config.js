@@ -32,8 +32,8 @@ var smtpConnection = async function (config) {
         configurationOptions["auth"]["pass"] = config.password;
     } else {
         configurationOptions["host"] = config.host;
-        configurationOptions["secure"] = config.secure;
-        configurationOptions["port"] = config.port;
+        configurationOptions["secure"] = false;
+        configurationOptions["port"] = Number(config.port);
     }
 
     let transporter = nodemailer.createTransport(configurationOptions);
@@ -45,7 +45,7 @@ var smtpConnection = async function (config) {
             logger.info('SMTP Server is connected!!!');
 
             if (success) {
-                global.smtpServer = transporter;
+                global.smtpTransporter = transporter;
             }
         }
     });
