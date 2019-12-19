@@ -114,7 +114,8 @@ module.exports = function () {
   .forEach(function (file) {
     if (file.match(/\.js$/) !== null) {
       var name = file.replace('-consumer.js', '');
-      global[name + 'Consumer'] = 
+      name=name.replace('-','');
+       global[name + 'Consumer'] = 
       require(ROOT_PATH + process.env.PATH_TO_KAFKA_CONSUMERS + file);
     }
   });

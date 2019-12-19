@@ -1,8 +1,8 @@
 /**
- * name : languages/helper.js
- * author : Aman Jung Karki
- * created-date : 29-Nov-2019
- * Description : All Languages related information.
+ * name : appication-config/helper.js
+ * author : Rakesh Kumar
+ * created-date : 12-Dec-2019
+ * Description : All application related helper functions.
  */
 
 
@@ -15,21 +15,114 @@ const kafkaCommunication = require(ROOT_PATH + "/generics/helpers/kafka-communic
 let slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
 const csv = require("csvtojson");
 const elasticSearchHelper = require(ROOT_PATH + "/generics/helpers/elastic-search");
-const languageIndex = 
-gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_SHIKSHALOKAM_INDEX");
-const languageType = 
-gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_SHIKSHALOKAM_TYPE");
 const existingLanguages = require(ROOT_PATH + "/generics/helpers/languages.json");
 
+const DEFAULT_LANGUAGE_INDEX = 
+gen.utils.checkIfEnvDataExistsOrNot("SAMIKSHA_LANGUAGE_INDEX");
+
+const DEFAULT_LANGUGAE_TYPE = 
+gen.utils.checkIfEnvDataExistsOrNot("SAMIKSHA_LANGUAGE_TYPE");
+
+const UNNATI_LANGUAGE_INDEX = 
+gen.utils.checkIfEnvDataExistsOrNot("UNNATI_LANGUAGE_INDEX");
+
+const UNNATI_LANGUAGE_TYPE = 
+gen.utils.checkIfEnvDataExistsOrNot("UNNATI_LANGUAGE_TYPE");
+
+
+
+const upload_type = 
+gen.utils.checkIfEnvDataExistsOrNot("APPLICATION_CONFIG_UPLOAD_TYPE");
 /**
-    * LanguagesHelper
+    * appicationConfigHelper
     * @class
 */
 
-module.exports = class LanguagesHelper {
+module.exports = class appicationConfigHelper {
 
 
     /**
+      * upload all the application configaration.
+      * @method
+      * @name uploadConfigurations
+      * @param {Object[]} files consists array of languages to upload. 
+      * @returns {Promise} returns a promise.
+     */
+
+    static uploadConfigurations(req) {
+        return new Promise(async function(resolve, reject) {
+            try {
+
+                let configData = await csv().fromString(req.files.configFile.data.toString());
+                let type = req.query['config-type'];
+                let uploadType = upload_type;
+
+              
+                // console.log("req.headers",req.headers.uploadType);
+                if(req.headers.uploadType){
+                    uploadType = req.headers.uploadType;
+                }
+                    await Promise.all(configData.map( async function(ele,index){
+                    
+                        let keys = Object.keys(ele);
+                        if(keys.includes('key') && keys.includes('value') && keys.includes('isActive')){
+                            ele.id= ele.value;
+
+                            if(ele.is_active){
+                                ele.is_active = ( ele.is_active == 'true' || ele.is_active == 'TRUE' );
+                            }else{
+                                ele.is_active =true;
+                            }
+                            
+                            ele.created_at=Date.now();
+
+                            ele.updateType = uploadType;
+                            // console.log("uploadType",uploadType);
+                            // ele.isActive = Boolean.parse(ele.isActive)
+                            //  ele.value;
+                            await kafkaCommunication.pushApplicationConfigToKafka(ele);
+
+                        }else{
+                            reject({error:"failed",message:"Invalid csv please check the headers"})
+                        }
+                    }));
+                return resolve(configData)
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+         /**
+      * List all application Configrations.
+      * @method
+      * @name listConfigurations
+      * @returns {Promise} returns a promise.
+     */
+
+
+    static listConfigurations() {
+
+        return new Promise(async (resolve, reject) => {
+            try {
+                let document = 
+                await elasticSearchHelper.getAllApplicationConfig()
+
+               let group = document.reduce((p,c) => (p[c.type] ? p[c.type].push(c) : p[c.type] = [c],p) ,{}),
+                newData = Object.keys(group).map(k => ({info: k, obj: group[k]}));
+
+                return resolve({
+                    message: `config list fetched successfully`,
+                    result: group
+                })
+
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+     /**
       * upload all the languages.
       * @method
       * @name upload
@@ -37,11 +130,12 @@ module.exports = class LanguagesHelper {
       * @returns {Promise} returns a promise.
      */
 
-    static upload(files) {
+    static uploadLanguages(files,appname = "") {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let languageData = await csv().fromString(files.language.data.toString());
+                let languageData = await csv()
+                .fromString(files.language.data.toString());
 
                 let languages = {};
 
@@ -82,10 +176,12 @@ module.exports = class LanguagesHelper {
                     pointerToAllSetOfLanguage < allSetOfLanguages.length; 
                     pointerToAllSetOfLanguage++) {
 
-
                     let pushLanguagesToKafka = 
                     await kafkaCommunication.pushLanguagesToKafka(
-                        allSetOfLanguages[pointerToAllSetOfLanguage]
+                        _.merge(allSetOfLanguages[pointerToAllSetOfLanguage],
+                            {
+                                appname:appname
+                            })
                     );
 
                     let result = {};
@@ -135,16 +231,21 @@ module.exports = class LanguagesHelper {
       * @returns {Promise} returns a promise.
      */
 
-
-    static list(languageId) {
+    static listLanguage(languageId,appname) {
         return new Promise(async (resolve, reject) => {
             try {
 
                 let languageInfo = {
                     id: languageId,
-                    index: languageIndex,
-                    type: languageType
+                    index: DEFAULT_LANGUAGE_INDEX,
+                    type: DEFAULT_LANGUGAE_TYPE
                 }
+
+                if(appname === "unnati") {
+                    languageInfo["index"] = UNNATI_LANGUAGE_INDEX;
+                    languageInfo["type"] = UNNATI_LANGUAGE_TYPE;
+                }
+                
 
                 let getLanguageDocument = 
                 await elasticSearchHelper.getData(languageInfo);
@@ -166,34 +267,37 @@ module.exports = class LanguagesHelper {
         })
     }
 
-
      /**
       * List all languages.
       * @method
-      * @name listAll
+      * @name list
+      * @param {String} appname name of the app. 
       * @returns {Promise} returns a promise.
      */
 
-
-    static listAll() {
+    static listAllLanguages(appname) {
         return new Promise(async (resolve, reject) => {
             try {
+
                 let getLanguageDocument = 
-                await elasticSearchHelper.getAllLanguagesData()
+                await elasticSearchHelper.getAllLanguagesData(appname)
 
                 let data = [];
 
-                for (let pointerToLanguage = 0; 
-                    pointerToLanguage < getLanguageDocument.length; 
-                    pointerToLanguage++) {
-
-                        let languageId = getLanguageDocument[pointerToLanguage].id;
-                        if (existingLanguages[languageId] !== undefined) {
-                            data.push({
-                                id: languageId,
-                                name: existingLanguages[languageId]
-                            })
-                        }
+                if(getLanguageDocument.length>0) {
+                    
+                    for (let pointerToLanguage = 0; 
+                        pointerToLanguage < getLanguageDocument.length; 
+                        pointerToLanguage++) {
+    
+                            let languageId = getLanguageDocument[pointerToLanguage].id;
+                            if (existingLanguages[languageId] !== undefined) {
+                                data.push({
+                                    id: languageId,
+                                    name: existingLanguages[languageId]
+                                })
+                            }
+                    }
                 }
 
                 return resolve({
@@ -207,4 +311,4 @@ module.exports = class LanguagesHelper {
         })
     }
 
-};
+}

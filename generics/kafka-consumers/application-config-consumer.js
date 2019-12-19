@@ -1,8 +1,8 @@
 /**
- * name : languages-consumer.js
- * author : Aman Jung Karki
- * created-date : 05-Dec-2019
- * Description : consume languages data sent from kafka.
+ * name : application-config-consumer.js
+ * author : Rakesh Kumar    
+ * created-date : 13-Dec-2019
+ * Description : consume all config data sent from kafka.
  */
 
 //dependencies
@@ -11,7 +11,7 @@ const elasticSearchHelper = require(GENERIC_HELPERS_PATH + "/elastic-search");
 const slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
 
 /**
-  * language consumer message received.
+  * application config consumer message received.
   * @function
   * @name messageReceived
   * @param {String} message - consumer data
@@ -23,23 +23,11 @@ var messageReceived = function (message) {
   return new Promise(async function (resolve, reject) {
 
     try {
-      logger.info("---------- In Language Pack Consumer Message Function -------------");
+      logger.info("---------- In Application Config Consumer Message Function -------------");
       let parsedMessage = JSON.parse(message.value);
-
-      if (parsedMessage.action === "language") {
-
-        let id = parsedMessage.id;
-        let appName = parsedMessage.appname;
-
-        delete parsedMessage.appName;
-        delete parsedMessage.id;
-        delete parsedMessage.action;
-
-        await elasticSearchHelper.pushLanguageData(id, parsedMessage,appName);
-        logger.info("---------- Language Pack Consumer Ends -------------");
-      }
-      
-      return resolve("Message Received for language pack");
+        await elasticSearchHelper.pushAppConfigData(parsedMessage);
+        logger.info("---------- Application Config Consumer Ends -------------");
+      return resolve("Message Received for Application Config");
     } catch (error) {
       return reject(error);
     }

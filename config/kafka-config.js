@@ -1,14 +1,17 @@
 //dependencies
 let kafka = require('kafka-node');
 
-let LANGUAGE_TOPIC = process.env.LANGUAGE_TOPIC || 
+const LANGUAGE_TOPIC = process.env.LANGUAGE_TOPIC || 
 process.env.DEFAULT_LANGUAGE_TOPIC;
 
-let EMAIL_TOPIC = process.env.EMAIL_TOPIC || 
+const EMAIL_TOPIC = process.env.EMAIL_TOPIC || 
 process.env.DEFAULT_EMAIL_TOPIC;
 
-let NOTIFICATIONS_TOPIC = process.env.EMAIL_TOPIC || 
+const NOTIFICATIONS_TOPIC = process.env.EMAIL_TOPIC || 
 process.env.DEFAULT_EMAIL_TOPIC;
+
+const APPLICATION_CONFIG_TOPIC = process.env.APPLICATION_CONFIG_TOPIC || 
+process.env.DEFAULT_APPLICATION_CONFIG_TOPIC;
 
 /**
   * Kafka configuration.
@@ -40,9 +43,11 @@ var connect = function (config) {
     logger.error("kafka producer creation error!");
   })
 
+  
   _sendToKafkaConsumers(config.topics["notificationsTopic"],client, true);
   _sendToKafkaConsumers(config.topics["languagesTopic"],client,true);
   _sendToKafkaConsumers(config.topics["emailTopic"],client, false);
+  _sendToKafkaConsumers(config.topics["appConfigTopic"],client, true);
 
   return {
     kafkaProducer: producer,
@@ -64,7 +69,6 @@ var connect = function (config) {
 var _sendToKafkaConsumers = function (topic,client, commit = false) {
 
   let kafkaConsumer = kafka.Consumer;
-
   if (topic && topic != "") {
 
     let consumer = new kafkaConsumer(
@@ -79,7 +83,9 @@ var _sendToKafkaConsumers = function (topic,client, commit = false) {
 
     consumer.on('message', async function (message) {
 
-      if (message && message.topic === LANGUAGE_TOPIC) {
+      if (message && message.topic === APPLICATION_CONFIG_TOPIC) {
+        applicationconfigConsumer.messageReceived(message);
+      } else if (message && message.topic === LANGUAGE_TOPIC) {
         languagesConsumer.messageReceived(message)
       } else if (message && message.topic === EMAIL_TOPIC) {
         emailConsumer.messageReceived(message, consumer)
@@ -90,7 +96,9 @@ var _sendToKafkaConsumers = function (topic,client, commit = false) {
 
     consumer.on('error', async function (error) {
 
-      if (error.topics[0] === LANGUAGE_TOPIC) {
+      if(error.topics[0] === APPLICATION_CONFIG_TOPIC) {
+        applicationconfigConsumer.errorTriggered(error);
+      } else if (error.topics[0] === LANGUAGE_TOPIC) {
         languagesConsumer.errorTriggered(error);
       } else if (error.topics[0] === EMAIL_TOPIC) {
         emailConsumer.errorTriggered(error)

@@ -10,6 +10,8 @@ module.exports = (req) => {
 
     }
 
-    if (emailValidator[req.params.method]) emailValidator[req.params.method]();
-
+    if (emailValidator[req.params.method]) {
+        emailValidator[req.params.method]();
+    }
+    
 };

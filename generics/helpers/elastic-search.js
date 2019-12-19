@@ -15,16 +15,32 @@ gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE")
 const UNNATI_INDEX = 
 gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_UNNATI_INDEX");
 
-const LANGUAGE_INDEX = 
-gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_SHIKSHALOKAM_INDEX");
+const DEFAULT_LANGUAGE_INDEX = 
+gen.utils.checkIfEnvDataExistsOrNot("SAMIKSHA_LANGUAGE_INDEX");
+
+const DEFAULT_LANGUGAE_TYPE = 
+gen.utils.checkIfEnvDataExistsOrNot("SAMIKSHA_LANGUAGE_TYPE");
+
+const UNNATI_LANGUAGE_INDEX = 
+gen.utils.checkIfEnvDataExistsOrNot("UNNATI_LANGUAGE_INDEX");
+
+const UNNATI_LANGUAGE_TYPE = 
+gen.utils.checkIfEnvDataExistsOrNot("UNNATI_LANGUAGE_TYPE");
 
 const APP_VERSION_INDEX = 
 gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_APP_RELEASES_INDEX");
 
-const LANGUGAE_TYPE = 
-gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_SHIKSHALOKAM_TYPE");
 
 let moment = require("moment-timezone");
+
+
+const ALL_CONFIG_TYPE = 
+gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_ALL_CONFIG_TYPE");
+
+const APPLICATION_CONFIG_INDEX = 
+gen.utils.checkIfEnvDataExistsOrNot("APPLICATION_CONFIG_INDEX")
+
+
 
 /**
   * Push notification data to elastic search.
@@ -497,18 +513,25 @@ var deleteNotificationData = function (userId, notificationId, appIndex) {
 */
 
 
-var pushLanguageData = function (languageId = "", languageData = {}) {
+var pushLanguageData = function (languageId = "", languageData = {},appName) {
 
   return new Promise(async function (resolve, reject) {
     try {
 
-      if (languageId == "") throw "Invalid language id."
+      if (languageId == "") {
+        throw "Invalid language id.";
+      }
 
       let languageInfo = {};
+      languageInfo["index"] = DEFAULT_LANGUAGE_INDEX;
+      languageInfo["type"] = DEFAULT_LANGUGAE_TYPE;
+      
+      if(appName !== "" && appName === "unnati") {
+        languageInfo["index"] = UNNATI_LANGUAGE_INDEX;
+        languageInfo["type"] = UNNATI_LANGUAGE_TYPE;
+      }
 
-      languageInfo["id"] = languageId
-      languageInfo["index"] = LANGUAGE_INDEX;
-      languageInfo["type"] = LANGUGAE_TYPE;
+      languageInfo["id"] = languageId;
 
       let languageDocument = await getData(languageInfo);
 
@@ -728,25 +751,37 @@ var getLanguageData = function (languageId = "") {
   * @returns {Promise} returns a promise.
 */
 
-var getAllLanguagesData = function () {
+var getAllLanguagesData = function (appName) {
   return new Promise(async function (resolve, reject) {
     try {
 
-      if (!elasticsearch.client) throw "Elastic search is down.";
+      if (!elasticsearch.client) {
+        throw "Elastic search is down.";
+      }
 
-      const checkIndexExistsOrNot = await _indexExistOrNot(LANGUAGE_INDEX);
+      let languageIndex = DEFAULT_LANGUAGE_INDEX;
+      let languageType = DEFAULT_LANGUGAE_TYPE;
+
+      if(appName === "unnati"){
+        languageIndex = UNNATI_LANGUAGE_INDEX;
+        languageType = UNNATI_LANGUAGE_TYPE;
+      }
+
+      const checkIndexExistsOrNot = await _indexExistOrNot(languageIndex);
 
       const checkTypeExistsOrNot = 
-      await _typeExistsOrNot(LANGUAGE_INDEX, LANGUGAE_TYPE);
+      await _typeExistsOrNot(languageIndex, languageType);
+
+      let userNotificationDocument = [];
 
       if (checkIndexExistsOrNot.statusCode !== 404 && 
         checkTypeExistsOrNot.statusCode !== 404) {
 
-          const userNotificationDocument = 
-          await _searchForAllData(LANGUAGE_INDEX, LANGUGAE_TYPE);
-          
-          return resolve(userNotificationDocument);
+          userNotificationDocument = 
+          await _searchForAllData(languageIndex, languageType);
       }
+      
+      return resolve(userNotificationDocument);
 
     } catch (error) {
       return reject(error);
@@ -907,9 +942,12 @@ var _typeExistsOrNot = function (index, type) {
         type: type
       });
 
+      console.log("result",result);
       return resolve(result);
 
     } catch (error) {
+
+      console.log("err",error);
       return reject(error);
     }
   })
@@ -999,6 +1037,135 @@ var _deleteData = function (data) {
   })
 };
 
+/**
+  *  Get the list of all the languages.
+  * @function
+  * @name getAllLanguagesData
+  * @returns {Promise} returns a promise.
+*/
+
+var getAllApplicationConfig = function () {
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      
+
+      if (!elasticsearch.client) throw "Elastic search is down.";
+
+      const checkIndexExistsOrNot = await _indexExistOrNot(APPLICATION_CONFIG_INDEX);
+
+      const checkTypeExistsOrNot = 
+      await _typeExistsOrNot(APPLICATION_CONFIG_INDEX, ALL_CONFIG_TYPE);
+
+      if (checkIndexExistsOrNot.statusCode !== 404 && 
+        checkTypeExistsOrNot.statusCode !== 404) {
+
+          const allConfig = 
+          await _searchForAllData(APPLICATION_CONFIG_INDEX, ALL_CONFIG_TYPE);
+          
+          return resolve(allConfig);
+      }
+
+    } catch (error) {
+      return reject(error);
+    }
+  })
+};
+
+var pushAppConfigData = function (confgData = {}) {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      // console.log("chnages",confgData.id);
+      if (!confgData.id || confgData.id == "") throw "Invalid confg id."
+
+      let configObj = {};
+
+      configObj["id"] = confgData.id
+      configObj["index"] = APPLICATION_CONFIG_INDEX;
+      configObj["type"] = ALL_CONFIG_TYPE;
+
+       let configDocument = await getData(configObj);
+
+      //  console.log("configDocument",configObj);
+
+      let appConfigObj = configObj;
+      if (configDocument.statusCode === 404) {
+
+       
+        confgData.version = "0.0.1";
+        appConfigObj["body"] ={
+          doc:{
+            config:confgData,
+            version:version
+            
+          }
+        } 
+        const configDocCreation = await _createOrUpdateData(appConfigObj)
+
+        if (
+          !(configDocCreation.statusCode == 200 || 
+            configDocCreation.statusCode == 201)
+            ) {
+          throw new Error(`Failed to push language ${confgData.id} in elastic search.`)
+        }
+
+      } else if (configDocument.statusCode == 200) {
+
+        // console.log("configDocument",configDocument.body['_source']['config'].version); 
+
+        let currentV = configDocument.body['_source']['config'].version;
+
+        // console.log("currentV",currentV)
+        let versionChange = currentV.split(".");
+
+        // console.log("versionChange",versionChange);
+        if( confgData.updateType && confgData.updateType=='major'){
+
+          version = ( parseInt(versionChange[0]) + 1 ) + "."+ parseInt(versionChange[1]) + "." + parseInt(versionChange[2]);
+          delete confgData.updateType;
+         
+        }else if( confgData.updateType && confgData.updateType=='minor'){
+          version = parseInt(versionChange[0]) + "."+ ( parseInt(versionChange[1]) + 1 ) + "." + parseInt(versionChange[2]);
+          delete confgData.updateType;
+        }else {
+          // version = versionChange[2] + 1
+          delete confgData.updateType;
+          version =  parseInt(versionChange[0]) + "."+ parseInt(versionChange[1]) + "." + ( parseInt(versionChange[2]) + 1 );
+        }
+
+        confgData.version =version;
+        // console.log("version--",version);
+
+        appConfigObj["body"] ={
+          doc:{
+            config:confgData
+          }
+        } 
+        const configDataUpdate = await _createOrUpdateData(appConfigObj, true);
+
+        if (configDataUpdate.statusCode !== 200) {
+          throw new Error("Failed to push notification to elastic search.");
+        }else{
+          console.log("pushed to elastic search");
+        }
+
+      } else {
+        throw "Something went wrong!"
+      }
+
+      return resolve({
+        success: true,
+        message: "Notification successfully pushed to elastic search."
+      })
+
+    } catch (error) {
+      return reject(error);
+    }
+  });
+};
+
 module.exports = {
   pushNotificationData: pushNotificationData,
   getNotificationData: getNotificationData,
@@ -1010,5 +1177,7 @@ module.exports = {
   getAllLanguagesData: getAllLanguagesData,
   getData: getData,
   updateAppVersion: updateAppVersion,
-  pushAppVersionToLoggedInUser: pushAppVersionToLoggedInUser
+  pushAppVersionToLoggedInUser: pushAppVersionToLoggedInUser,
+  getAllApplicationConfig:getAllApplicationConfig,
+  pushAppConfigData:pushAppConfigData
 };
