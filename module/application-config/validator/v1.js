@@ -1,16 +1,15 @@
 module.exports = (req) => {
 
-    let validator = {
+    let applicationConfigValidator = {
 
-        upload: function () {
-            // req.checkParams('_id').exists().withMessage("required notification id")
-        },
-        list: function () {
-            // req.checkParams('_id').exists().withMessage("required notification id")
+        listLanguage: function () {
+            req.checkParams('_id').exists().withMessage("required language id");
         }
 
     }
 
-    if (validator[req.params.method]) validator[req.params.method]();
+    if (applicationConfigValidator[req.params.method]) {
+        applicationConfigValidator[req.params.method]();
+    }
 
 };

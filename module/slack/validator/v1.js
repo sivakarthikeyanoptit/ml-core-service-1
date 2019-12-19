@@ -11,6 +11,8 @@ module.exports = (req) => {
 
     }
 
-    if (slackValidator[req.params.method]) slackValidator[req.params.method]();
+    if (slackValidator[req.params.method]) {
+        slackValidator[req.params.method]();
+    }
 
 };

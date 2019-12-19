@@ -14,6 +14,8 @@ module.exports = (req) => {
 
     }
 
-    if (notificationsValidator[req.params.method]) notificationsValidator[req.params.method]();
+    if (notificationsValidator[req.params.method]) {
+        notificationsValidator[req.params.method]();
+    }
 
 };
