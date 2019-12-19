@@ -1,6 +1,18 @@
 //dependencies
 let kafka = require('kafka-node');
 
+const LANGUAGE_TOPIC = process.env.LANGUAGE_TOPIC || 
+process.env.DEFAULT_LANGUAGE_TOPIC;
+
+const EMAIL_TOPIC = process.env.EMAIL_TOPIC || 
+process.env.DEFAULT_EMAIL_TOPIC;
+
+const NOTIFICATIONS_TOPIC = process.env.EMAIL_TOPIC || 
+process.env.DEFAULT_EMAIL_TOPIC;
+
+const APPLICATION_CONFIG_TOPIC = process.env.APPLICATION_CONFIG_TOPIC || 
+process.env.DEFAULT_APPLICATION_CONFIG_TOPIC;
+
 /**
   * Kafka configuration.
   * @function
@@ -32,9 +44,9 @@ var connect = function (config) {
   })
 
   
-  // _sendToKafkaConsumers(config.topics["notificationsTopic"],client, true);
-  // _sendToKafkaConsumers(config.topics["languagesTopic"],client,true);
-  // _sendToKafkaConsumers(config.topics["emailTopic"],client, false);
+  _sendToKafkaConsumers(config.topics["notificationsTopic"],client, true);
+  _sendToKafkaConsumers(config.topics["languagesTopic"],client,true);
+  _sendToKafkaConsumers(config.topics["emailTopic"],client, false);
   _sendToKafkaConsumers(config.topics["appConfigTopic"],client, true);
 
   return {
@@ -71,26 +83,26 @@ var _sendToKafkaConsumers = function (topic,client, commit = false) {
 
     consumer.on('message', async function (message) {
 
-      if (topic === process.env.APPLICATION_CONFIG_TOPIC) {
+      if (message && message.topic === APPLICATION_CONFIG_TOPIC) {
         applicationconfigConsumer.messageReceived(message);
-      }
-      else if (topic === process.env.LANGUAGE_TOPIC) {
+      } else if (message && message.topic === LANGUAGE_TOPIC) {
         languagesConsumer.messageReceived(message)
-      } else if (topic === process.env.EMAIL_TOPIC) {
+      } else if (message && message.topic === EMAIL_TOPIC) {
         emailConsumer.messageReceived(message, consumer)
-      } else {
+      } else if (message && message.topic === NOTIFICATIONS_TOPIC) {
         notificationsConsumer.messageReceived(message)
       }
     });
 
     consumer.on('error', async function (error) {
 
-      if (topic === process.env.LANGUAGE_TOPIC) {
+      if(error.topics[0] === APPLICATION_CONFIG_TOPIC) {
+        applicationconfigConsumer.errorTriggered(error);
+      } else if (error.topics[0] === LANGUAGE_TOPIC) {
         languagesConsumer.errorTriggered(error);
-      } else if (topic === process.env.EMAIL_TOPIC) {
-        emailConsumer.errorTriggered(message, consumer)
-      }
-      else {
+      } else if (error.topics[0] === EMAIL_TOPIC) {
+        emailConsumer.errorTriggered(error)
+      } else if(error.topics[0] === NOTIFICATIONS_TOPIC){
         notificationsConsumer.errorTriggered(error);
       }
     });
