@@ -8,7 +8,7 @@
 // dependencies
 const NOTIFICATION_COLOR = 
 gen.utils.checkIfEnvDataExistsOrNot("SAMIKSHA_THEME_COLOR");
-const userExtensionsHelper = require(ROOT_PATH + "/module/user-extension/helper");
+const userExtensionsHelper = require(MODULES_BASE_PATH + "/user-extension/helper");
 const firebaseHelper = require(ROOT_PATH + "/generics/helpers/fcm");
 
 /**

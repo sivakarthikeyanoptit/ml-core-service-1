@@ -11,7 +11,7 @@
  */
 
 
-const kafkaCommunication = require(ROOT_PATH + "/generics/helpers/kafka-communications")
+const kafkaCommunication = require(ROOT_PATH + "/generics/helpers/kafka-communications");
 let slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
 const csv = require("csvtojson");
 const elasticSearchHelper = require(ROOT_PATH + "/generics/helpers/elastic-search");
@@ -68,22 +68,23 @@ module.exports = class appicationConfigHelper {
                         if(keys.includes('key') && keys.includes('value') && keys.includes('isActive')){
                             ele.id= ele.value;
 
-                            if(ele.is_active){
+                            if(ele.is_active) {
                                 ele.is_active = ( ele.is_active == 'true' || ele.is_active == 'TRUE' );
                             }else{
                                 ele.is_active =true;
                             }
                             
-                            ele.created_at=Date.now();
+                            ele.created_at = Date.now();
 
                             ele.updateType = uploadType;
-                            // console.log("uploadType",uploadType);
-                            // ele.isActive = Boolean.parse(ele.isActive)
-                            //  ele.value;
+
                             await kafkaCommunication.pushApplicationConfigToKafka(ele);
 
                         }else{
-                            reject({error:"failed",message:"Invalid csv please check the headers"})
+                            reject({
+                                error:messageConstants.common.FAILED,
+                                message:"Invalid csv please check the headers"
+                            })
                         }
                     }));
                 return resolve(configData)
@@ -93,7 +94,7 @@ module.exports = class appicationConfigHelper {
         })
     }
 
-         /**
+    /**
       * List all application Configrations.
       * @method
       * @name listConfigurations

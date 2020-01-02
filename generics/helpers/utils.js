@@ -34,6 +34,19 @@ function camelCaseToTitleCase(in_camelCaseString) {
   return result.charAt(0).toUpperCase() + result.slice(1);
 }
 
+
+ /**
+  * Convert string from hyphen case to camelCase.
+  * @function
+  * @name hyphenCaseToCamelCase
+  * @param {String} string - String in hyphen case.
+  * @returns {String} returns a camelCase string.
+*/
+
+function hyphenCaseToCamelCase(string) {
+  return string.replace(/-([a-z])/g, function (g) { return g[1].toUpperCase(); });
+}
+
  /**
   * convert string to lowerCase.
   * @function
@@ -87,8 +100,9 @@ function checkIfEnvDataExistsOrNot(data){
 }
 
 module.exports = {
-  camelCaseToTitleCase: camelCaseToTitleCase,
-  lowerCase: lowerCase,
-  checkIfStringIsUrl: checkIfStringIsUrl,
-  checkIfEnvDataExistsOrNot:checkIfEnvDataExistsOrNot
+  camelCaseToTitleCase : camelCaseToTitleCase,
+  lowerCase : lowerCase,
+  checkIfStringIsUrl : checkIfStringIsUrl,
+  checkIfEnvDataExistsOrNot : checkIfEnvDataExistsOrNot,
+  hyphenCaseToCamelCase : hyphenCaseToCamelCase
 };

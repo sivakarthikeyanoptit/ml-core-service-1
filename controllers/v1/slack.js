@@ -1,7 +1,7 @@
 /**
  * name : slack.js
  * author : Aman Jung Karki
- * created-date : 5-Dec-2019
+ * created-date : 05-Dec-2019
  * Description : All Slack error message.
  */
 
@@ -10,7 +10,7 @@
  * load modules.
  */
 
-const slackHelper = require(ROOT_PATH + "/module/slack/helper");
+const slackHelper = require(MODULES_BASE_PATH + "/slack/helper");
 
 /**
     * Slack

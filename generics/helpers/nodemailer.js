@@ -27,9 +27,9 @@ function sendEmail(SingleMessage, consumer = "") {
         let emailData;
 
         if (SingleMessage.count) {
-            emailData = await _send(_.omit(SingleMessage, ["count"]))
+            emailData = await _send(_.omit(SingleMessage, ["count"]));
         } else {
-            emailData = await _send(SingleMessage)
+            emailData = await _send(SingleMessage);
         };
 
         let response = {
@@ -63,7 +63,7 @@ function sendEmail(SingleMessage, consumer = "") {
                 errorMsg["color"] = 
                 gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_MESSAGE_COLOR");
 
-                slackClient.sendMessageToSlack(errorMsg)
+                slackClient.sendMessageToSlack(errorMsg);
             }
         }
 
@@ -92,11 +92,11 @@ function _send(SingleMail) {
         }
 
         if (SingleMail.cc && Array.isArray(SingleMail.cc)) {
-            message["cc"] = SingleMail.cc
+            message["cc"] = SingleMail.cc;
         }
 
         if (SingleMail.bcc) {
-            message["cc"] = SingleMail.bcc
+            message["cc"] = SingleMail.bcc;
         }
 
         smtpTransporter.sendMail(message, (err, info) => {

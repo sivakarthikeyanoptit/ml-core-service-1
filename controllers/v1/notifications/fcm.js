@@ -9,10 +9,10 @@
 // dependencies
 
 const csv = require('csvtojson');
-const userExtensionHelper = require(ROOT_PATH + "/module/user-extension/helper");
+const userExtensionHelper = require(MODULES_BASE_PATH + "/user-extension/helper");
 const csvFileStream = require(ROOT_PATH + "/generics/file-stream");
 const firebaseHelper = require(ROOT_PATH + "/generics/helpers/fcm");
-const fcmHelper = require(ROOT_PATH + "/module/notifications/fcm/helper");
+const fcmHelper = require(MODULES_BASE_PATH + "/notifications/fcm/helper");
 
 /**
     * Push notifications using firebase-admin.
@@ -301,7 +301,7 @@ module.exports = class Fcm {
             try {
 
                 if (!req.files || !req.files.pushToTopic) {
-                    throw { message: "Missing file of type pushToTopic" }
+                    throw { message: "Missing file of type pushToTopic" };
                 }
 
                 let topicData = 

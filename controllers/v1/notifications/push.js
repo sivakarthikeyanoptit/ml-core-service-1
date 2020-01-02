@@ -8,8 +8,8 @@
 // dependencies
 
 const csv = require('csvtojson');
-const userExtensionHelper = require(ROOT_PATH + "/module/user-extension/helper");
-const pushNotificationsHelper = require(ROOT_PATH + "/module/notifications/push/helper");
+const userExtensionHelper = require(MODULES_BASE_PATH + "/user-extension/helper");
+const pushNotificationsHelper = require(MODULES_BASE_PATH + "/notifications/push/helper");
 const csvFileStream = require(ROOT_PATH + "/generics/file-stream");
 
 /**

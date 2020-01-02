@@ -10,7 +10,7 @@
 /**
 * dependencies
 */
-const notificationsHelper = require(ROOT_PATH + "/module/notifications/in-app/helper");
+const notificationsHelper = require(MODULES_BASE_PATH + "/notifications/in-app/helper");
 
 /**
     * In-App Notifications
