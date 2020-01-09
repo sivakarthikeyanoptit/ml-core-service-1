@@ -96,9 +96,9 @@ module.exports = function (app) {
           });
 
         } else {
-          res.status(result.status ? result.status : 200).json({
+          res.status(result.status ? result.status : httpStatusCode["ok"].status).json({
             message: result.message,
-            status: result.status ? result.status : 200,
+            status: result.status ? result.status : httpStatusCode["ok"].status,
             result: result.data,
             result: result.result,
             additionalDetails: result.additionalDetails,
@@ -163,6 +163,6 @@ module.exports = function (app) {
 
 
   app.use((req, res, next) => {
-    res.status(404).send("Not found!");
+    res.status(httpStatusCode["not_found"].status).send(httpStatusCode["not_found"].message);
   });
 };

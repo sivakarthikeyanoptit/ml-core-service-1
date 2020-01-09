@@ -63,11 +63,11 @@ var pushNotificationData = function (userId = "", notificatonData = {}) {
       let userNotificationDocument = 
       await getNotificationData(userId, notificatonData.appName);
 
-      if (userNotificationDocument.statusCode == 404) {
+      if (userNotificationDocument.statusCode == httpStatusCode["not_found"].status) {
 
         await _createInAppNotification(userId, notificatonData);
 
-      } else if (userNotificationDocument.statusCode == 200) {
+      } else if (userNotificationDocument.statusCode == httpStatusCode["ok"].status) {
 
         await _updateInAppNotification(userId, notificatonData, userNotificationDocument);
 
@@ -125,8 +125,8 @@ var _createInAppNotification = function (userId, notificationData) {
       await _createOrUpdateData(notificationCreationObj);
 
       if (
-        !(userNotificationDocCreation.statusCode == 200 || 
-          userNotificationDocCreation.statusCode == 201)) {
+        !(userNotificationDocCreation.statusCode == httpStatusCode["ok"].status || 
+          userNotificationDocCreation.statusCode == httpStatusCode["created"].status)) {
         throw new Error("Failed to create notifications for user in elastic search.");
       }
 
@@ -193,7 +193,7 @@ var _updateInAppNotification = function (
         await _createOrUpdateData(notificationUpdationObj, true);
 
       if (
-        userNotificationDocUpdation.statusCode !== 200 || 
+        userNotificationDocUpdation.statusCode !== httpStatusCode["ok"].status || 
         userNotificationDocUpdation.body.result !== "updated") {
           throw new Error("Failed to push notification to elastic search.");
       }
@@ -243,14 +243,14 @@ var updateNotificationData = function (
 
       if (
         userNotificationDocument.body.error && 
-        userNotificationDocument.statusCode == 404) {
+        userNotificationDocument.statusCode == httpStatusCode["not_found"].status) {
           
           return resolve({
           success: false,
           message: "No notification document found."
           });
 
-      } else if (userNotificationDocument.statusCode == 200) {
+      } else if (userNotificationDocument.statusCode == httpStatusCode["ok"].status) {
 
         let notificationObject = userNotificationDocument.body._source;
 
@@ -282,7 +282,7 @@ var updateNotificationData = function (
         const userNotificationDocUpdation = 
         await _createOrUpdateData(updateData, true);
 
-        if (userNotificationDocUpdation.statusCode !== 200) {
+        if (userNotificationDocUpdation.statusCode !== httpStatusCode["ok"].status) {
           throw "Failed to push notification to elastic search.";
         }
 
@@ -442,14 +442,14 @@ var deleteNotificationData = function (userId, notificationId, appIndex) {
     try {
       let userNotificationDocument = await getNotificationData(userId, appIndex);
 
-      if (userNotificationDocument.statusCode == 404) {
+      if (userNotificationDocument.statusCode == httpStatusCode["not_found"].status) {
 
         return resolve({
           success: false,
           message: "No notification document found."
         });
 
-      } else if (userNotificationDocument.statusCode == 200) {
+      } else if (userNotificationDocument.statusCode == httpStatusCode["ok"].status) {
 
         let indexName = appIndex !== "" ? appIndex : SAMIKSHA_INDEX;
 
@@ -484,15 +484,15 @@ var deleteNotificationData = function (userId, notificationId, appIndex) {
 
         } else {
 
-          userNotificationDocDeletion = await _deleteData({
-            id: userId,
-            index: indexName,
-            type: SAMIKSHA_NOTIFICATION_TYPE
-          });
+          userNotificationDocDeletion = await deleteDocumentFromIndex(
+            indexName,
+            SAMIKSHA_NOTIFICATION_TYPE,
+            userId
+          );
 
         }
 
-        if (userNotificationDocDeletion.statusCode !== 200) {
+        if (userNotificationDocDeletion.statusCode !== httpStatusCode["ok"].status) {
           throw "Failed to delete notification in elastic search.";
         }
         return resolve();
@@ -537,7 +537,7 @@ var pushLanguageData = function (languageId = "", languageData = {},appName) {
 
       let languageObj = { ...languageInfo }
 
-      if (languageDocument.statusCode === 404) {
+      if (languageDocument.statusCode === httpStatusCode["not_found"].status) {
 
         languageObj["body"] = {
           translate: languageData
@@ -547,13 +547,13 @@ var pushLanguageData = function (languageId = "", languageData = {},appName) {
         const languageDocCreation = await _createOrUpdateData(languageObj)
 
         if (
-          !(languageDocCreation.statusCode == 200 || 
-            languageDocCreation.statusCode == 201)
+          !(languageDocCreation.statusCode == httpStatusCode["ok"].status || 
+            languageDocCreation.statusCode == httpStatusCode["created"].status)
             ) {
           throw new Error(`Failed to push language ${languageId} in elastic search.`)
         }
 
-      } else if (languageDocument.statusCode == 200) {
+      } else if (languageDocument.statusCode == httpStatusCode["ok"].status) {
 
         languageObj["body"] = {
           doc: {
@@ -563,7 +563,7 @@ var pushLanguageData = function (languageId = "", languageData = {},appName) {
 
         const languageDocUpdation = await _createOrUpdateData(languageObj, true);
 
-        if (languageDocUpdation.statusCode !== 200) {
+        if (languageDocUpdation.statusCode !== httpStatusCode["ok"].status) {
           throw new Error("Failed to push notification to elastic search.");
         }
 
@@ -609,19 +609,19 @@ var updateAppVersion = function (versionData) {
 
       versionData.action = "alertModal";
 
-      if (appVersionDocument.statusCode === 404) {
+      if (appVersionDocument.statusCode === httpStatusCode["not_found"].status) {
 
         versionObj["body"] = versionData;
 
         const appVersionCreation = await _createOrUpdateData(versionObj);
 
         if (
-          !(appVersionCreation.statusCode == 200 || 
-            appVersionCreation.statusCode == 201)) {
+          !(appVersionCreation.statusCode == httpStatusCode["ok"].status || 
+            appVersionCreation.statusCode == httpStatusCode["created"].status)) {
           throw new Error(`Failed to push app version in elastic search.`);
         }
 
-      } else if (appVersionDocument.statusCode == 200) {
+      } else if (appVersionDocument.statusCode == httpStatusCode["ok"].status) {
 
         let existingLatestVersion = appVersionDocument.body._source;
 
@@ -633,7 +633,7 @@ var updateAppVersion = function (versionData) {
 
           const appVersionUpdation = await _createOrUpdateData(versionObj, true);
 
-          if (appVersionUpdation.statusCode !== 200) {
+          if (appVersionUpdation.statusCode !== httpStatusCode["ok"].status) {
             throw new Error("Failed to push notification to elastic search.");
           }
 
@@ -679,7 +679,7 @@ var pushAppVersionToLoggedInUser = function (userDetails, headers, appName) {
 
       let appVersionDocument = await getData(versionInfo);
 
-      if (appVersionDocument.statusCode === 200) {
+      if (appVersionDocument.statusCode === httpStatusCode["ok"].status) {
 
         let versionData = appVersionDocument.body._source;
         versionData["created_at"] = new Date();
@@ -687,7 +687,7 @@ var pushAppVersionToLoggedInUser = function (userDetails, headers, appName) {
         let userNotificationDocument = 
         await getNotificationData(userDetails, versionData.appName);
 
-        if (userNotificationDocument.statusCode === 404) {
+        if (userNotificationDocument.statusCode === httpStatusCode["not_found"].status) {
           await _createInAppNotification(userDetails, versionData);
         } else {
 
@@ -774,8 +774,8 @@ var getAllLanguagesData = function (appName) {
 
       let userNotificationDocument = [];
 
-      if (checkIndexExistsOrNot.statusCode !== 404 && 
-        checkTypeExistsOrNot.statusCode !== 404) {
+      if (checkIndexExistsOrNot.statusCode !== httpStatusCode["not_found"].status && 
+        checkTypeExistsOrNot.statusCode !== httpStatusCode["not_found"].status) {
 
           userNotificationDocument = 
           await _searchForAllData(languageIndex, languageType);
@@ -818,9 +818,63 @@ var getData = function (data) {
         index: data.index,
         type: data.type
       }, {
-          ignore: [404],
+          ignore: [httpStatusCode["not_found"].status],
           maxRetries: 3
         });
+
+      return resolve(result);
+
+    } catch (error) {
+      return reject(error);
+    }
+  })
+};
+
+
+/**
+  * Create Or Update Operation.
+  * @function
+  * @name createOrUpdateDocumentInIndex
+  * @param {String} id - (Non - Mandatory) Document ID.
+  * @param {String} index - Index from which document is to deleted
+  * @param {String} type - Type from which document is to deleted
+  * @param {Object} data - Document Data to be created.
+  * @returns {Promise} returns a promise.
+*/
+
+var createOrUpdateDocumentInIndex = function (index = "", type = "", id = "", data = "") {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (index == "") {
+        throw new Error("Index is required");
+      }
+
+      if (type == "") {
+        throw new Error("Type is required");
+      }
+
+      if (id == "") {
+        throw new Error("ID is required");
+      }
+
+      if (Object.keys(data).length == 0) {
+        throw new Error("Data is required");
+      }
+      
+      let documentObject = {
+        id: id,
+        index: index,
+        type: type,
+        body: {
+          doc : data,
+          doc_as_upsert : true,
+        },
+        refresh : true
+      }
+
+      let result = await elasticsearch.client.update(documentObject);
 
       return resolve(result);
 
@@ -953,6 +1007,43 @@ var _typeExistsOrNot = function (index, type) {
   })
 };
 
+
+/**
+  * Check for index exists or not.
+  * @function
+  * @name _typeExistsOrNot
+  * @param {String} index - name of the index for elastic search.
+  * @param {String} type - type for elastic search. 
+  * @returns {Promise} returns a promise.
+*/
+
+var _indexTypeMappingExistOrNot = function (index, type) {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (!index) {
+        throw "index is required";
+      }
+
+      if (!type) {
+        throw "type is required";
+      }
+
+      let result = await elasticsearch.client.indices.getMapping({
+        index: index,
+        type: type,
+        include_type_name : true
+      });
+
+      return resolve(result);
+
+    } catch (error) {
+      return reject(error);
+    }
+  })
+};
+
 /**
   * search operation.
   * @function
@@ -983,7 +1074,7 @@ var _searchForAllData = function (index, type) {
 
       let response = [];
 
-      if (result.statusCode === 200 && result.body.hits.hits.length > 0) {
+      if (result.statusCode === httpStatusCode["ok"].status && result.body.hits.hits.length > 0) {
 
         result.body.hits.hits.forEach(eachResultData => {
           response.push(_.merge({ id: eachResultData._id }, eachResultData._source));
@@ -998,36 +1089,117 @@ var _searchForAllData = function (index, type) {
   })
 };
 
+
 /**
-  * delete operation.
+  * Search document from Index by query string.
   * @function
-  * @name _deleteData
-  * @param {Object} data - delete
+  * @name searchDocumentFromIndex
+  * @param {String} index - Index from which document is to deleted
+  * @param {String} type - Type from which document is to deleted
+  * @param {Object} queryObject - Query in the Lucene query string syntax
+  * @param {Int} page - Page No.
+  * @param {Int} size - No. of documents to return
   * @returns {Promise} returns a promise.
 */
 
-var _deleteData = function (data) {
+var searchDocumentFromIndex = function (index = "", type = "", queryObject = "", page = 1, size = 10) {
 
   return new Promise(async function (resolve, reject) {
     try {
 
-      if (!data.id) {
-        throw "id is required";
+      if (index == "") {
+        throw new Error("Index is required");
       }
 
-      if (!data.index) {
-        throw "index is required";
+      if (type == "") {
+        throw new Error("Type is required");
       }
 
-      if (!data.type) {
-        throw "type is required";
+      if (Object.keys(queryObject).length == 0) {
+        throw new Error("Query Object is required");
+      }
+      
+      let documentObject = {
+        index: index,
+        type: type,
+        body: queryObject,
+        size : size
       }
 
-      let result = await elasticsearch.client.delete({
-        id: data.id,
-        index: data.index,
-        type: data.type
-      });
+      let result = await elasticsearch.client.search(documentObject);
+
+      let searchDocuments = [];
+
+      if (result.statusCode === httpStatusCode["ok"].status && result.body.hits.hits.length > 0) {
+
+        result.body.hits.hits.forEach(eachResultData => {
+          searchDocuments.push(_.merge({ id: eachResultData._id }, eachResultData._source));
+        })
+
+      } else if (result.statusCode === httpStatusCode["ok"].status && Object.keys(result.body.suggest).length > 0) {
+        searchDocuments = result.body.suggest;
+      } else {
+        throw new Error("Failed to get search results from index.")
+      }
+
+      return resolve(searchDocuments);
+
+    } catch (error) {
+      return reject(error);
+    }
+  })
+};
+
+
+/**
+  * Delete document from Index by ID or Query string.
+  * @function
+  * @name deleteDocumentFromIndex
+  * @param {String} index - Index from which document is to deleted
+  * @param {String} type - Type from which document is to deleted
+  * @param {String} id - Document ID to deleted
+  * @param {Object} queryObject - Query in the Lucene query string syntax
+  * @returns {Promise} returns a promise.
+*/
+
+var deleteDocumentFromIndex = function (index = "", type = "", id = "", queryObject = "") {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (index == "") {
+        throw new Error("Index is required");
+      }
+
+      if (type == "") {
+        throw new Error("Type is required");
+      }
+
+      if (id == "" && Object.keys(queryObject).length == 0) {
+        throw new Error("Document ID or Query Object is required");
+      }
+      
+      let result = null;
+      
+      if(id && id != "") {
+        result = await elasticsearch.client.delete({
+          id: id,
+          index: index,
+          type: type,
+          refresh : true
+        });
+      } else if(Object.keys(queryObject).length > 0) {
+        result = await elasticsearch.client.deleteByQuery({
+          body : {
+            query: {
+              match : queryObject
+            }
+          },
+          index: index,
+          type: type,
+          refresh : true
+        });
+      }
 
       return resolve(result);
 
@@ -1048,17 +1220,17 @@ var getAllApplicationConfig = function () {
   return new Promise(async function (resolve, reject) {
     try {
 
-      
-
-      if (!elasticsearch.client) throw "Elastic search is down.";
+      if (!elasticsearch.client) {
+        throw "Elastic search is down.";
+      }
 
       const checkIndexExistsOrNot = await _indexExistOrNot(APPLICATION_CONFIG_INDEX);
 
       const checkTypeExistsOrNot = 
       await _typeExistsOrNot(APPLICATION_CONFIG_INDEX, ALL_CONFIG_TYPE);
 
-      if (checkIndexExistsOrNot.statusCode !== 404 && 
-        checkTypeExistsOrNot.statusCode !== 404) {
+      if (checkIndexExistsOrNot.statusCode !== httpStatusCode["not_found"].status && 
+        checkTypeExistsOrNot.statusCode !== httpStatusCode["not_found"].status) {
 
           const allConfig = 
           await _searchForAllData(APPLICATION_CONFIG_INDEX, ALL_CONFIG_TYPE);
@@ -1077,8 +1249,9 @@ var pushAppConfigData = function (confgData = {}) {
   return new Promise(async function (resolve, reject) {
     try {
 
-      // console.log("chnages",confgData.id);
-      if (!confgData.id || confgData.id == "") throw "Invalid confg id."
+      if (!confgData.id || confgData.id == "") {
+        throw "Invalid confg id.";
+      }
 
       let configObj = {};
 
@@ -1088,30 +1261,27 @@ var pushAppConfigData = function (confgData = {}) {
 
        let configDocument = await getData(configObj);
 
-      //  console.log("configDocument",configObj);
-
       let appConfigObj = configObj;
-      if (configDocument.statusCode === 404) {
+      if (configDocument.statusCode === httpStatusCode["not_found"].status) {
 
        
         confgData.version = "0.0.1";
-        appConfigObj["body"] ={
+        appConfigObj["body"] = {
           doc:{
             config:confgData,
             version:version
-            
           }
         } 
-        const configDocCreation = await _createOrUpdateData(appConfigObj)
+        const configDocCreation = await _createOrUpdateData(appConfigObj);
 
         if (
-          !(configDocCreation.statusCode == 200 || 
-            configDocCreation.statusCode == 201)
+          !(configDocCreation.statusCode == httpStatusCode["ok"].status || 
+            configDocCreation.statusCode == httpStatusCode["created"].status)
             ) {
           throw new Error(`Failed to push language ${confgData.id} in elastic search.`)
         }
 
-      } else if (configDocument.statusCode == 200) {
+      } else if (configDocument.statusCode == httpStatusCode["ok"].status) {
 
         // console.log("configDocument",configDocument.body['_source']['config'].version); 
 
@@ -1138,17 +1308,16 @@ var pushAppConfigData = function (confgData = {}) {
         confgData.version =version;
         // console.log("version--",version);
 
-        appConfigObj["body"] ={
-          doc:{
-            config:confgData
+        appConfigObj["body"] = {
+          doc : {
+            config : confgData
           }
-        } 
+        };
+
         const configDataUpdate = await _createOrUpdateData(appConfigObj, true);
 
-        if (configDataUpdate.statusCode !== 200) {
+        if (configDataUpdate.statusCode !== httpStatusCode["ok"].status) {
           throw new Error("Failed to push notification to elastic search.");
-        }else{
-          console.log("pushed to elastic search");
         }
 
       } else {
@@ -1166,18 +1335,58 @@ var pushAppConfigData = function (confgData = {}) {
   });
 };
 
+
+/**
+  *  Check if index exists in elastic search.
+  * @function
+  * @name checkIfIndexExists
+  * @returns {Promise} returns a promise.
+*/
+
+var getIndexTypeMapping = function (indexName = "", typeName = "") {
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if(indexName == "") {
+        throw new Error("Invalid index name.");
+      }
+
+      if(typeName == "") {
+        throw new Error("Invalid type name.");
+      }
+
+      if (!elasticsearch.client) {
+        throw new Error("Elastic search is down.");
+      }
+
+      const checkIndexTypeMappingExistsOrNot = 
+      await _indexTypeMappingExistOrNot(indexName, typeName);
+
+      return resolve(checkIndexTypeMappingExistsOrNot);
+
+    } catch (error) {
+      return reject(error);
+    }
+  })
+};
+
+
 module.exports = {
-  pushNotificationData: pushNotificationData,
-  getNotificationData: getNotificationData,
-  updateNotificationData: updateNotificationData,
-  deleteReadOrUnReadNotificationData: deleteReadOrUnReadNotificationData,
-  deleteNotificationData: deleteNotificationData,
-  pushLanguageData: pushLanguageData,
-  getLanguageData: getLanguageData,
-  getAllLanguagesData: getAllLanguagesData,
-  getData: getData,
-  updateAppVersion: updateAppVersion,
-  pushAppVersionToLoggedInUser: pushAppVersionToLoggedInUser,
-  getAllApplicationConfig:getAllApplicationConfig,
-  pushAppConfigData:pushAppConfigData
+  pushNotificationData : pushNotificationData,
+  getNotificationData : getNotificationData,
+  updateNotificationData : updateNotificationData,
+  deleteReadOrUnReadNotificationData : deleteReadOrUnReadNotificationData,
+  deleteNotificationData : deleteNotificationData,
+  pushLanguageData : pushLanguageData,
+  getLanguageData : getLanguageData,
+  getAllLanguagesData : getAllLanguagesData,
+  getData : getData,
+  updateAppVersion : updateAppVersion,
+  pushAppVersionToLoggedInUser : pushAppVersionToLoggedInUser,
+  getAllApplicationConfig : getAllApplicationConfig,
+  pushAppConfigData : pushAppConfigData,
+  getIndexTypeMapping : getIndexTypeMapping,
+  deleteDocumentFromIndex : deleteDocumentFromIndex,
+  createOrUpdateDocumentInIndex : createOrUpdateDocumentInIndex,
+  searchDocumentFromIndex : searchDocumentFromIndex
 };

@@ -2,7 +2,7 @@
  * load modules.
  */
 
-const appConfigHelper = require(ROOT_PATH + "/module/application-config/helper.js");
+const appConfigHelper = require(MODULES_BASE_PATH + "/application-config/helper.js");
 const csvFileStream = require(ROOT_PATH + "/generics/file-stream");
 const fs = require("fs");
 /**

@@ -41,7 +41,7 @@ let pushNotificationsDataToKafka = function (message) {
         messages: JSON.stringify(message)
       }])
 
-      return resolve(kafkaPushStatus)
+      return resolve(kafkaPushStatus);
 
     } catch (error) {
       return reject(error);
@@ -135,12 +135,12 @@ let _pushMessageToKafka = function (payload) {
   return new Promise((resolve, reject) => {
 
     if (KAFKA_COMMUNICATION_ON_OFF != "ON") {
-      throw reject("Kafka configuration is not done")
+      throw reject("Kafka configuration is not done");
     }
     kafkaConnectionObject.kafkaProducer.send(payload, (err, data) => {
       if (err) {
       
-        return reject("Kafka push to topic " + payload[0].topic + " failed.")
+        return reject("Kafka push to topic " + payload[0].topic + " failed.");
       } else {
         logger.info("Pushed to kafka");
         return resolve(data)
@@ -158,7 +158,7 @@ let _pushMessageToKafka = function (payload) {
 
   }).catch((err) => {
     return {
-      status: "failed",
+      status: messageConstants.common.FAILED,
       message: err
     }
   })

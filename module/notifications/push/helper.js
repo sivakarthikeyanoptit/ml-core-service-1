@@ -15,7 +15,7 @@ const FCM = new fcmNotification(fcm_token_path);
 const THEME_COLOR = gen.utils.checkIfEnvDataExistsOrNot("SAMIKSHA_THEME_COLOR");
 const NODE_ENV = gen.utils.checkIfEnvDataExistsOrNot("NODE_ENV"); 
 const slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
-const userExtensionHelper = require(ROOT_PATH + "/module/user-extension/helper");
+const userExtensionHelper = require(MODULES_BASE_PATH + "/user-extension/helper");
 
 /**
     * PushNotificationsHelper

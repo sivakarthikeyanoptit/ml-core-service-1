@@ -33,7 +33,7 @@ var connect = function (config) {
     logger.error("kafka connection error!");
   });
 
-  producer = new kafkaProducer(client)
+  let producer = new kafkaProducer(client);
 
   producer.on('ready', function () {
     logger.info('Connected to Kafka');
@@ -86,23 +86,23 @@ var _sendToKafkaConsumers = function (topic,client, commit = false) {
       if (message && message.topic === APPLICATION_CONFIG_TOPIC) {
         applicationconfigConsumer.messageReceived(message);
       } else if (message && message.topic === LANGUAGE_TOPIC) {
-        languagesConsumer.messageReceived(message)
+        languagesConsumer.messageReceived(message);
       } else if (message && message.topic === EMAIL_TOPIC) {
-        emailConsumer.messageReceived(message, consumer)
+        emailConsumer.messageReceived(message, consumer);
       } else if (message && message.topic === NOTIFICATIONS_TOPIC) {
-        notificationsConsumer.messageReceived(message)
+        notificationsConsumer.messageReceived(message);
       }
     });
 
     consumer.on('error', async function (error) {
 
-      if(error.topics[0] === APPLICATION_CONFIG_TOPIC) {
+      if(error.topics && error.topics[0] === APPLICATION_CONFIG_TOPIC) {
         applicationconfigConsumer.errorTriggered(error);
-      } else if (error.topics[0] === LANGUAGE_TOPIC) {
+      } else if (error.topics && error.topics[0] === LANGUAGE_TOPIC) {
         languagesConsumer.errorTriggered(error);
-      } else if (error.topics[0] === EMAIL_TOPIC) {
-        emailConsumer.errorTriggered(error)
-      } else if(error.topics[0] === NOTIFICATIONS_TOPIC){
+      } else if (error.topics && error.topics[0] === EMAIL_TOPIC) {
+        emailConsumer.errorTriggered(error);
+      } else if(error.topics && error.topics[0] === NOTIFICATIONS_TOPIC){
         notificationsConsumer.errorTriggered(error);
       }
     });
