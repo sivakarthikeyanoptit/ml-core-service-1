@@ -1033,7 +1033,7 @@ var _indexTypeMappingExistOrNot = function (index, type) {
       let result = await elasticsearch.client.indices.getMapping({
         index: index,
         type: type,
-        include_type_name : true
+        // include_type_name : true - Commented as it is not required in 6.8
       });
 
       return resolve(result);
