@@ -12,6 +12,7 @@ const slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications"
 const pagination = require(ROOT_PATH + "/generics/middleware/pagination");
 const fs = require("fs");
 const inputValidator = require(ROOT_PATH + "/generics/middleware/validator");
+const dataSetUpload = require(ROOT_PATH + "/generics/middleware/dataSetUpload");
 const setLanguage = require(ROOT_PATH + "/generics/middleware/set-language");
 var i18next = require("i18next");
 var i18NextMiddleware = require("i18next-express-middleware");
@@ -29,7 +30,8 @@ i18next.use(nodeFsBackend).init({
 
 module.exports = function (app) {
 
-  const APPLICATION_BASE_URL = gen.utils.checkIfEnvDataExistsOrNot("APPLICATION_BASE_URL");
+  const APPLICATION_BASE_URL = 
+  gen.utils.checkIfEnvDataExistsOrNot("APPLICATION_BASE_URL");
   
   app.use(
     i18NextMiddleware.handle(i18next, {
@@ -41,17 +43,26 @@ module.exports = function (app) {
     app.use(APPLICATION_BASE_URL, authenticator);
   }
 
+  app.use(APPLICATION_BASE_URL, dataSetUpload);
   app.use(APPLICATION_BASE_URL, pagination);
   app.use(APPLICATION_BASE_URL, setLanguage);
 
   var router = async function (req, res, next) {
 
-    if (!req.params.version) next();
-    else if (!controllers[req.params.version]) next();
-    else if (!controllers[req.params.version][req.params.controller]) next();
-    else if (!(controllers[req.params.version][req.params.controller][req.params.method] || controllers[req.params.version][req.params.controller][req.params.file][req.params.method])) next();
-    else if (req.params.method.startsWith("_")) next();
-    else {
+    if (!req.params.version) {
+      next();
+    } else if (!controllers[req.params.version]) {
+      next();
+    } else if (!controllers[req.params.version][req.params.controller]) {
+      next();
+    }
+    else if (!(controllers[req.params.version][req.params.controller][req.params.method] 
+      || controllers[req.params.version][req.params.controller][req.params.file][req.params.method])) {
+      next();
+    }
+    else if (req.params.method.startsWith("_")) {
+      next();
+    } else {
 
       try { 
 
@@ -70,7 +81,6 @@ module.exports = function (app) {
           result = 
           await controllers[req.params.version][req.params.controller][req.params.method](req);
         }
-
 
         if (result.isResponseAStream == true) {
           fs.exists(result.fileNameWithPath, function (exists) {

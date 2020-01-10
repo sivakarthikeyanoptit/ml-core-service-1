@@ -233,7 +233,6 @@ module.exports = class PushNotificationsHelper {
 
     }
 
-
      /**
       * Subscribe to topic.
       * @method
@@ -281,7 +280,6 @@ module.exports = class PushNotificationsHelper {
         })
 
     }
-
 
     /**
       * UnSubscribe from topic.
@@ -470,5 +468,72 @@ module.exports = class PushNotificationsHelper {
             }
         })
     }
+
+      /**
+      * Send not
+      * @method
+      * @name sendNotificationsToBodh
+      * @param {Object} notificationData - Notification data to be sent.                                                 
+      * @returns {Promise} returns a promise.
+     */
+
+    static sendNotificationsToBodh(notificationsData,activatedDevices,userId,topicName) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let userInfo = new Array;
+                let topic = topicName;
+
+                for(let pointerToDevices = 0;
+                    pointerToDevices<activatedDevices.length;
+                    pointerToDevices++
+                ) {
+                    let userInfoData = {};
+
+                    notificationsData["deviceId"] = 
+                    activatedDevices[pointerToDevices].deviceId;
+
+                    let pushNotificationInAndroid = 
+                    await this.createNotificationInAndroid(
+                        notificationsData
+                    );
+
+                    userInfoData["deviceId"] = 
+                    activatedDevices[pointerToDevices].deviceId;
+
+                    if (!pushNotificationInAndroid.success) {
+                        
+                        await userExtensionHelper.updateDeviceStatus(
+                            activatedDevices[pointerToDevices], 
+                            activatedDevices, 
+                            userId
+                        );
+
+                        userInfoData["success"] = false; 
+
+                    } else {
+                        userInfoData["success"] = true; 
+                        let subscribeData = {
+                            deviceId : activatedDevices[pointerToDevices].deviceId,
+                            topic : topic
+                        }
+                        await this.subscribeToTopic(subscribeData)
+                    }
+
+                    userInfo.push(userInfoData);
+                }
+
+                const pushedStatus = userInfo.some(userDevice=>{
+                    return userDevice.success
+                });
+
+                return resolve(pushedStatus);
+
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
 
 };

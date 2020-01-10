@@ -170,7 +170,7 @@ module.exports = class InAppNotifications {
             try {
 
 
-                await notificationsHelper.markItRead(
+                await notificationsHelper.markAsRead(
                     req.userDetails.id, 
                     req.params._id, 
                     (req.query.appName && req.query.appName != "") ? 
