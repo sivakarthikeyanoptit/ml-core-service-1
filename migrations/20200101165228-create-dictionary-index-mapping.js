@@ -45,7 +45,7 @@ module.exports = {
               }
           }
       },
-      include_type_name : true
+      // include_type_name : true - Commented as it is not required in 6.8
     });
 
 
