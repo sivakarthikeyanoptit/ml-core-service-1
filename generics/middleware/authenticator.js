@@ -93,11 +93,16 @@ module.exports = async function (req, res, next) {
   }
 
 
-  if (req.path.includes("keywords") && (req.headers["internal-access-token"] !== process.env.INTERNAL_ACCESS_TOKEN)) {
-    rspObj.errCode = reqMsg.TOKEN.MISSING_CODE;
-    rspObj.errMsg = reqMsg.TOKEN.MISSING_MESSAGE;
-    rspObj.responseCode = responseCode.unauthorized;
-    return res.status(httpStatusCode["unauthorized"].status).send(respUtil(rspObj));
+  if (req.path.includes("keywords")) {
+    if(req.headers["internal-access-token"] !== process.env.INTERNAL_ACCESS_TOKEN) {
+      rspObj.errCode = reqMsg.TOKEN.MISSING_CODE;
+      rspObj.errMsg = reqMsg.TOKEN.MISSING_MESSAGE;
+      rspObj.responseCode = responseCode.unauthorized;
+      return res.status(httpStatusCode["unauthorized"].status).send(respUtil(rspObj));
+    } else {
+      next();
+      return;
+    }
   }
 
   if (!token) {
