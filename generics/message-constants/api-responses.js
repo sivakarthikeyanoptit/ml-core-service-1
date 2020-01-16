@@ -13,5 +13,6 @@ module.exports = {
   "BODH_SEARCH_AUTOCOMPLETE_SUCCESS" : "Search suggestions fetched successfully.",
   "BODH_SEARCH_AUTOCOMPLETE_FAILURE" : "Failed to retrieve search suggestions.",
   "DICTIONARY_KEYWORDS_MISSING_FILE_ERROR" : "Missing keywords file",
-  "DICTIONARY_KEYWORDS_MAPPING_MISSING_ERROR" : "Dictionary keywords mapping is missing."
+  "DICTIONARY_KEYWORDS_MAPPING_MISSING_ERROR" : "Dictionary keywords mapping is missing.",
+  "DICTIONARY_KEYWORDS_UPDATE_SUCCESS" : "Content keywords updated successfully."
 };

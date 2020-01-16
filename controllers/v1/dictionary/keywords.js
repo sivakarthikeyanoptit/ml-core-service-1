@@ -126,5 +126,92 @@ module.exports = class Keywords {
 
     }
 
+
+    /**
+     * @api {post} /kendra/api/v1/dictionary/keywords/update  
+     * Update content Keywords in Dictionary
+     * @apiVersion 1.0.0
+     * @apiGroup Dictionary
+     * @apiHeader {String} X-authenticated-user-token Authenticity token
+     * @apiHeader {String} internal-access-token Internal access token
+     * @apiParamExample {json} Response:
+        "keywords": [
+            "Keyword1",
+            "Keyword2",
+            "Keyword3"
+        ]
+     * @apiSampleRequest /kendra/api/v1/dictionary/keywords/update
+     * @apiUse successBody
+     * @apiUse errorBody
+     */
+
+    /**
+      * Update Content Keywords in Dictionary.
+      * @method
+      * @name update
+      * @param  {Request}  req  request body.
+      * @returns {json} Response consists of success or failure to update keywords.
+     */
+
+
+    async update(req) {
+
+        return new Promise(async (resolve, reject) => {
+
+            try {
+
+                const checkIfKeywordsCanBeUploaded = await dictionaryHelper
+                .keywordsIndexTypeMapExists();
+                
+                if(!checkIfKeywordsCanBeUploaded.data) {
+                    throw { message: messageConstants.apiResponses.DICTIONARY_KEYWORDS_MAPPING_MISSING_ERROR }
+                }
+
+                let keywordsData = req.body.keywords;
+
+                let keywordsUpdateResult = new Array;
+
+                for (let pointerToKeywordsData = 0;
+                    pointerToKeywordsData < keywordsData.length;
+                    pointerToKeywordsData++) {
+                        const keyword = keywordsData[pointerToKeywordsData];
+                        let status = messageConstants.common.FAILED;
+                        if(keyword != "") {
+                            let addOrUpdateKeyword = await dictionaryHelper.addWordToDictionary(keyword);
+                            
+                            if(!addOrUpdateKeyword.data) {
+                                status = messageConstants.common.FAILED;
+                            } else {
+                                status = messageConstants.common.SUCCESS;
+                            }
+                        }
+                        keywordsUpdateResult.push({
+                            keyword : keyword,
+                            status : status
+                        });
+                }
+
+                return resolve({
+                    result: keywordsUpdateResult,
+                    message: messageConstants.apiResponses.DICTIONARY_KEYWORDS_UPDATE_SUCCESS
+                });
+
+            } catch (error) {
+
+                return reject({
+                    status: 
+                    error.status || httpStatusCode["internal_server_error"].status,
+
+                    message: 
+                    error.message || httpStatusCode["internal_server_error"].message,
+
+                    errorObject: error
+                });
+
+            }
+        })
+
+    }
+
 };
 
