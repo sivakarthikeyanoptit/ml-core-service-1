@@ -73,7 +73,7 @@ const configuration = {
         host: process.env.MONGODB_URL || process.env.DEFAULT_MONGODB_HOST,
         user: "",
         pass: "",
-        database: process.env.DB || DEFAULT_MONGODB_DATABASE,
+        database: process.env.DB || process.env.DEFAULT_MONGODB_DATABASE,
         options: {
           useNewUrlParser: true
         }
