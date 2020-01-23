@@ -59,7 +59,6 @@ module.exports = class PushNotifications {
 
     async registerDevice(req) {
         return new Promise(async (resolve, reject) => {
-
             try {
 
                 let deviceData = {
@@ -78,7 +77,11 @@ module.exports = class PushNotifications {
 
                     response["result"] = {};
 
-                    let topicArray = ["allUsers", "all-" + deviceData.app + "-users", "all-" + deviceData.app + "-" + deviceData.os + "-users"];
+                    let topicArray = [ 
+                        deviceData.app.trim()+"-"+ process.env.NODE_ENV +"-allUsers",
+                        deviceData.app.trim()+"-"+ process.env.NODE_ENV + "-android"+"-allUsers",
+                        deviceData.app.trim()+"-"+ process.env.NODE_ENV + "-ios"+"-allUsers"
+                    ];
 
                     await Promise.all(topicArray.map(async topicName => {
 
@@ -193,9 +196,10 @@ module.exports = class PushNotifications {
 
                                         //unsubscribe the deviceId from the topic
                                         let topicArray = [
-                                            "allUsers", 
-                                            "all-" + device.app + "-users", 
-                                            "all-" + device.app + "-" + device.os + "-users"];
+                                            device.app.trim()+"-"+ process.env.NODE_ENV +"-allUsers",
+                                            device.app.trim()+"-"+ process.env.NODE_ENV + "-android"+"-allUsers",
+                                            device.app.trim()+"-"+ process.env.NODE_ENV + "-ios"+"-allUsers"
+                                        ];
 
                                         await Promise.all(topicArray.map(async topicName => {
 
