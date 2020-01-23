@@ -10,7 +10,7 @@
  * dependencies
  */
 
-const usersHelper = require(ROOT_PATH + "/module/users/helper.js");
+const usersHelper = require(MODULES_BASE_PATH + "/users/helper.js");
 
 /**
     * User

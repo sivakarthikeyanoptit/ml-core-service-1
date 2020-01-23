@@ -1,7 +1,7 @@
 /**
  * name : email.js
  * author : Aman Jung Karki
- * created-date : 03-Dc-2019
+ * created-date : 03-Dec-2019
  * Description : Email.
  */
 
@@ -10,7 +10,7 @@
  * dependencies
  */
 
-const emailHelper = require(ROOT_PATH + "/module/email/helper.js");
+const emailHelper = require(MODULES_BASE_PATH + "/email/helper.js");
 
 /**
     * Email

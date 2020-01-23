@@ -10,7 +10,7 @@
 const elasticSearchHelper = require(GENERIC_HELPERS_PATH + "/elastic-search");
 let processingUsersTrack = {}
 const slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
-const notificationsHelper = require(ROOT_PATH + "/module/notifications/in-app/helper")
+const notificationsHelper = require(MODULES_BASE_PATH + "/notifications/in-app/helper")
 
 /**
   * notification consumer message received.

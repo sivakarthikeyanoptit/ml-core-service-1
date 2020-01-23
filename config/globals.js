@@ -25,6 +25,7 @@ module.exports = function () {
 
   global.async = require("async");
   global.ROOT_PATH = path.join(__dirname, '..');
+  global.MODULES_BASE_PATH = ROOT_PATH + "/module";
   global.GENERIC_HELPERS_PATH = ROOT_PATH + "/generics/helpers";
   global._ = require("lodash");
   gen.utils = require(ROOT_PATH + "/generics/helpers/utils");
@@ -117,6 +118,19 @@ module.exports = function () {
       name=name.replace('-','');
        global[name + 'Consumer'] = 
       require(ROOT_PATH + process.env.PATH_TO_KAFKA_CONSUMERS + file);
+    }
+  });
+
+
+  // Load all message constants
+  global.messageConstants = new Array
+  fs.readdirSync(ROOT_PATH + "/generics/message-constants")
+  .forEach(function (file) {
+    if (file.match(/\.js$/) !== null) {
+      let name = file.replace('.js', '');
+      name = gen.utils.hyphenCaseToCamelCase(name);
+      global.messageConstants[name] = 
+      require(ROOT_PATH + "/generics/message-constants/" + file);
     }
   });
 

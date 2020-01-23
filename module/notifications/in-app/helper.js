@@ -11,9 +11,9 @@ const kafkaCommunication = require(ROOT_PATH + "/generics/helpers/kafka-communic
 const moment = require("moment-timezone");
 let currentDate = moment(new Date());
 const slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
-const userExtensionHelper = require(ROOT_PATH + "/module/user-extension/helper");
-const pushNotificationsHelper = require(ROOT_PATH + "/module/notifications/push/helper");
-// const FCM_HELPER = require(ROOT_PATH + "/module/notifications/fcm/helper");
+const userExtensionHelper = require(MODULES_BASE_PATH + "/user-extension/helper");
+const pushNotificationsHelper = require(MODULES_BASE_PATH + "/notifications/push/helper");
+// const FCM_HELPER = require(MODULES_BASE_PATH + "/notifications/fcm/helper");
 
 /**
     * InAppNotificationsHelper
@@ -47,7 +47,7 @@ module.exports = class InAppNotificationsHelper {
                     userDetails, appName
                 );
 
-                if (getNotificationDocument.statusCode !== 200) {
+                if (getNotificationDocument.statusCode !== httpStatusCode["ok"].status) {
                     return resolve({
                         data: [],
                         count: 0
@@ -137,7 +137,7 @@ module.exports = class InAppNotificationsHelper {
                         appName
                     );
 
-                    if (getNotificationDocument.statusCode === 200) {
+                    if (getNotificationDocument.statusCode === httpStatusCode["ok"].status) {
 
                         response["count"] = 
                         getNotificationDocument.body._source.notificationUnreadCount;
@@ -393,7 +393,7 @@ module.exports = class InAppNotificationsHelper {
                 await elasticSearchHelper.pushNotificationData(userId, data);
 
                 return resolve({
-                    status: 200,
+                    status: httpStatusCode["ok"].status,
                     result: "Success"
                 });
             }

@@ -7,7 +7,7 @@
 
 
 //dependencies
-let { Client } = require('@elastic/elasticsearch')
+const { Client : esClient } = require('@elastic/elasticsearch');
 let slackClient = require("../generics/helpers/slack-communications");
 
 /**
@@ -20,7 +20,7 @@ let slackClient = require("../generics/helpers/slack-communications");
 
 var connect = function (config) {
 
-  const elasticSearchClient = new Client({
+  const elasticSearchClient = new esClient({
     node: config.host,
     maxRetries: process.env.ELASTIC_SEARCH_MAX_RETRIES,
     requestTimeout: process.env.ELASTIC_SEARCH_REQUEST_TIMEOUT,

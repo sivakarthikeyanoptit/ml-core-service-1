@@ -8,8 +8,8 @@
 // dependencies
 
 const csv = require('csvtojson');
-const userExtensionHelper = require(ROOT_PATH + "/module/user-extension/helper");
-const pushNotificationsHelper = require(ROOT_PATH + "/module/notifications/push/helper");
+const userExtensionHelper = require(MODULES_BASE_PATH + "/user-extension/helper");
+const pushNotificationsHelper = require(MODULES_BASE_PATH + "/notifications/push/helper");
 const csvFileStream = require(ROOT_PATH + "/generics/file-stream");
 
 /**
@@ -155,7 +155,6 @@ module.exports = class PushNotifications {
                     });
                 })();
 
-
                 await Promise.all(userData.map(async element => {
 
                     let userProfile = 
@@ -165,7 +164,7 @@ module.exports = class PushNotifications {
                         isDeleted: false
                     }, {
                             devices: 1
-                        });
+                    });
 
                     if (userProfile && userProfile.devices.length > 0) {
 
@@ -249,7 +248,6 @@ module.exports = class PushNotifications {
         })
 
     }
-
 
     /**
     * @api {post} /kendra/api/v1/notifications/push/pushToTopic 
@@ -510,6 +508,149 @@ module.exports = class PushNotifications {
                 }))
 
                 input.push(null);
+
+            } catch (error) {
+
+                return reject({
+                    status: error.status || 500,
+                    message: error.message || "Oops! something went wrong.",
+                    errorObject: error
+                })
+
+            }
+        })
+
+    }
+
+      /**
+    * @api {post} /kendra/api/v1/notifications/push/bodh
+    * Unsubscribe From Topic
+    * @apiVersion 1.0.0
+    * @apiGroup notifications
+    * @apiSampleRequest /kendra/api/v1/notifications/push/bodh
+    * @apiHeader {String} X-authenticated-user-token Authenticity token
+    * @apiParam {File} notifications Mandatory file of type csv.                
+    * @apiUse successBody
+    * @apiUse errorBody
+    */
+
+     /**
+      * Push notification data to bodh.
+      * @method
+      * @name bodh 
+      * @param  {Object} req - All requested data.
+     */
+
+    async bodh(req) {
+        return new Promise(async (resolve, reject) => {
+
+            try {
+
+                if (!req.file || req.file !== "notifications") {
+                    throw { message: "Missing file of type notifications" };
+                }
+
+                let notificationsData = req.csvData;
+                let userExternalIds = [];
+                let usersData = [];
+
+                let fileStream = new csvFileStream("push-to-bodh");
+                let input = fileStream.initStream();
+            
+                (async function () {
+                  await fileStream.getProcessorPromise();
+                  return resolve({
+                    isResponseAStream: true,
+                    fileNameWithPath: fileStream.fileNameWithPath()
+                });
+                }());
+
+                notificationsData.forEach(eachNotificationData=>{
+                    let userIds = eachNotificationData["userIds"].split(",");
+
+                    if(userIds.length >0) {
+
+                        for(let pointerToUserId = 0;
+                            pointerToUserId<userIds.length;
+                            pointerToUserId++
+                        ) {
+                            let notificationData = {...eachNotificationData};
+                            notificationData["data"] = eachNotificationData.target?{
+                                title:eachNotificationData.target
+                            }:{};
+    
+                            delete notificationData.target;
+                            delete notificationData.id;
+                            delete notificationData.userIds;
+                            delete notificationData.users;
+
+                            userExternalIds.push(userIds[pointerToUserId]);
+                            notificationData["userExternalId"] = 
+                            userIds[pointerToUserId];
+
+                            usersData.push(notificationData);
+                        }
+                    }
+                })
+
+                let userProfiles = 
+                await database.models.userExtension.find({
+                    externalId: {
+                        $in:userExternalIds
+                    },
+                    status: "active",
+                    isDeleted: false
+                }, {
+                    devices: 1,
+                    userId:1,
+                    externalId :1
+                }).lean();
+
+                let userProfilesData = _.keyBy(userProfiles,"externalId");
+
+                await Promise.all(usersData.map(
+                    async singleUserData => {
+                        
+                        if(userProfilesData[singleUserData.userExternalId]) {
+                            let devicesArray = 
+                            userProfilesData[singleUserData.userExternalId].devices;
+
+                            let activeDevices =
+                            devicesArray.filter(eachUserDevice=>{
+                                if(eachUserDevice.app === process.env.BODH_NOTIFICATIONS_NAME 
+                                    && eachUserDevice.os === singleUserData.os && 
+                                    eachUserDevice.status !== "inactive") {
+                                        return eachUserDevice;
+                                    }
+                            });
+
+                            if(activeDevices.length>0) {
+                                let bodhNotifications = 
+                                await pushNotificationsHelper.sendNotificationsToBodh
+                                (
+                                    singleUserData,
+                                    activeDevices,
+                                    userProfilesData[singleUserData.userExternalId].userId,
+                                    singleUserData.label
+                                );
+                                
+                              
+                                singleUserData["status"] = 
+                                bodhNotifications?"Success":"failure";
+                            } else {
+                                singleUserData["status"] = "No active devices";
+                            }
+                        } else {
+                            singleUserData["status"] = "User could not be found";
+                        }
+                        singleUserData.target = singleUserData.data.title;
+                        delete singleUserData.data;
+
+                        input.push(singleUserData);
+                }));
+
+                input.push(null);
+
 
             } catch (error) {
 
