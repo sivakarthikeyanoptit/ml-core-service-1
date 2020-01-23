@@ -1,3 +1,11 @@
+/**
+ * name : http-status-code/index.js
+ * author : Aman Jung Karki
+ * Date : 11-Nov-2019
+ * Description : All http status code and there message.
+ */
+
+
 module.exports = {
   'continue': {
     status: 100,

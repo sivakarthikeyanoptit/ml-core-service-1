@@ -1,3 +1,15 @@
+/**
+ * name : abstract.js
+ * author : Aman Jung Karki
+ * Date : 15-Nov-2019
+ * Description : abstract class.
+ */
+
+ /**
+    * Abstract
+    * @class
+*/
+
 let Abstract = class Abstract {
   constructor(schema) {
     this.model = database.createModel(schema);

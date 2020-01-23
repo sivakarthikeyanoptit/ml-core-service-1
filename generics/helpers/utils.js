@@ -1,3 +1,18 @@
+/**
+ * name : utils.js
+ * author : Aman Jung Karki
+ * Date : 11-Nov-2019
+ * Description : All utility functions.
+ */
+
+ /**
+  * convert string to camelCaseToTitleCase.
+  * @function
+  * @name camelCaseToTitleCase
+  * @param {String} in_camelCaseString - String of camel case.
+  * @returns {String} returns a titleCase string. ex: helloThereMister, o/p: Hello There Mister
+*/
+
 function camelCaseToTitleCase(in_camelCaseString) {
   var result = in_camelCaseString // "ToGetYourGEDInTimeASongAboutThe26ABCsIsOfTheEssenceButAPersonalIDCardForUser456InRoom26AContainingABC26TimesIsNotAsEasyAs123ForC3POOrR2D2Or2R2D"
     .replace(/([a-z])([A-Z][a-z])/g, "$1 $2") // "To Get YourGEDIn TimeASong About The26ABCs IsOf The Essence ButAPersonalIDCard For User456In Room26AContainingABC26Times IsNot AsEasy As123ForC3POOrR2D2Or2R2D"
@@ -19,9 +34,38 @@ function camelCaseToTitleCase(in_camelCaseString) {
   return result.charAt(0).toUpperCase() + result.slice(1);
 }
 
+
+ /**
+  * Convert string from hyphen case to camelCase.
+  * @function
+  * @name hyphenCaseToCamelCase
+  * @param {String} string - String in hyphen case.
+  * @returns {String} returns a camelCase string.
+*/
+
+function hyphenCaseToCamelCase(string) {
+  return string.replace(/-([a-z])/g, function (g) { return g[1].toUpperCase(); });
+}
+
+ /**
+  * convert string to lowerCase.
+  * @function
+  * @name lowerCase
+  * @param {String} str 
+  * @returns {String} returns a lowercase string. ex: HELLO, o/p: hello
+*/
+
 function lowerCase(str) {
   return str.toLowerCase()
 }
+
+ /**
+  * check whether the given string is url.
+  * @function
+  * @name lowerCase
+  * @param {String} str 
+  * @returns {Boolean} returns a Boolean value. ex:"http://example.com:3000/pathname/?search=test" , o/p:true
+*/
 
 function checkIfStringIsUrl(str) {
   var pattern = new RegExp('^(https?:\\/\\/)?' + // protocol
@@ -33,36 +77,32 @@ function checkIfStringIsUrl(str) {
   return pattern.test(str);
 }
 
-function generateRandomCharacters(numberOfChar) {
-  var text = "";
-  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnpqrstuvwxyz123456789!@#%&*";
-  for (var i = 0; i < numberOfChar; i++)
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
+ /**
+  * check whether the data is present in env.
+  * @function
+  * @name checkIfEnvDataExistsOrNot
+  * @param {String} str 
+  * @returns {String} returns a env data if found else default value. 
+*/
 
-  return text;
-}
+function checkIfEnvDataExistsOrNot(data){
+  
+  let value;
 
+  if(process.env[data] && process.env[data] !== ""){
+    value  = process.env[data]
+  } else {
+    let defaultEnv = "DEFAULT_"+data;
+    value = process.env[defaultEnv]
+  }
 
-
-function valueParser(dataToBeParsed) {
-
-  let parsedData = {}
-
-  Object.keys(dataToBeParsed).forEach(eachDataToBeParsed => {
-    parsedData[eachDataToBeParsed] = dataToBeParsed[eachDataToBeParsed].trim()
-  })
-  return parsedData
-}
-
-function arrayIdsTobjectIds(ids) {
-  return ids.map(id => ObjectId(id));
+  return value;
 }
 
 module.exports = {
-  camelCaseToTitleCase: camelCaseToTitleCase,
-  lowerCase: lowerCase,
-  checkIfStringIsUrl: checkIfStringIsUrl,
-  generateRandomCharacters: generateRandomCharacters,
-  valueParser: valueParser,
-  arrayIdsTobjectIds: arrayIdsTobjectIds
+  camelCaseToTitleCase : camelCaseToTitleCase,
+  lowerCase : lowerCase,
+  checkIfStringIsUrl : checkIfStringIsUrl,
+  checkIfEnvDataExistsOrNot : checkIfEnvDataExistsOrNot,
+  hyphenCaseToCamelCase : hyphenCaseToCamelCase
 };
