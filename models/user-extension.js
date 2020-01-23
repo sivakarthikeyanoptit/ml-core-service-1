@@ -1,3 +1,10 @@
+/**
+ * name : user-extensions.js
+ * author : Aman Jung Karki
+ * Date : 15-Nov-2019
+ * Description : Schema for user extension collection.
+ */
+
 module.exports = {
     name: "userExtension",
     schema: {

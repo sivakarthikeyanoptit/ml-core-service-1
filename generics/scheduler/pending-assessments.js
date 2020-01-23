@@ -5,26 +5,40 @@
  * Description : Pending Assessments notification should be showned in the app in every 15 days.
  */
 
-let samikshaService = require(ROOT_PATH + "/generics/helpers/samiksha");
-let notificationHelpers = require(ROOT_PATH + "/module/notifications/in-app/helper");
+// dependencies
+const samikshaService = require(ROOT_PATH + "/generics/helpers/samiksha");
+const notificationsHelper = require(MODULES_BASE_PATH + "/notifications/in-app/helper");
 
+/**
+  * Pending Assessments notification should be showned in the app in every 15 days.
+  * @function
+  * @name pendingAssessments
+  * @returns {Promise} return a Promise.
+*/
 
 let pendingAssessments = function () {
 
     nodeScheduler.scheduleJob(process.env.SCHEDULE_FOR_PENDING_ASSESSMENT, () => {
 
-        console.log("<---- Pending Assessment cron started  ---->", new Date());
+        logger.info("<---- Pending Assessment cron started  ---->", new Date());
 
         return new Promise(async (resolve, reject) => {
-            let pendingAssessments = await samikshaService.pendingAssessments()
+            try{
+                let pendingAssessments = 
+                await samikshaService.pendingAssessments();
 
-            if (pendingAssessments.result.length > 0) {
-
-                await notificationHelpers.pendingAssessmentsOrObservations(pendingAssessments.result)
+                if (pendingAssessments.result.length > 0) {
+    
+                    await notificationsHelper.pendingAssessmentsOrObservations(
+                        pendingAssessments.result
+                    );
+                }
+    
+                logger.info("<---  Pending Assessment cron ended  ---->", new Date());
+                resolve();
+            } catch(error){
+                return reject(error);
             }
-
-            console.log("<---  Pending Assessment cron ended  ---->", new Date());
-            resolve()
 
         })
 

@@ -1,13 +1,34 @@
+/**
+ * name : module/notifications/user-extension/helper.js
+ * author : Aman Jung Karki
+ * Date : 15-Nov-2019
+ * Description : User extension helper.
+ */
 
-module.exports = class userExtensionHelper {
+
+/**
+    * UserExtensionHelper
+    * @class
+*/
+module.exports = class UserExtensionHelper {
+
+       /**
+      * Get userExtension document based on userid.
+      * @method
+      * @name userExtensionDocument
+      * @name userExtensionDocument
+      * @param {Object} filterQueryObject - filter query data.
+      * @param {Object} [projection = {}] - projected data.
+      * @returns {Promise} returns a promise.
+     */
 
     static userExtensionDocument(filterQueryObject, projection = {}) {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let userExtensionData = await database.models.userExtension.findOne(filterQueryObject, projection).lean()
+                let userExtensionData = await database.models.userExtension.findOne(filterQueryObject, projection).lean();
 
-                return resolve(userExtensionData)
+                return resolve(userExtensionData);
 
             } catch (error) {
                 return reject(error);
@@ -16,6 +37,18 @@ module.exports = class userExtensionHelper {
 
 
     }
+
+     /**
+      * Create or update the userExtension document.
+      * @method
+      * @name createOrUpdate
+      * @name createOrUpdate 
+      * @param {Object} deviceData - device data.
+      * @param {Object} userDetails - User details.
+      * @param {String} userDetails.userId - Logged in user id.
+      * @param {String} userDetails.userName - Logged in user name.        
+      * @returns {Promise} returns a promise.
+     */
 
     static createOrUpdate(deviceData, userDetails) {
 
@@ -26,25 +59,28 @@ module.exports = class userExtensionHelper {
                     userId: userDetails.userId,
                     status: "active",
                     isDeleted: false
-                }, { devices: 1 })
+                }, { devices: 1 });
 
-                let response = {}
+                let response = {};
 
                 if (userExtensionData) {
 
-                    let deviceNotFound = false
+                    let deviceNotFound = false;
 
                     if (userExtensionData.devices && userExtensionData.devices.length > 0) {
 
-                        let matchingDeviceData = userExtensionData.devices.find(eachDevice => eachDevice.deviceId === deviceData.deviceId);
+                        let matchingDeviceData = 
+                        userExtensionData.devices.find(
+                            eachDevice => eachDevice.deviceId === deviceData.deviceId
+                        );
 
                         if (!matchingDeviceData) {
 
-                            deviceNotFound = true
+                            deviceNotFound = true;
                         }
 
                     } else {
-                        deviceNotFound = true
+                        deviceNotFound = true;
                     }
 
                     if (deviceNotFound) {
@@ -54,10 +90,11 @@ module.exports = class userExtensionHelper {
                         }, { $addToSet: { devices: deviceData } }).lean();
 
                         if (updatedData) {
-                            response["success"] = true
-                            response["message"] = `Added Successfully device id ${deviceData.deviceId} for user ${userDetails.email}`
+                            response["success"] = true;
+                            response["message"] = 
+                            `Added Successfully device id ${deviceData.deviceId} for user ${userDetails.email}`;
                         } else {
-                            throw `Could not add device id ${deviceData.deviceId} for user ${userDetails.email}`
+                            throw `Could not add device id ${deviceData.deviceId} for user ${userDetails.email}`;
                         }
                     }
 
@@ -71,18 +108,19 @@ module.exports = class userExtensionHelper {
                             "createdBy": "SYSTEM",
                             "updatedBy": "SYSTEM"
                         }
-                    )
+                    );
 
                     if (createUserExtension) {
-                        response["success"] = true
-                        response["message"] = `Successfully created user ${userDetails.userId} in userExtension`
+                        response["success"] = true;
+                        response["message"] = 
+                        `Successfully created user ${userDetails.userId} in userExtension`;
                     } else {
-                        throw `Could not create user ${userDetails.userId} in userExtension`
+                        throw `Could not create user ${userDetails.userId} in userExtension`;
                     }
 
                 }
 
-                return resolve(response)
+                return resolve(response);
 
             } catch (error) {
                 return reject(error);
@@ -92,32 +130,51 @@ module.exports = class userExtensionHelper {
 
     }
 
+     /**
+      * Update device status in userExtension document.
+      * @method
+      * @name updateDeviceStatus
+      * @name updateDeviceStatus  
+      * @param {Object} deviceData - device data.
+      * @param {String} deviceData.title - title of device.
+      * @param {Object[]} deviceArray - device array.      * 
+      * @param {String} userId - Logged in user id.      
+      * @returns {Promise} returns a promise.
+     */
 
     static updateDeviceStatus(deviceData, deviceArray, userId) {
 
         return new Promise(async (resolve, reject) => {
 
-            deviceArray.forEach(async devices => {
+            try {
+                deviceArray.forEach(async devices => {
 
-                delete devices['message'];
-                delete devices['title'];
+                    delete devices['message'];
+                    delete devices['title'];
 
-                if (devices.deviceId == deviceData.deviceId) {
-                    devices.status = "inactive"
-                    devices.deactivatedAt = new Date();
-                }
+                    if (devices.deviceId == deviceData.deviceId) {
+                        devices.status = "inactive";
+                        devices.deactivatedAt = new Date();
+                    }
+                });
 
-                let statusUpdate = await database.models.userExtension.findOneAndUpdate(
+                let updateDevice = await database.models.userExtension.findOneAndUpdate(
                     { userId: userId },
                     { $set: { "devices": deviceArray } }
-                );
+                ).lean();
+
+                if (!updateDevice) {
+                    throw "Could not update device.";
+                }
 
                 return resolve({
                     success: true,
                     message: "successfuly updated the status to inactive"
                 });
 
-            });
+            } catch (error) {
+                return reject(error);
+            }
 
         })
     }

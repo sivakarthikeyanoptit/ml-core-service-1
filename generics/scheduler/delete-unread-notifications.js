@@ -5,19 +5,19 @@
  * Description : Delete all unread notifications every 3 month in samiksha.
  */
 
-// const kafkaCommunication = require(ROOT_PATH + "/generics/helpers/kafka-communications")
-// let slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
+// const KAFKA_COMMUNICATION = require(ROOT_PATH + "/generics/helpers/kafka-communications")
+// const SLACK_CLIENT = require(ROOT_PATH + "/generics/helpers/slack-communications");
 
 // let deleteUnReadNotifications = function () {
 // nodeScheduler.scheduleJob(process.env.SCHEDULE_FOR_UNREAD_NOTIFICATION, () => {
 
-//   console.log("<-----  Delete UnRead Notification cron started ---- >", new Date());
+//   logger.info("<-----  Delete UnRead Notification cron started ---- >", new Date());
 
 //   return new Promise(async (resolve, reject) => {
 
 //     try {
 
-//       console.log("Delete unread notifications for samiksha is closed")
+//       logger.info("Delete unread notifications for samiksha is closed")
 
 // let samikshaUnReadNotification = {
 //   "users": "all",
@@ -36,13 +36,13 @@
 
 // for (let pointerToUnReadNotifications = 0; pointerToUnReadNotifications < unreadNotificationsArray.length; pointerToUnReadNotifications++) {
 
-//   let pushUnDeleteReadNotificationsToKafka = await kafkaCommunication.pushNotificationsDataToKafka(unreadNotificationsArray[pointerToUnReadNotifications]);
+//   let pushUnDeleteReadNotificationsToKafka = await KAFKA_COMMUNICATION.pushDeletionNotificationsToKafka(unreadNotificationsArray[pointerToUnReadNotifications]);
 
 //   if (pushUnDeleteReadNotificationsToKafka.status != "success") {
 //     let errorObject = {
 //       message: `Failed to push unread notifications to kafka`,
 //     }
-//     slackClient.kafkaErrorAlert(errorObject)
+//const SLACK_CLIENT.kafkaErrorAlert(errorObject)
 //     return;
 //   }
 // }

@@ -7,7 +7,7 @@
     "migrations": "module/migrations/bin/migrations.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha --timeout 10000",
     "start": "node app.js",
     "dev": "nodemon app.js"
   },
@@ -18,10 +18,13 @@
   "author": "Shikshalokam <info@shikshalokam.com>",
   "license": "ISC",
   "dependencies": {
-    "@elastic/elasticsearch": "^7.4.0",
+    "@elastic/elasticsearch": "^6.7.1",
     "body-parser": "^1.18.2",
     "bunyan": "^1.8.12",
+    "bunyan-format": "^0.2.1",
     "cache-manager": "^2.9.0",
+    "chai": "^4.2.0",
+    "chai-http": "^4.3.0",
     "cli-table": "^0.3.1",
     "commander": "^2.20.0",
     "cors": "^2.8.4",
@@ -31,6 +34,7 @@
     "express-fileupload": "^0.4.0",
     "express-validator": "^5.3.1",
     "fcm-notification": "^2.0.0",
+    "firebase-admin": "^8.8.0",
     "fn-args": "^4.0.0",
     "form-urlencoded": "^3.0.2",
     "fs": "0.0.1-security",
@@ -42,6 +46,7 @@
     "jwt-decode": "^2.2.0",
     "kafka-node": "^5.0.0",
     "keycloak-auth-utils": "^3.3.0",
+    "mocha": "^6.2.2",
     "moment-timezone": "^0.5.23",
     "mongodb": "^3.2.3",
     "mongoose": "^5.0.17",
@@ -50,6 +55,7 @@
     "mongoose-timestamp": "^0.6.0",
     "mongoose-ttl": "0.0.3",
     "node-schedule": "^1.3.2",
+    "nodemailer": "^6.4.1",
     "p-each-series": "^2.1.0",
     "path": "^0.12.7",
     "request": "^2.88.0",
