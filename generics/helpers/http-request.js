@@ -1,25 +1,13 @@
-/*
-    Usage :
-
-    var Request = require('../Request'); // Path of the module
-    var request = new Request();
-
-    var url = 'http://www.something.com';
-    var options = {
-        method:'Post',
-        data:'send JSON data',
-        ......
-    }
-
-    request.get(url, options); //get Method
-    request.post(url, options); //post Method
-
-    We can move it to git wiki later.
-
-*/
+/**
+ * name : http-request.js
+ * author : Aman Jung Karki
+ * created-date : 05-Dec-2019
+ * Description : all http requests.
+ */
 
 "use strict";
 
+//dependencies
 var https = require('https');
 var http = require('http');
 var url = require('url');
@@ -27,10 +15,21 @@ var formurlencoded = require('form-urlencoded');
 var fs = require("fs");
 var convert = require('xml-js');
 
+/**
+    * Request - all http related request.
+    * @class
+*/
 var Request = class Request {
-    constructor() {
+    constructor() {}
 
-    }
+    /**
+      * 
+      * @method
+      * @name _httpRequest
+      * @param  {Object}  options.
+      * @param  {Object}  data.      
+      * @returns {Promise} Returns a Promise.
+    */
 
     _httpRequest(options, data) {
         return new Promise(function (resolve, reject) {
@@ -64,28 +63,16 @@ var Request = class Request {
         });
     }
 
-    _httpFileRequest(options, data, path) {
-        return new Promise(function (resolve, reject) {
-            var req;
-
-            var httpModule = (options.type == "http") ? http : https;
-
-            req = httpModule.request(options, function (res) {
-                resolve(res);
-                // res.on('end', function (content) {
-                //     resolve({ data:path, message: 'Success', status: res.status, headers: res.headers });
-                // });
-            
-                // res.pipe(fs.createWriteStream(path));
-            });
-
-            req.on('error', function (err) {
-                resolve({ data: null, message: 'Failed' });
-            });
-
-            req.end(data);
-        });
-    }
+    /**
+      * 
+      * @method
+      * @name _request
+      * @param {URL} requestUrl
+      * @param  {Object}  options.
+      * @param  {Object}  data.
+      * @param  {String}  path.   
+      * @returns {Promise} Returns a Promise.
+    */
 
     _request(requestUrl, options, data, path) {
         options = options || {};
@@ -108,6 +95,16 @@ var Request = class Request {
             return this._httpFileRequest(options, data, path);
     }
 
+    /**
+      * Get requested data
+      * @method
+      * @name get
+      * @param  {URL}  url.
+      * @param  {Object}  options.
+      * @param  {String}  path.            
+      * @returns {Function} Returns a function.
+    */
+
     get(url, options, path) {
         options = options || {};
 
@@ -115,6 +112,15 @@ var Request = class Request {
         options.method = 'GET';
         return this._request(url, options, null, path);
     }
+
+     /**
+      * Post requested data
+      * @method
+      * @name post
+      * @param  {URL}  url.
+      * @param  {Object}  options.        
+      * @returns {Function} Returns a function.
+    */
 
     post(url, options) {
         options = options || {};

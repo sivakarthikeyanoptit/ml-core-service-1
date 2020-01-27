@@ -1,30 +1,50 @@
+/**
+ * name : elastic-search-config.js
+ * author : Aman Jung Karki
+ * created-date : 05-Dec-2019
+ * Description : Elastic search configuration file.
+ */
+
+
 //dependencies
-const { Client } = require('@elastic/elasticsearch')
+const { Client : esClient } = require('@elastic/elasticsearch');
 let slackClient = require("../generics/helpers/slack-communications");
+
+/**
+ * Elastic search connection.
+ * @function
+ * @name connect
+ * @param {Object} config All elastic search configurations.
+ * @return {Object} elastic search client 
+ */
 
 var connect = function (config) {
 
-  const elasticSearchClient = new Client({
+  const elasticSearchClient = new esClient({
     node: config.host,
-    maxRetries: 5,
-    requestTimeout: 60000,
-    sniffOnStart: true
-  })
+    maxRetries: process.env.ELASTIC_SEARCH_MAX_RETRIES,
+    requestTimeout: process.env.ELASTIC_SEARCH_REQUEST_TIMEOUT,
+    sniffOnStart: process.env.ELASTIC_SEARCH_SNIFF_ON_START
+  });
 
   elasticSearchClient.ping({
   }, function (error) {
     if (error) {
-      console.log(error)
+      logger.error(error);
+
+      let errorMessage = 'Elasticsearch cluster is down!';
 
       let errorData = {
+        slackErrorName: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_NAME"),
+        color: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_MESSAGE_COLOR"),
         host: config.host,
-        message: 'Elasticsearch cluster is down!'
-      }
+        message: errorMessage
+      };
 
-      slackClient.elasticSearchErrorAlert(errorData)
-      console.error('Elasticsearch cluster is down!');
+      slackClient.sendMessageToSlack(errorData);
+      logger.error(errorMessage);
     } else {
-      console.log('Elasticsearch connection established.');
+      logger.info('Elasticsearch connection established.');
     }
   });
 

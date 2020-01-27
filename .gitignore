@@ -57,9 +57,15 @@ typings/
 # dotenv environment variables file
 .env
 
+# firbase credentials
+config/fcm-keystore.json
+
 # next.js build output
 .next
 
 .vscode/
+
+# all DS_Store files
+*.DS_Store
 
 package-lock.json

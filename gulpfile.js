@@ -1,5 +1,5 @@
-const gulp = require("gulp");
-const apidoc = require("gulp-apidoc");
+let gulp = require("gulp");
+let apidoc = require("gulp-apidoc");
 
 gulp.task("apidoc", (done) => {
     apidoc({
