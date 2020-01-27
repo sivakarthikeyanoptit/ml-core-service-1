@@ -78,9 +78,9 @@ module.exports = class PushNotifications {
                     response["result"] = {};
 
                     let topicArray = [ 
-                        deviceData.app.trim()+"-"+ process.env.NODE_ENV +"-allUsers",
-                        deviceData.app.trim()+"-"+ process.env.NODE_ENV + "-android"+"-allUsers",
-                        deviceData.app.trim()+"-"+ process.env.NODE_ENV + "-ios"+"-allUsers"
+                        deviceData.app.trim()+process.env.TOPIC_FOR_ALL_USERS,
+                        deviceData.app.trim()+process.env.TOPIC_FOR_ANDROID_ALL_USERS,
+                        deviceData.app.trim()+process.env.TOPIC_FOR_IOS_ALL_USERS
                     ];
 
                     await Promise.all(topicArray.map(async topicName => {
@@ -196,9 +196,9 @@ module.exports = class PushNotifications {
 
                                         //unsubscribe the deviceId from the topic
                                         let topicArray = [
-                                            device.app.trim()+"-"+ process.env.NODE_ENV +"-allUsers",
-                                            device.app.trim()+"-"+ process.env.NODE_ENV + "-android"+"-allUsers",
-                                            device.app.trim()+"-"+ process.env.NODE_ENV + "-ios"+"-allUsers"
+                                            device.app.trim()+process.env.TOPIC_FOR_ALL_USERS,
+                                            device.app.trim()+process.env.TOPIC_FOR_ANDROID_ALL_USERS,
+                                            device.app.trim()+process.env.TOPIC_FOR_IOS_ALL_USERS
                                         ];
 
                                         await Promise.all(topicArray.map(async topicName => {
