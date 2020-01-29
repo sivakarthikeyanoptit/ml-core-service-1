@@ -1,49 +1,96 @@
-let authenticator = require(ROOT_PATH + "/generics/middleware/authenticator");
-let slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
-let pagination = require(ROOT_PATH + "/generics/middleware/pagination");
+/**
+ * name : routes/index.js
+ * author : Aman Jung Karki
+ * Date : 15-Nov-2019
+ * Description : All routes.
+ */
+
+
+// dependencies
+const authenticator = require(ROOT_PATH + "/generics/middleware/authenticator");
+const slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
+const pagination = require(ROOT_PATH + "/generics/middleware/pagination");
 const fs = require("fs");
 const inputValidator = require(ROOT_PATH + "/generics/middleware/validator");
+const dataSetUpload = require(ROOT_PATH + "/generics/middleware/dataSetUpload");
 const setLanguage = require(ROOT_PATH + "/generics/middleware/set-language");
-const listOfLanguages = require(ROOT_PATH + "/generics/languages");
+var i18next = require("i18next");
+var i18NextMiddleware = require("i18next-express-middleware");
+let nodeFsBackend = require('i18next-node-fs-backend');
+
+i18next.use(nodeFsBackend).init({
+  fallbackLng: global.locales[0],
+  lowerCaseLng: true,
+  preload: global.locales,
+  backend: {
+    loadPath: ROOT_PATH + '/locales/{{lng}}.json',
+  },
+  saveMissing: true
+});
 
 module.exports = function (app) {
 
-  const applicationBaseUrl = process.env.APPLICATION_BASE_URL || "/kendra/"
+  const APPLICATION_BASE_URL = 
+  gen.utils.checkIfEnvDataExistsOrNot("APPLICATION_BASE_URL");
+  
+  app.use(
+    i18NextMiddleware.handle(i18next, {
+      removeLngFromUrl: false
+    })
+  );
 
-  app.use(applicationBaseUrl, authenticator);
-  app.use(applicationBaseUrl, pagination);
-  app.use(applicationBaseUrl, setLanguage);
+  if (process.env.NODE_ENV !== "testing") {
+    app.use(APPLICATION_BASE_URL, authenticator);
+  }
+
+  app.use(APPLICATION_BASE_URL, dataSetUpload);
+  app.use(APPLICATION_BASE_URL, pagination);
+  app.use(APPLICATION_BASE_URL, setLanguage);
 
   var router = async function (req, res, next) {
 
-    if (req.translationLanguage) {
-      req.i18n.changeLanguage(listOfLanguages[req.translationLanguage]);
+    if (!req.params.version) {
+      next();
+    } else if (!controllers[req.params.version]) {
+      next();
+    } else if (!controllers[req.params.version][req.params.controller]) {
+      next();
     }
-    //req.params.controller = (req.params.controller).toLowerCase();
-    // req.params.controller += "Controller";
-    if (!req.params.version) next();
-    else if (!controllers[req.params.version]) next();
-    else if (!controllers[req.params.version][req.params.controller]) next();
-    else if (!controllers[req.params.version][req.params.controller][req.params.method]) next();
-    else if (req.params.method.startsWith("_")) next();
-    else {
+    else if (!(controllers[req.params.version][req.params.controller][req.params.method] 
+      || controllers[req.params.version][req.params.controller][req.params.file][req.params.method])) {
+      next();
+    }
+    else if (req.params.method.startsWith("_")) {
+      next();
+    } else {
 
-      try {
+      try { 
 
         let validationError = req.validationErrors();
 
-        if (validationError.length)
-          throw { status: 400, message: validationError }
+        if (validationError.length){
+          throw { status: 400, message: validationError };
+        }
 
-        var result = await controllers[req.params.version][req.params.controller][req.params.method](req);
+        let result;
+
+        if (req.params.file) {
+          result = 
+          await controllers[req.params.version][req.params.controller][req.params.file][req.params.method](req);
+        } else {
+          result = 
+          await controllers[req.params.version][req.params.controller][req.params.method](req);
+        }
 
         if (result.isResponseAStream == true) {
-          // Check if file specified by the filePath exists 
           fs.exists(result.fileNameWithPath, function (exists) {
 
             if (exists) {
 
-              res.setHeader('Content-disposition', 'attachment; filename=' + result.fileNameWithPath.split('/').pop());
+              res.setHeader(
+                'Content-disposition', 
+                'attachment; filename=' + result.fileNameWithPath.split('/').pop()
+              );
               res.set('Content-Type', 'application/octet-stream');
               fs.createReadStream(result.fileNameWithPath).pipe(res);
 
@@ -59,9 +106,9 @@ module.exports = function (app) {
           });
 
         } else {
-          res.status(result.status ? result.status : 200).json({
+          res.status(result.status ? result.status : httpStatusCode["ok"].status).json({
             message: result.message,
-            status: result.status ? result.status : 200,
+            status: result.status ? result.status : httpStatusCode["ok"].status,
             result: result.data,
             result: result.result,
             additionalDetails: result.additionalDetails,
@@ -72,14 +119,8 @@ module.exports = function (app) {
             failed: result.failed
           });
         }
-        if (ENABLE_BUNYAN_LOGGING === "ON") {
-          loggerObj.info({ resp: result });
-        }
-        if (ENABLE_CONSOLE_LOGGING === "ON") {
-          console.log('-------------------Response log starts here-------------------');
-          console.log(result);
-          console.log('-------------------Response log ends here-------------------');
-        }
+
+        logger.info("Response:", result);
       }
       catch (error) {
         res.status(error.status ? error.status : 400).json({
@@ -90,39 +131,48 @@ module.exports = function (app) {
         let customFields = {
           appDetails: '',
           userDetails: "NON_LOGGED_IN_USER"
-        }
+        };
 
         if (req.userDetails) {
           customFields = {
             appDetails: req.headers["user-agent"],
             userDetails: req.userDetails.firstName + " - " + req.userDetails.lastName + " - " + req.userDetails.email
-          }
+          };
         }
 
-        const toLogObject = {
+        let toLogObject = {
+          slackErrorName: process.env.SLACK_ERROR_NAME,
+          color: process.env.SLACK_ERROR_MESSAGE_COLOR,
           method: req.method,
-          url: req.url, headers: req.headers,
-          body: req.body,
-          errorMsg: error.errorObject ? error.errorObject.message : null,
-          errorStack: error.errorObject ? error.errorObject.stack : null,
-          customFields: customFields
+          url: req.url,
+          body: req.body && !_.isEmpty(req.body) ? req.body : "not provided",
+          errorMsg: "not provided",
+          errorStack: "not provided"
+        };
+
+        if (error.message) {
+          toLogObject["errorMsg"] = JSON.stringify(error.message);
+        } else if (error.errorObject) {
+          toLogObject["errorMsg"] = error.errorObject.message;
+          toLogObject["errorStack"] = error.errorObject.stack;
         }
-        slackClient.sendExceptionLogMessage(toLogObject)
-        loggerExceptionObj.info(toLogObject);
-        loggerObj.info({ resp: error });
-        console.log('-------------------Response log starts here-------------------');
-        console.log(error);
-        console.log('-------------------Response log ends here-------------------');
+
+        slackClient.sendMessageToSlack(_.merge(toLogObject, customFields));
+
+        logger.error("Error Response:", error);
       };
     }
   };
 
-  app.all(applicationBaseUrl + "api/:version/:controller/:method", inputValidator, router);
+  app.all(APPLICATION_BASE_URL + "api/:version/:controller/:method", inputValidator, router);
 
-  app.all(applicationBaseUrl + "api/:version/:controller/:method/:_id", inputValidator, router);
+  app.all(APPLICATION_BASE_URL + "api/:version/:controller/:file/:method", inputValidator, router);
+
+  app.all(APPLICATION_BASE_URL + "api/:version/:controller/:method/:_id", inputValidator, router);
+  app.all(APPLICATION_BASE_URL + "api/:version/:controller/:file/:method/:_id", inputValidator, router);
+
 
   app.use((req, res, next) => {
-    res.status(404).send("Not found!");
+    res.status(httpStatusCode["not_found"].status).send(httpStatusCode["not_found"].message);
   });
 };
-

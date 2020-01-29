@@ -5,42 +5,75 @@
  * Description      : Environment related configuration variables
  */
 
+/**
+  * Database configuration.
+  * @function
+  * @name db_connect
+  * @param {Object} configData  - database configuration.
+*/
+
 let db_connect = function (configData) {
-  global.database = require("./db-config")(
+  global.database = require(process.env.PATH_TO_DB_CONFIG)(
     configData.db.connection.mongodb
   );
   global.ObjectId = database.ObjectId;
-  global.Abstract = require("../generics/abstract");
+  global.Abstract = require(process.env.PATH_TO_ABSTRACT_FILE);
 };
 
+/**
+  * kafka configuration.
+  * @function
+  * @name kafka_connect
+  * @param {Object} configData  - kafka configuration.
+*/
+
 let kafka_connect = function (configData) {
-  global.kafkaConnectionObject = require("./kafka-config")(
-    configData.Kafka_Config
+  global.kafkaConnectionObject = require(process.env.PATH_TO_KAFKA_CONFIG)(
+    configData.kafkaConfig
   );
 };
 
+/**
+  * Elastic search configuration.
+  * @function
+  * @name elasticsearch_connect
+  * @param {Object} configData  - elastic search configuration.
+*/
 
 let elasticsearch_connect = function (configData) {
-  global.elasticsearch = require("./elastic-search-config")(
-    configData.Elasticsearch_Config
+  global.elasticsearch = require(process.env.PATH_TO_ELASTIC_SEARCH_CONFIG)(
+    configData.elasticSearchConfig
+  );
+};
+
+/**
+  * Smtp configuration.
+  * @function
+  * @name smtp_connect
+  * @param {Object} smtpConfigdata  - smtp configuration.
+*/
+
+let smtp_connect = function (smtpConfigdata) {
+  global.smtpServer = require(process.env.PATH_TO_SMTP_CONFIG)(
+    smtpConfigdata
   );
 };
 
 const configuration = {
   root: require("path").normalize(__dirname + "/.."),
   app: {
-    name: "sl-kendra"
+    name: process.env.appName
   },
-  host: process.env.HOST || "http://localhost",
-  port: process.env.PORT || 4401,
-  log: process.env.LOG || "debug",
+  host: process.env.HOST || process.env.DEFAULT_HOST,
+  port: process.env.PORT || process.env.DEFAULT_PORT,
+  log: process.env.LOG || process.env.DEFAULT_LOG,
   db: {
     connection: {
       mongodb: {
-        host: process.env.MONGODB_URL || "mongodb://localhost:27017",
+        host: process.env.MONGODB_URL || process.env.DEFAULT_MONGODB_HOST,
         user: "",
         pass: "",
-        database: process.env.DB || "sl-assessment",
+        database: process.env.DB || process.env.DEFAULT_MONGODB_DATABASE,
         options: {
           useNewUrlParser: true
         }
@@ -57,18 +90,42 @@ const configuration = {
       }
     }
   },
-  Kafka_Config: {
-    host: process.env.KAFKA_URL || "10.160.0.8:9092",
+  kafkaConfig: {
+    host: process.env.KAFKA_URL,
     topics: {
-      notificationsTopic: process.env.NOTIFICATIONS_TOPIC || "sl-notifications-dev"
+      notificationsTopic: 
+      process.env.NOTIFICATIONS_TOPIC || 
+      process.env.DEFAULT_NOTIFICATION_TOPIC,
+
+      languagesTopic: 
+      process.env.LANGUAGE_TOPIC || 
+      process.env.DEFAULT_LANGUAGES_TOPIC,
+
+      emailTopic: 
+      process.env.EMAIL_TOPIC || 
+      process.env.DEFAULT_EMAIL_TOPIC,
+
+      appConfigTopic: 
+      process.env.APPLICATION_CONFIG_TOPIC || 
+      process.env.DEFAULT_APPLICATION_CONFIG_TOPIC
+
     }
   },
-  Elasticsearch_Config: {
-    host: process.env.ELASTICSEARCH_HOST_URL || "http://10.160.0.3:9092"
+  elasticSearchConfig: {
+    host: 
+    process.env.ELASTICSEARCH_HOST_URL || 
+    process.env.DEFAULT_ELASTIC_SEARCH_HOST
   },
-  version: "1.0.0",
-  URLPrefix: "/api/v1",
-  webUrl: "https://dev.shikshalokam.org"
+  smtpConfig: {
+    host: process.env.SMTP_SERVICE_HOST,
+    port: process.env.SMTP_SERVICE_PORT,
+    secure: process.env.SMTP_SERVICE_SECURE,
+    user: process.env.SMTP_USER_NAME,
+    password: process.env.SMTP_USER_PASSWORD,
+  },
+  version: process.env.VERSION,
+  URLPrefix: process.env.URL_PREFIX,
+  webUrl: process.env.WEB_URL
 };
 
 db_connect(configuration);
@@ -76,5 +133,7 @@ db_connect(configuration);
 kafka_connect(configuration);
 
 elasticsearch_connect(configuration);
+
+smtp_connect(configuration.smtpConfig);
 
 module.exports = configuration;
