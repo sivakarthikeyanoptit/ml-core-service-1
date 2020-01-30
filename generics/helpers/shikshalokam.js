@@ -130,7 +130,8 @@ var getUserInfo = function (token, userId) {
               updatedDate: null,
               userId: jwtInfo.sub,
               userName: (jwtInfo.email && jwtInfo.email != "") ? 
-              jwtInfo.email.split("@").shift() : "",
+              jwtInfo.email.split("@").shift() : (jwtInfo.preferred_username && jwtInfo.preferred_username != "") ? 
+              jwtInfo.preferred_username.split("@").shift() : "",
               webPages: new Array,
             }
           }
