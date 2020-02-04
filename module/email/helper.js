@@ -10,8 +10,11 @@
  * Load kafka Producer. 
  */
 
-const kafkaCommunication = require(ROOT_PATH + "/generics/helpers/kafka-communications");
-const nodeMailerHelper = require(ROOT_PATH + "/generics/helpers/nodemailer");
+ // TODO : Dirty fix . Since kafka is not working for sending email
+// const kafkaCommunication = require(ROOT_PATH + "/generics/helpers/kafka-communications");
+
+const smtpHelper = require(ROOT_PATH + "/generics/helpers/email");
+
 
 /**
     * EmailHelper
@@ -30,13 +33,14 @@ module.exports = class EmailHelper {
       * @returns {Promise} returns a promise.
      */
 
-    static send(emailData) {
+    static sendJenkinsEmail(emailData) {
         return new Promise(async (resolve, reject) => {
             try {
 
-                await kafkaCommunication.pushEmailToKafka(emailData);
+                let emailDocuments = 
+                await smtpHelper.send(emailData);
 
-                return resolve();
+                return resolve(emailDocuments);
                 
             } catch (error) {
                 return reject(error);
