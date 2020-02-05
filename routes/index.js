@@ -120,7 +120,10 @@ module.exports = function (app) {
           });
         }
 
-        logger.info("Response:", result);
+        if(ENABLE_DEBUG_LOGGING === "ON") {
+          logger.info("Response:", result);
+        }
+
       }
       catch (error) {
         res.status(error.status ? error.status : 400).json({
@@ -158,8 +161,10 @@ module.exports = function (app) {
         }
 
         slackClient.sendMessageToSlack(_.merge(toLogObject, customFields));
-
-        logger.error("Error Response:", error);
+        
+        if(ENABLE_DEBUG_LOGGING === "ON") {
+          logger.error("Error Response:", error);
+        }
       };
     }
   };
