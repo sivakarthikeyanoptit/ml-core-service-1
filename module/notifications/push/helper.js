@@ -370,23 +370,13 @@ module.exports = class PushNotificationsHelper {
     static sendNotifications(notificationData,devices,userId,os) {
         return new Promise(async (resolve, reject) => {
             try {
-                let response;
-                if( os === "android") {
-                    response = 
-                    await _createNotificationInAndroid(
-                        notificationData,
-                        devices,
-                        userId
-                    );
+                
+                let response = await _createNotificationInAndroidOrIos(
+                    notificationData,
+                    devices,
+                    userId
+                );
 
-                } else {
-                    response =  
-                    await _createNotificationInIos(
-                        notificationData,
-                        devices,
-                        userId
-                    );
-                }
                 return resolve(response);
             } catch(error) {
                 return reject(error);
@@ -490,25 +480,32 @@ module.exports = class PushNotificationsHelper {
       * @returns {Promise} returns a promise.
      */
 
-    async function _createNotificationInAndroid(notificationData,devices = [], userId = "") {
+    async function _createNotificationInAndroidOrIos(
+        notificationData,
+        devices = [], 
+        userId = ""
+    ) {
         return new Promise(async (resolve, reject) => {
             try {
 
                 let pushNotificationRelatedInformation = {
+                    notification : {
+                        title : notificationData.title,
+                        body : notificationData.text ? 
+                        notificationData.text : notificationData.message
+                    },
+                    data: notificationData.data ? notificationData.data : {},
                     android: {
-                        "data": notificationData.data ? notificationData.data : {},
                         ttl: 3600 * 1000, // 1 hour in milliseconds
                         priority: 'high',
                         notification: {
-                            "click_action" : "FCM_PLUGIN_ACTIVITY",
-                            title : notificationData.title,
-                            body : notificationData.text ? 
-                            notificationData.text : notificationData.message,
-                            icon : 'stock_ticker_update',
+                            click_action : "FCM_PLUGIN_ACTIVITY",
+                            icon : 'notifications_icon',
                             color: gen.utils.checkIfEnvDataExistsOrNot("RED_COLOR")                        
                         },
 
                     },
+                    apns: {},
                     token: notificationData.deviceId
                 };
 
@@ -532,58 +529,6 @@ module.exports = class PushNotificationsHelper {
         })
     }
 
-    /**
-      * Create notification in ios.
-      * @method
-      * @name createNotificationInIos
-      * @param {Object} notificationData - Notification that need to a given android.
-      * @param {String} notificationData.title - title of notification.
-      * @param {String} notificationData.text - text of notification.   
-      * @param {String} notificationData.deviceId - where to sent the notifications.                                           
-      * @returns {Promise} returns a promise.
-     */
-
-    async function _createNotificationInIos(notificationData,devices = [], userId = "") {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                let pushNotificationRelatedInformation = {
-                    ios: {
-                        "data": notificationData.data ? notificationData.data : {},
-                        ttl: 3600 * 1000, // 1 hour in milliseconds
-                        priority: 'high',
-                        notification: {
-                            "click_action" : "FCM_PLUGIN_ACTIVITY",
-                            title : notificationData.title,
-                            body : notificationData.text ? 
-                            notificationData.text : notificationData.message,
-                            icon : 'stock_ticker_update',
-                            color : gen.utils.checkIfEnvDataExistsOrNot("RED_COLOR")
-                        }
-                    },
-                    token: notificationData.deviceId
-                };
-
-                let pushToDevice = 
-                await _sendMessage(pushNotificationRelatedInformation);
-
-                if ( !pushToDevice.success && devices.length > 0 && userId !== "" ) { 
-
-                    await userExtensionHelper.updateDeviceStatus(
-                        notificationData.deviceId, 
-                        devices, 
-                        userId
-                    );
-                }
-
-                return resolve(pushToDevice);
-
-
-            } catch (error) {
-                return reject(error);
-            }
-        })
-    }
 
     /**
       * FCM send message functionality.
