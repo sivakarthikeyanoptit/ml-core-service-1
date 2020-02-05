@@ -31,13 +31,9 @@ module.exports = function () {
   gen.utils = require(ROOT_PATH + "/generics/helpers/utils");
   global.config = require(".");
 
-  global.ENABLE_CONSOLE_LOGGING = 
-  process.env.ENABLE_CONSOLE_LOGGING 
-  || process.env.DEFAULT_ENABLE_CONSOLE_LOGGING;
-
-  global.ENABLE_BUNYAN_LOGGING = 
-  process.env.ENABLE_BUNYAN_LOGGING || 
-  process.env.DEFAULT_ENABLE_BUNYAN_LOGGING;
+  global.ENABLE_DEBUG_LOGGING = 
+  process.env.ENABLE_DEBUG_LOGGING 
+  || process.env.DEFAULT_ENABLE_DEBUG_LOGGING;
 
   global.locales = [];
 

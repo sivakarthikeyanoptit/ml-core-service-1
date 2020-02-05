@@ -30,7 +30,7 @@ var connect = function (config) {
   });
 
   client.on('error', function (error) {
-    logger.error("kafka connection error!");
+    logger.error("Kafka connection error!");
   });
 
   let producer = new kafkaProducer(client);
@@ -40,7 +40,7 @@ var connect = function (config) {
   });
 
   producer.on('error', function (err) {
-    logger.error("kafka producer creation error!");
+    logger.error("Kafka producer creation error!");
   })
 
   

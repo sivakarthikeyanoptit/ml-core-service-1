@@ -64,10 +64,27 @@ module.exports = class Fcm {
 
             try {
 
+                const defaultAppType = gen.utils.checkIfEnvDataExistsOrNot("ASSESSMENT_APPLICATION_APP_TYPE").trim().toLowerCase(); // TODO - After some time if all app start supplying appType in header, remove this line.
+                
+                let appType = defaultAppType;
+                if(req.headers.apptype && req.headers.apptype != "") {
+                    appType = req.headers.apptype.trim().toLowerCase();
+                }
+
+                let appName = "";
+                if(req.headers.app && req.headers.app != "") {
+                    appName = req.headers.app.trim().toLowerCase();
+                }
+                
+                if (req.headers.appname && req.headers.appname != "") {
+                    appName = req.headers.appname.trim().toLowerCase();
+                }
+
                 let deviceData = {
                     deviceId: req.body.deviceId,
-                    app: req.headers.app,
+                    app: appName,
                     os: req.headers.os,
+                    appType: appType,
                     status: "active",
                     activatedAt: new Date()
                 };
@@ -84,7 +101,7 @@ module.exports = class Fcm {
 
                     let topicArray = 
                     [
-                        "allUsers", 
+                        "allusers", 
                         "all-" + deviceData.app + "-users",
                         "all-" + deviceData.app + "-" + deviceData.os + "-users"
                     ];
