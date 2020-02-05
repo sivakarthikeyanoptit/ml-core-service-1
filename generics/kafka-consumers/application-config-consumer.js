@@ -23,10 +23,10 @@ var messageReceived = function (message) {
   return new Promise(async function (resolve, reject) {
 
     try {
-      logger.info("---------- In Application Config Consumer Message Function -------------");
+
       let parsedMessage = JSON.parse(message.value);
         await elasticSearchHelper.pushAppConfigData(parsedMessage);
-        logger.info("---------- Application Config Consumer Ends -------------");
+
       return resolve("Message Received for Application Config");
     } catch (error) {
       return reject(error);

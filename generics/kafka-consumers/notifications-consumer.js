@@ -10,7 +10,7 @@
 const elasticSearchHelper = require(GENERIC_HELPERS_PATH + "/elastic-search");
 let processingUsersTrack = {}
 const slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
-const notificationsHelper = require(MODULES_BASE_PATH + "/notifications/in-app/helper")
+const pushNotificationsHelper = require(MODULES_BASE_PATH + "/notifications/push/helper")
 
 /**
   * notification consumer message received.
@@ -26,7 +26,7 @@ var messageReceived = function (message) {
   return new Promise(async function (resolve, reject) {
 
     try {
-      logger.info("---------- In notifications consumer -------------");
+      
       let parsedMessage = JSON.parse(message.value)
 
       if (parsedMessage.action === "deletion") {
@@ -52,7 +52,10 @@ var messageReceived = function (message) {
         if (!isUserUpdationUnderProcess) {
           processingUsersTrack[userId] = true
           let elasticsearchPushResponse = await elasticSearchHelper.pushNotificationData(userId, parsedMessage)
-          await notificationsHelper.pushNotificationMessageToDevice(userId, parsedMessage)
+          await pushNotificationsHelper.pushNotificationMessageToDevice(
+            userId, 
+            parsedMessage
+          )
           delete processingUsersTrack[userId]
         } else {
           // repeat with the interval of 1 seconds
@@ -61,8 +64,12 @@ var messageReceived = function (message) {
             if (!isUserUpdationUnderProcess) {
               clearInterval(timerId)
               processingUsersTrack[userId] = true
-              let elasticsearchPushResponse = await elasticSearchHelper.pushNotificationData(userId, parsedMessage)
-              await notificationsHelper.pushNotificationMessageToDevice(userId, parsedMessage)
+              let elasticsearchPushResponse = 
+              await elasticSearchHelper.pushNotificationData(userId, parsedMessage)
+              await pushNotificationsHelper.pushNotificationMessageToDevice(
+                userId, 
+                parsedMessage
+              )
               delete processingUsersTrack[userId]
             }
           }, 1000);

@@ -34,7 +34,7 @@ var databaseConfiguration = function (config) {
   );
   db.on("error", console.error.bind(console, "connection error:"));
   db.once("open", function () {
-    logger.info("Connected to databaseConfiguration");
+    logger.info("Connected to database!");
   });
 
   var createModel = function (opts) {

@@ -142,7 +142,6 @@ let _pushMessageToKafka = function (payload) {
       
         return reject("Kafka push to topic " + payload[0].topic + " failed.");
       } else {
-        logger.info("Pushed to kafka");
         return resolve(data)
       }
     })

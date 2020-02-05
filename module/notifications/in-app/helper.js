@@ -26,25 +26,30 @@ module.exports = class InAppNotificationsHelper {
       * List of notifications data
       * @method
       * @name list
-      * @param {String} userDetails - Logged in user id.
+      * @param {String} userId - Logged in user id.
       * @param {Number} pageSize - Total page size.
       * @param {Number} pageNo - Total page no.
-      * @param {String} [appName = ""] - Name of the app
-      * @param {String} [headers = ""] - app headers       
+      * @param {String} appType  - Name of the app type
+      * @param {String} appName - app name       
       * @returns {Promise} returns a promise.
      */
 
-    static list(userDetails, pageSize, pageNo, appName = "", headers = "") {
+    static list(userId, pageSize, pageNo, appType) {
         return new Promise(async (resolve, reject) => {
             try {
 
-                await elasticSearchHelper.pushAppVersionToLoggedInUser(
-                    userDetails, headers, appName
-                );
+                // TODO:: This is a dirty fix.
+                // Removing updateVersion flow for now as planned to
+                // get updateVersion from module instead of hitting to elastic search
+                // again and again
+
+                // await elasticSearchHelper.pushAppVersionToLoggedInUser(
+                //     userId, appName, appType
+                // );
 
                 let getNotificationDocument = 
                 await elasticSearchHelper.getNotificationData(
-                    userDetails, appName
+                    userId, appType
                 );
 
                 if (getNotificationDocument.statusCode !== httpStatusCode["ok"].status) {
@@ -78,22 +83,22 @@ module.exports = class InAppNotificationsHelper {
       * mark is_read- true to a specific notification.
       * @method
       * @name markAsRead
-      * @param {String} userDetails - Logged in user id.
-      * @param {String} [appName = ""] - Name of the app
+      * @param {String} userId - Logged in user id.
+      * @param {String} [appname = ""] - App type
       * @param {String} notificatonNumber - id of notification       
       * @returns {Promise} returns a promise.
      */
   
-    static markAsRead(userDetails, notificatonNumber, appName = "") {
+    static markAsRead(userId, notificatonNumber, appType = "") {
         return new Promise(async (resolve, reject) => {
             try {
 
                 let updateNotificationDocument = 
                 await elasticSearchHelper.updateNotificationData(
-                    userDetails, 
+                    userId, 
                     Number(notificatonNumber), 
                     { is_read: true }, 
-                    appName
+                    appType
                 );
 
                 return resolve(updateNotificationDocument);
@@ -107,15 +112,13 @@ module.exports = class InAppNotificationsHelper {
       * unread notification 
       * @method
       * @name unReadCount
-      * @param {String} userDetails - Logged in user id.
-      * @param {String} [appName = ""] - Name of the app
-      * @param {Object} headers - app headers
-      * @param {String} headers.platform - device platform.
-      * @param {String} headers.appName - name of the app.                    
+      * @param {String} userId - Logged in user id.
+      * @param {String} apptype - type of the app.
+      * @param {String} appname - name of the app.                    
       * @returns {Promise} returns a promise.
      */
 
-    static unReadCount(userDetails, appName = "", headers) {
+    static unReadCount(userId,apptype) {
         return new Promise(async (resolve, reject) => {
             try {
 
@@ -124,17 +127,22 @@ module.exports = class InAppNotificationsHelper {
                     data: []
                 };
 
-                if (headers.platform && headers.appname) {
-                    await elasticSearchHelper.pushAppVersionToLoggedInUser(
-                        userDetails, 
-                        headers, 
-                        appName
-                    );
+                // TODO:: This is a dirty fix.
+                // Removing updateVersion flow for now as planned to
+                // get updateVersion from module instead of hitting to elastic search
+                // again and again
+
+                // if (os && appname) {
+                    // await elasticSearchHelper.pushAppVersionToLoggedInUser(
+                    //     userId, 
+                    //     appname,
+                    //     apptype
+                    // );
 
                     let getNotificationDocument = 
                     await elasticSearchHelper.getNotificationData(
-                        userDetails, 
-                        appName
+                        userId, 
+                        apptype
                     );
 
                     if (getNotificationDocument.statusCode === httpStatusCode["ok"].status) {
@@ -142,47 +150,22 @@ module.exports = class InAppNotificationsHelper {
                         response["count"] = 
                         getNotificationDocument.body._source.notificationUnreadCount;
 
-                        let data = 
-                        getNotificationDocument.body._source.notifications.filter(
-                            item => item.payload.type === "appUpdate" && 
-                            item.is_read === false && 
-                            item.payload.platform === headers.platform);
+                        // let data = 
+                        // getNotificationDocument.body._source.notifications.filter(
+                        //     item => item.payload.type === "appUpdate" && 
+                        //     item.is_read === false && 
+                        //     item.payload.os === os);
 
-                        if (data.length > 0) {
-                            response["data"] = data;
-                        }
+                        // if (data.length > 0) {
+                        //     response["data"] = data;
+                        // }
 
                     }
-                }
+                // }
 
                 return resolve(response);
 
             } catch (error) {
-                return reject(error);
-            }
-        })
-    }
-
-    /**
-      * search notifications
-      * @method 
-      * @name search                   
-      * @returns {Promise} returns a promise.
-     */
-
-    static search() {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const USER_NOTIFICATION_DOCUMENT = await elasticsearch.client.search({
-                    index: "samiksha",
-                    type: "user-notification",
-                    size: 1000
-                });
-
-                let notifications = USER_NOTIFICATION_DOCUMENT.body.hits.hits;
-                return resolve(notifications);
-            }
-            catch (error) {
                 return reject(error);
             }
         })
@@ -225,7 +208,7 @@ module.exports = class InAppNotificationsHelper {
                         },
                         title: "Pending Assessment!",
                         text: "You have a Pending Assessment",
-                        appName: process.env.SAMIKSHA_NOTIFICATIONS_NAME
+                        appType : process.env.ASSESSMENT_APPLICATION_APP_TYPE
                     };
 
                     if (observation) {
@@ -336,8 +319,8 @@ module.exports = class InAppNotificationsHelper {
                         internal: false,
                         title: "Congratulations!",
                         type: "Information",
-                        "created_at": new Date(),
-                        appName: process.env.SAMIKSHA_NOTIFICATIONS_NAME
+                        created_at: new Date(),
+                        appType : process.env.ASSESSMENT_APPLICATION_APP_TYPE
                     };
 
                     if (observation) {
@@ -378,114 +361,6 @@ module.exports = class InAppNotificationsHelper {
     }
 
       /**
-      * Create notification.
-      * @method
-      * @name create
-      * @param {String} userId - Logged in user id.
-      * @param {Object} data - Notification data to be created.
-      * @returns {Promise} returns a promise.
-     */
-
-    static create(userId, data) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const createdDocument = 
-                await elasticSearchHelper.pushNotificationData(userId, data);
-
-                return resolve({
-                    status: httpStatusCode["ok"].status,
-                    result: "Success"
-                });
-            }
-            catch (error) {
-                return reject(error);
-            }
-        })
-    }
-
-    /**
-      * Push notifications data pushed to the particular logged in user.
-      * @method
-      * @name pushNotificationMessageToDevice
-      * @param {String} userId - Logged in user id.
-      * @param {Object} notificationMessage - 
-      * @param {String} notificationMessage.title - title of notification.
-      * @param {String} notificationMessage.text - text of notification.
-      * @param {String} notificationMessage.id - id of notification.
-      * @param {String} notificationMessage.is_read - is_read property of notification.
-      * @param {Object} notificationMessage.payload - payload of notification. 
-      * @param {String} notificationMessage.action - action of notification.
-      * @param {String} notificationMessage.internal - internal of notification.
-      * @param {String} notificationMessage.created_at - created_at date of notification.
-      * @param {String} notificationMessage.type - type date of notification.         
-      * @returns {Promise} returns a promise.
-     */
-
-    static pushNotificationMessageToDevice(userId, notificationMessage) {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                let getAllDevices = 
-                await userExtensionHelper.userExtensionDocument({
-                    userId: userId,
-                    status: "active",
-                    isDeleted: false
-                }, { devices: 1 });
-
-                if (!getAllDevices.devices.length > 0) {
-                    throw "No devices found";
-                }
-
-                let getSpecificAppData = 
-                getAllDevices.devices.filter(eachDeviceName => eachDeviceName.app === notificationMessage.appName
-                    && eachDeviceName.status === "active"
-                );
-
-                for (let pointerToDevices = 0; 
-                    pointerToDevices < getSpecificAppData.length; 
-                    pointerToDevices++) {
-
-                      let notificationDataToBeSent = {
-                        deviceId: getSpecificAppData[pointerToDevices].deviceId,
-                        title: notificationMessage.title,
-                        data: {
-                            "title": notificationMessage.title,
-                            "text": notificationMessage.text,
-                            id: JSON.stringify(notificationMessage.id),
-                            is_read: JSON.stringify(notificationMessage.is_read),
-                            payload: JSON.stringify(notificationMessage.payload),
-                            action: notificationMessage.action,
-                            internal: JSON.stringify(notificationMessage.internal),
-                            created_at: notificationMessage.created_at,
-                            type: notificationMessage.type
-                        },
-                        text: notificationMessage.text
-                    };
-
-                    let pushedData = 
-                    await pushNotificationsHelper.createNotificationInAndroid(notificationDataToBeSent);
-
-                    if ( !pushedData.status ) {
-
-                        let errorObject = {
-                            slackErrorName: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_NAME"),
-                            color: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_MESSAGE_COLOR"),
-                            message: `Cannot sent push notifications to ${getAllDevices.devices[pointerToDevices].deviceId}`
-                        };
-
-                        slackClient.sendMessageToSlack(errorObject);
-                    }
-                }
-
-                return resolve();
-
-            } catch (error) {
-                return reject(error);
-            }
-        })
-    }
-
-      /**
       * Send app update status as notification.
       * @method
       * @name updateAppVersion
@@ -495,7 +370,7 @@ module.exports = class InAppNotificationsHelper {
       * @param {String} updateAppData.text - text of notification.
       * @param {String} updateAppData.version - version of the app.
       * @param {String} updateAppData.status - status of the update notification.
-      * @param {String} updateAppData.platform - device platform.  
+      * @param {String} updateAppData.os - device os.  
       * @returns {Promise} returns a promise.
      */
 
@@ -522,7 +397,7 @@ module.exports = class InAppNotificationsHelper {
                       result["payload"]["appVersion"] = updateAppData[pointerToUpdateAppData].version;
                       result["payload"]["updateType"] = updateAppData[pointerToUpdateAppData].status;
                       result["payload"]["type"] = "appUpdate";
-                      result["payload"]["platform"] = updateAppData[pointerToUpdateAppData].platform;
+                      result["payload"]["os"] = updateAppData[pointerToUpdateAppData].os;
 
                     await kafkaCommunication.pushNotificationsDataToKafka(result);
                 }

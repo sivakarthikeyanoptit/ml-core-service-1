@@ -23,7 +23,7 @@ var messageReceived = function (message) {
   return new Promise(async function (resolve, reject) {
 
     try {
-      logger.info("---------- In Language Pack Consumer Message Function -------------");
+
       let parsedMessage = JSON.parse(message.value);
 
       if (parsedMessage.action === "language") {
@@ -36,7 +36,7 @@ var messageReceived = function (message) {
         delete parsedMessage.action;
 
         await elasticSearchHelper.pushLanguageData(id, parsedMessage,appName);
-        logger.info("---------- Language Pack Consumer Ends -------------");
+
       }
       
       return resolve("Message Received for language pack");
