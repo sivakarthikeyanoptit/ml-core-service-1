@@ -61,10 +61,27 @@ module.exports = class PushNotifications {
         return new Promise(async (resolve, reject) => {
             try {
 
+                const defaultAppType = gen.utils.checkIfEnvDataExistsOrNot("ASSESSMENT_APPLICATION_APP_TYPE").trim().toLowerCase(); // TODO - After some time if all app start supplying appType in header, remove this line.
+                
+                let appType = defaultAppType;
+                if(req.headers.apptype && req.headers.apptype != "") {
+                    appType = req.headers.apptype.trim().toLowerCase();
+                }
+
+                let appName = "";
+                if(req.headers.app && req.headers.app != "") {
+                    appName = req.headers.app.trim().toLowerCase();
+                }
+                
+                if (req.headers.appname && req.headers.appname != "") {
+                    appName = req.headers.appname.trim().toLowerCase();
+                }
+
                 let deviceData = {
                     deviceId: req.body.deviceId,
-                    app: req.headers.app,
                     os: req.headers.os,
+                    app: appName,
+                    appType: appType,
                     status: "active",
                     activatedAt: new Date()
                 };
@@ -78,9 +95,9 @@ module.exports = class PushNotifications {
                     response["result"] = {};
 
                     let topicArray = [ 
-                        deviceData.app.trim()+process.env.TOPIC_FOR_ALL_USERS,
-                        deviceData.app.trim()+process.env.TOPIC_FOR_ANDROID_ALL_USERS,
-                        deviceData.app.trim()+process.env.TOPIC_FOR_IOS_ALL_USERS
+                        deviceData.app + process.env.TOPIC_FOR_ALL_USERS,
+                        deviceData.app + process.env.TOPIC_FOR_ANDROID_ALL_USERS,
+                        deviceData.app + process.env.TOPIC_FOR_IOS_ALL_USERS
                     ];
 
                     await Promise.all(topicArray.map(async topicName => {
@@ -102,149 +119,6 @@ module.exports = class PushNotifications {
                 return reject({
                     status: error.status || httpStatusCode["internal_server_error"].status,
                     message: error.message || httpStatusCode["internal_server_error"].message,
-                    errorObject: error
-                });
-
-            }
-        })
-
-    }
-
-    /**
-     * @api {post} /kendra/api/v1/notifications/push/pushToUsers  
-     * Push Notifications To Users
-     * @apiVersion 1.0.0
-     * @apiGroup pushNotifications
-     * @apiHeader {String} X-authenticated-user-token Authenticity token
-     * @apiParam {File} userData Mandatory userData file of type csv.
-     * @apiSampleRequest /kendra/api/v1/notifications/push/pushToUsers
-     * @apiUse successBody
-     * @apiUse errorBody
-     */
-
-    /**
-      * Push sample data to the particular device id.
-      * Send notification users is done via by uploading csv.
-      * @method
-      * @name pushToUsers
-      * @param  {Request}  req  request body.
-      * @returns {csv} Response consists of exactly 
-      * the same csv that we upload with extra column status.
-     */
-
-
-    async pushToUsers(req) {
-
-        return new Promise(async (resolve, reject) => {
-
-            try {
-
-                if (!req.files || !req.files.userData) {
-                    throw { message: "Missing file of type userData" }
-                }
-
-                let userData = 
-                await csv().fromString(req.files.userData.data.toString());
-
-                const fileName = `push-to-device`;
-                let fileStream = new csvFileStream(fileName);
-                let input = fileStream.initStream();
-
-                (async function () {
-                    await fileStream.getProcessorPromise();
-                    return resolve({
-                        isResponseAStream: true,
-                        fileNameWithPath: fileStream.fileNameWithPath()
-                    });
-                })();
-
-                await Promise.all(userData.map(async element => {
-
-                    let userProfile = 
-                    await userExtensionHelper.userExtensionDocument({
-                        userId: element.userId,
-                        status: "active",
-                        isDeleted: false
-                    }, {
-                            devices: 1
-                    });
-
-                    if (userProfile && userProfile.devices.length > 0) {
-
-                        let deviceArray = userProfile.devices;
-
-                        await Promise.all(deviceArray.map(async device => {
-
-                            if (device.app == element.appName 
-                                && device.status !== "inactive") {
-
-                                let notificationResult;
-
-                                device.message = element.message;
-                                device.title = element.title;
-
-                                if (element.message && element.title) {
-                                    notificationResult = 
-                                    await pushNotificationsHelper.createNotificationInAndroid(device);
-
-                                    if (notificationResult !== undefined 
-                                        && notificationResult.success) {
-
-                                        let updateStatus = 
-                                        await userExtensionHelper.updateDeviceStatus(
-                                            device, deviceArray, element.userId);
-
-                                        //unsubscribe the deviceId from the topic
-                                        let topicArray = [
-                                            device.app.trim()+process.env.TOPIC_FOR_ALL_USERS,
-                                            device.app.trim()+process.env.TOPIC_FOR_ANDROID_ALL_USERS,
-                                            device.app.trim()+process.env.TOPIC_FOR_IOS_ALL_USERS
-                                        ];
-
-                                        await Promise.all(topicArray.map(async topicName => {
-
-                                            device.topic = topicName;
-                                            let unsubscribeResult = 
-                                            await pushNotificationsHelper.unsubscribeFromTopic(device);
-                                        }))
-
-                                        element.status = "Success";
-
-                                    }
-                                    else {
-
-                                        element.status = "Fail";
-                                    }
-
-                                }
-                                else {
-                                    element.status = 
-                                    "Message or title is not present in csv";
-                                }
-
-                            } else {
-                                element.status = 
-                                "App name could not be found or status is inactive";
-                            }
-
-                        }));
-
-                    } else {
-                        element.status = "No devices found.";
-                    }
-
-
-                    input.push(element);
-
-                }));
-
-                input.push(null);
-
-            } catch (error) {
-
-                return reject({
-                    status: error.status || 500,
-                    message: error.message || "Oops! something went wrong.",
                     errorObject: error
                 });
 
@@ -319,77 +193,6 @@ module.exports = class PushNotifications {
         })
 
     }
-
-
-    /**
-    * @api {post} /kendra/api/v1/notifications/push/pushToAllUsers  
-    * Push Notification To ALL Users
-    * @apiVersion 1.0.0
-    * @apiGroup pushNotifications
-    * @apiSampleRequest /kendra/api/v1/notifications/push/pushToAllUsers
-    * @apiHeader {String} X-authenticated-user-token Authenticity token
-    * @apiParam {File} pushToAllUsers Mandatory pushToAllUsers file of type csv.        
-    * @apiUse successBody
-    * @apiUse errorBody
-    */
-
-    /**
-      *  Push sample data to all users.
-      * @method
-      * @name pushToAllUsers 
-      * @param  {Request}  req  request body.It consists of csv to be uploaded for pushing to all users.
-      * @returns {csv} Response consists of exactly the same csv that we upload with extra column status.
-     */
-
-    async pushToAllUsers(req) {
-        return new Promise(async (resolve, reject) => {
-
-            try {
-
-                if (!req.files || !req.files.pushToAllUsers) {
-                    throw { message: "Missing file of type pushToAllUsers" };
-                }
-
-                let pushToAllUsers = 
-                await csv().fromString(req.files.pushToAllUsers.data.toString());
-
-                const fileName = `push-to-all-users`;
-                let fileStream = new csvFileStream(fileName);
-                let input = fileStream.initStream();
-
-                (async function () {
-                    await fileStream.getProcessorPromise();
-                    return resolve({
-                        isResponseAStream: true,
-                        fileNameWithPath: fileStream.fileNameWithPath()
-                    });
-                })();
-
-
-                await Promise.all(pushToAllUsers.map(async allUserData => {
-
-                    let topicPushStatus = 
-                    await pushNotificationsHelper.pushData(allUserData);
-
-                    input.push(topicPushStatus);
-
-                }))
-
-                input.push(null);
-
-            } catch (error) {
-
-                return reject({
-                    status: error.status || 500,
-                    message: error.message || "Oops! something went wrong.",
-                    errorObject: error
-                });
-
-            }
-        })
-
-    }
-
 
     /**
     * @api {post} /kendra/api/v1/notifications/push/subscribeToTopic  
@@ -527,25 +330,26 @@ module.exports = class PushNotifications {
     }
 
       /**
-    * @api {post} /kendra/api/v1/notifications/push/bodh
+    * @api {post} /kendra/api/v1/notifications/push/pushToUsers
     * Unsubscribe From Topic
     * @apiVersion 1.0.0
     * @apiGroup notifications
-    * @apiSampleRequest /kendra/api/v1/notifications/push/bodh
+    * @apiSampleRequest /kendra/api/v1/notifications/push/pushToUsers
     * @apiHeader {String} X-authenticated-user-token Authenticity token
-    * @apiParam {File} notifications Mandatory file of type csv.                
+    * @apiParam {File} userData Mandatory file of type csv.                
     * @apiUse successBody
     * @apiUse errorBody
     */
 
      /**
-      * Push notification data to bodh.
+      * Push notification data to pushToUsers.
       * @method
-      * @name bodh 
+      * @name pushToUsers - send notifications across app eg : bodh,samiksha based
+      * on user external ids.
       * @param  {Object} req - All requested data.
      */
 
-    async bodh(req) {
+    async pushToUsers(req) {
         return new Promise(async (resolve, reject) => {
 
             try {
@@ -569,8 +373,8 @@ module.exports = class PushNotifications {
                 });
                 }());
 
-                notificationsData.forEach(eachNotificationData=>{
-                    let userIds = eachNotificationData["userIds"].split(",");
+                notificationsData.forEach(notificationData=>{
+                    let userIds = notificationData["userIds"].split(",");
 
                     if(userIds.length >0) {
 
@@ -578,10 +382,11 @@ module.exports = class PushNotifications {
                             pointerToUserId<userIds.length;
                             pointerToUserId++
                         ) {
-                            let notificationData = {...eachNotificationData};
-                            notificationData["data"] = eachNotificationData.target?{
-                                title:eachNotificationData.target
-                            }:{};
+                            let notificationData = {...notificationData};
+                            notificationData["data"] = notificationData.target ? 
+                            {
+                                title : notificationData.target
+                            } : {};
     
                             delete notificationData.target;
                             delete notificationData.id;
@@ -616,12 +421,12 @@ module.exports = class PushNotifications {
                     async singleUserData => {
                         
                         if(userProfilesData[singleUserData.userExternalId]) {
-                            let devicesArray = 
+                            let devices = 
                             userProfilesData[singleUserData.userExternalId].devices;
 
                             let activeDevices =
-                            devicesArray.filter(eachUserDevice=>{
-                                if(eachUserDevice.app === process.env.BODH_NOTIFICATIONS_NAME 
+                            devices.filter(eachUserDevice=>{
+                                if(eachUserDevice.app === singleUserData.appname 
                                     && eachUserDevice.os === singleUserData.os && 
                                     eachUserDevice.status !== "inactive") {
                                         return eachUserDevice;
@@ -629,18 +434,18 @@ module.exports = class PushNotifications {
                             });
 
                             if(activeDevices.length>0) {
-                                let bodhNotifications = 
-                                await pushNotificationsHelper.sendNotificationsToBodh
+                                let notifications = 
+                                await pushNotificationsHelper.pushToUsers
                                 (
                                     singleUserData,
                                     activeDevices,
                                     userProfilesData[singleUserData.userExternalId].userId,
-                                    singleUserData.label
+                                    singleUserData.label ? singleUserData.label : ""
                                 );
                                 
                               
                                 singleUserData["status"] = 
-                                bodhNotifications?"Success":"failure";
+                                notifications?"Success":"failure";
                             } else {
                                 singleUserData["status"] = "No active devices";
                             }

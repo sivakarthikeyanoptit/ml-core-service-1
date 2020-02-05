@@ -25,11 +25,11 @@ var messageReceived = function (message, consumer) {
     return new Promise(async function (resolve, reject) {
 
         try {
-            logger.info("---------- In Email Consumer Message Function -------------");
+
             let parsedMessage = JSON.parse(message.value);
 
             await emailHelper.sendEmail(parsedMessage, consumer);
-            logger.info("---------- Successfully sent mail -------------");
+
             return resolve("Message Received for email");
         } catch (error) {
             return reject(error);

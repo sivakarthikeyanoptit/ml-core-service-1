@@ -88,13 +88,14 @@ if (process.env.NODE_ENV == "development" || process.env.NODE_ENV == "local") {
 }
 
 app.all(process.env.ALL_ROUTES, (req, res, next) => {
-
-  logger.info("Requests:", {
-    method: req.method,
-    url: req.url,
-    headers: req.headers,
-    body: req.body
-  })
+  if(ENABLE_DEBUG_LOGGING === "ON") {
+    logger.info("Requests:", {
+      method: req.method,
+      url: req.url,
+      headers: req.headers,
+      body: req.body
+    })
+  }
 
   next();
 });

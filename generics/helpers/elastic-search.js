@@ -6,26 +6,32 @@
  */
 
 //dependencies
-const SAMIKSHA_INDEX = 
-gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_SAMIKSHA_INDEX");
+const ASSESSMENT_APPLICATION_APP_TYPE = 
+gen.utils.checkIfEnvDataExistsOrNot("ASSESSMENT_APPLICATION_APP_TYPE");
 
-const SAMIKSHA_NOTIFICATION_TYPE = 
-gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE");
+const IMPROVEMENT_PROJECT_APPLICATION_APP_TYPE = 
+gen.utils.checkIfEnvDataExistsOrNot("IMPROVEMENT_PROJECT_APPLICATION_APP_TYPE");
 
-const UNNATI_INDEX = 
-gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_UNNATI_INDEX");
+const ASSESSMENT_INDEX = 
+gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_ASSESSMENT_INDEX");
 
-const DEFAULT_LANGUAGE_INDEX = 
-gen.utils.checkIfEnvDataExistsOrNot("SAMIKSHA_LANGUAGE_INDEX");
+const USER_NOTIFICATION_TYPE = 
+gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_USER_NOTIFICATIONS_TYPE");
 
-const DEFAULT_LANGUGAE_TYPE = 
-gen.utils.checkIfEnvDataExistsOrNot("SAMIKSHA_LANGUAGE_TYPE");
+const IMPROVEMENT_PROJECT_INDEX = 
+gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_IMPROVEMENT_PROJECT_INDEX");
 
-const UNNATI_LANGUAGE_INDEX = 
-gen.utils.checkIfEnvDataExistsOrNot("UNNATI_LANGUAGE_INDEX");
+const COMMON_LANGUAGE_INDEX = 
+gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_COMMON_LANGUAGE_INDEX");
 
-const UNNATI_LANGUAGE_TYPE = 
-gen.utils.checkIfEnvDataExistsOrNot("UNNATI_LANGUAGE_TYPE");
+const COMMON_LANGUGAE_TYPE = 
+gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_COMMON_LANGUAGE_TYPE");
+
+const IMPROVEMENT_PROJECT_LANGUAGE_INDEX = 
+gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_IMPROVEMENT_PROJECT_LANGUAGE_INDEX");
+
+const IMPROVEMENT_PROJECT_LANGUAGE_TYPE = 
+gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_IMPROVEMENT_PROJECT_LANGUAGE_TYPE");
 
 const APP_VERSION_INDEX = 
 gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_APP_RELEASES_INDEX");
@@ -38,7 +44,7 @@ const ALL_CONFIG_TYPE =
 gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_ALL_CONFIG_TYPE");
 
 const APPLICATION_CONFIG_INDEX = 
-gen.utils.checkIfEnvDataExistsOrNot("APPLICATION_CONFIG_INDEX")
+gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_APPLICATION_CONFIG_INDEX")
 
 
 
@@ -61,7 +67,7 @@ var pushNotificationData = function (userId = "", notificatonData = {}) {
       }
 
       let userNotificationDocument = 
-      await getNotificationData(userId, notificatonData.appName);
+      await getNotificationData(userId, notificatonData.appType);
 
       if (userNotificationDocument.statusCode == httpStatusCode["not_found"].status) {
 
@@ -86,6 +92,37 @@ var pushNotificationData = function (userId = "", notificatonData = {}) {
   });
 };
 
+
+/**
+  * Helper function for getting ES index based on notification app type.
+  * @function
+  * @name _getESIndexForNotificationAppType
+  * @param {String} appType - Notification app type.
+  * @returns {Promise} returns a promise.
+*/
+
+var _getESIndexForNotificationAppType = function (appType = "") {
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      let indexName = ASSESSMENT_INDEX;
+
+      if (appType === IMPROVEMENT_PROJECT_APPLICATION_APP_TYPE) {
+        indexName = IMPROVEMENT_PROJECT_INDEX;
+      } 
+      
+      if (indexName == "") {
+        throw new Error("No elastic search index found.");
+      }
+
+      return resolve(indexName);
+    }
+    catch (error) {
+      return reject(error);
+    }
+  })
+};
+
 /**
   * Helper function for pushNotificationData.
   * @function
@@ -99,16 +136,12 @@ var _createInAppNotification = function (userId, notificationData) {
   return new Promise(async function (resolve, reject) {
     try {
 
-      let indexName = SAMIKSHA_INDEX;
-
-      if (notificationData.appName && notificationData.appName === "unnati") {
-        indexName = UNNATI_INDEX;
-      }
+      let indexName = await _getESIndexForNotificationAppType(notificationData.appType);
 
       let notificationCreationObj = {
         id: userId,
         index: indexName,
-        type: SAMIKSHA_NOTIFICATION_TYPE
+        type: USER_NOTIFICATION_TYPE
       };
 
       notificationData.id = 0;
@@ -156,17 +189,13 @@ var _updateInAppNotification = function (
     return new Promise(async function (resolve, reject) {
       try {
 
-        let indexName = SAMIKSHA_INDEX;
-
-        if (notificationDataToBeAdded.appName && 
-          notificationDataToBeAdded.appName == "unnati") {
-            indexName = UNNATI_INDEX;
-        }
+        
+        let indexName = await _getESIndexForNotificationAppType(notificationDataToBeAdded.appType);
 
         let notificationUpdationObj = {
           id: userId,
           index: indexName,
-          type: SAMIKSHA_NOTIFICATION_TYPE
+          type: USER_NOTIFICATION_TYPE
         };
 
         let notificationObject = currentNotifications.body._source;
@@ -209,12 +238,12 @@ var _updateInAppNotification = function (
 /**
   * Update notification data.
   * @function
-  * @name _updateInAppNotification
+  * @name updateNotificationData
   * @param {String} [userId = ""] - logged in user id.
   * @param {Number} [notificatonNumber = 0] - id of notification.
   * @param {Number} [notificationData = {}] - notification data to update.
   * @param {Object} [notificationData = {}] - notification data to update.
-  * @param {String} [appName = ""] - app name.
+  * @param {String} [appType = ""] - app type.
   * @returns {Promise} returns a promise.
 */
 
@@ -222,7 +251,8 @@ var updateNotificationData = function (
   userId = "", 
   notificatonNumber = 0, 
   notificationData = {}, 
-  appName = "") {
+  appType = ""
+) {
 
 
     return new Promise(async function (resolve, reject) {
@@ -232,14 +262,10 @@ var updateNotificationData = function (
           throw "Invalid user id."
         }
 
-        let indexName = SAMIKSHA_INDEX;
-
-        if (appName && appName == "unnati") {
-          indexName = UNNATI_INDEX;
-        }
+        let indexName = await _getESIndexForNotificationAppType(appType);
 
         let userNotificationDocument = 
-        await getNotificationData(userId, appName);
+        await getNotificationData(userId, appType);
 
       if (
         userNotificationDocument.body.error && 
@@ -266,7 +292,7 @@ var updateNotificationData = function (
         let updateData = {
           id: userId,
           index: indexName,
-          type: SAMIKSHA_NOTIFICATION_TYPE,
+          type: USER_NOTIFICATION_TYPE,
           body: {
             doc: {
               notificationCount: notificationObject.notifications.length,
@@ -306,11 +332,11 @@ var updateNotificationData = function (
   * @function
   * @name getNotificationData
   * @param {String} [userId = ""] - logged in user id.
-  * @param {String} [appName = ""] - app name.
+  * @param {String} [appType = ""] - app type.
   * @returns {Promise} returns a promise.
 */
 
-var getNotificationData = function (userId = "", appName = "") {
+var getNotificationData = function (userId = "", appType = "") {
 
   return new Promise(async function (resolve, reject) {
     try {
@@ -325,15 +351,11 @@ var getNotificationData = function (userId = "", appName = "") {
 
       let notificationInfo = {};
 
-      let indexName = SAMIKSHA_INDEX;
-
-      if (appName && appName == "unnati") {
-        indexName = UNNATI_INDEX;
-      }
+      let indexName = await _getESIndexForNotificationAppType(appType);
 
       notificationInfo["id"] = userId;
       notificationInfo["index"] = indexName;
-      notificationInfo["type"] = SAMIKSHA_NOTIFICATION_TYPE;
+      notificationInfo["type"] = USER_NOTIFICATION_TYPE;
 
       const userNotificationDocument = await getData(notificationInfo);
 
@@ -367,13 +389,9 @@ var deleteReadOrUnReadNotificationData = function (users = "all", notificationDa
         appIndex = notificationData.condition.index;
       }
 
-      let indexName = SAMIKSHA_INDEX;
+      let indexName = await _getESIndexForNotificationAppType(appIndex);
 
-      if (appIndex === "unnati") {
-        indexName = UNNATI_INDEX;
-      }
-
-      let allData = await _searchForAllData(indexName, SAMIKSHA_NOTIFICATION_TYPE);
+      let allData = await _searchForAllData(indexName, USER_NOTIFICATION_TYPE);
 
       let currentDate = moment(new Date());
       let allUserData = allData;
@@ -451,7 +469,7 @@ var deleteNotificationData = function (userId, notificationId, appIndex) {
 
       } else if (userNotificationDocument.statusCode == httpStatusCode["ok"].status) {
 
-        let indexName = appIndex !== "" ? appIndex : SAMIKSHA_INDEX;
+        let indexName = appIndex !== "" ? appIndex : ASSESSMENT_INDEX;
 
         let notificationObject = userNotificationDocument.body._source;
 
@@ -467,7 +485,7 @@ var deleteNotificationData = function (userId, notificationId, appIndex) {
           let updateData = {
             id: userId,
             index: indexName,
-            type: SAMIKSHA_NOTIFICATION_TYPE,
+            type: USER_NOTIFICATION_TYPE,
             body: {
               doc: {
                 notificationCount: notificationObject.notifications.length,
@@ -486,7 +504,7 @@ var deleteNotificationData = function (userId, notificationId, appIndex) {
 
           userNotificationDocDeletion = await deleteDocumentFromIndex(
             indexName,
-            SAMIKSHA_NOTIFICATION_TYPE,
+            USER_NOTIFICATION_TYPE,
             userId
           );
 
@@ -506,14 +524,14 @@ var deleteNotificationData = function (userId, notificationId, appIndex) {
 /**
   *  Push language data in elastic search.
   * @function
-  * @name deleteNotificationData
+  * @name pushLanguageData
   * @param {String} languageId - language id.
   * @param {Object} [languageData = {}] - Language data.
   * @returns {Promise} returns a promise.
 */
 
 
-var pushLanguageData = function (languageId = "", languageData = {},appName) {
+var pushLanguageData = function (languageId = "", languageData = {}, appType = "") {
 
   return new Promise(async function (resolve, reject) {
     try {
@@ -523,12 +541,12 @@ var pushLanguageData = function (languageId = "", languageData = {},appName) {
       }
 
       let languageInfo = {};
-      languageInfo["index"] = DEFAULT_LANGUAGE_INDEX;
-      languageInfo["type"] = DEFAULT_LANGUGAE_TYPE;
+      languageInfo["index"] = COMMON_LANGUAGE_INDEX;
+      languageInfo["type"] = COMMON_LANGUGAE_TYPE;
       
-      if(appName !== "" && appName === "unnati") {
-        languageInfo["index"] = UNNATI_LANGUAGE_INDEX;
-        languageInfo["type"] = UNNATI_LANGUAGE_TYPE;
+      if(appType !== "" && appType === IMPROVEMENT_PROJECT_APPLICATION_APP_TYPE) {
+        languageInfo["index"] = IMPROVEMENT_PROJECT_LANGUAGE_INDEX;
+        languageInfo["type"] = IMPROVEMENT_PROJECT_LANGUAGE_TYPE;
       }
 
       languageInfo["id"] = languageId;
@@ -543,7 +561,6 @@ var pushLanguageData = function (languageId = "", languageData = {},appName) {
           translate: languageData
         }
 
-        logger.info("pushed to elastic search");
         const languageDocCreation = await _createOrUpdateData(languageObj)
 
         if (
@@ -568,7 +585,7 @@ var pushLanguageData = function (languageId = "", languageData = {},appName) {
         }
 
       } else {
-        throw "Something went wrong!"
+        throw new Error("Something went wrong!");
       }
 
       return resolve({
@@ -595,13 +612,15 @@ var updateAppVersion = function (versionData) {
   return new Promise(async function (resolve, reject) {
     try {
 
-      if (versionData.appName == "") throw "Invalid appName.";
+      if (versionData.appName == "") {
+        throw "Invalid appName.";
+      }
 
       let versionInfo = {};
 
       versionInfo["id"] = versionData.appName;
       versionInfo["index"] = APP_VERSION_INDEX;
-      versionInfo["type"] = SAMIKSHA_NOTIFICATION_TYPE;
+      versionInfo["type"] = USER_NOTIFICATION_TYPE;
 
       let appVersionDocument = await getData(versionInfo);
 
@@ -664,18 +683,20 @@ var updateAppVersion = function (versionData) {
 */
 
 
-var pushAppVersionToLoggedInUser = function (userDetails, headers, appName) {
+var pushAppVersionToLoggedInUser = function ( userId,appName,appType ) {
 
   return new Promise(async function (resolve, reject) {
     try {
 
-      if (headers.appName == "") throw "Invalid appName.";
+      if (appType == "") {
+        throw "Invalid appName.";
+      }
 
       let versionInfo = {};
 
-      versionInfo["id"] = headers.appname;
+      versionInfo["id"] = appName;
       versionInfo["index"] = APP_VERSION_INDEX;
-      versionInfo["type"] = SAMIKSHA_NOTIFICATION_TYPE;
+      versionInfo["type"] = USER_NOTIFICATION_TYPE;
 
       let appVersionDocument = await getData(versionInfo);
 
@@ -685,10 +706,10 @@ var pushAppVersionToLoggedInUser = function (userDetails, headers, appName) {
         versionData["created_at"] = new Date();
 
         let userNotificationDocument = 
-        await getNotificationData(userDetails, versionData.appName);
+        await getNotificationData(userId, appType);
 
         if (userNotificationDocument.statusCode === httpStatusCode["not_found"].status) {
-          await _createInAppNotification(userDetails, versionData);
+          await _createInAppNotification(userId, versionData);
         } else {
 
           let notificationData = 
@@ -697,7 +718,7 @@ var pushAppVersionToLoggedInUser = function (userDetails, headers, appName) {
             item.payload.appVersion === versionData.payload.appVersion);
 
           if (!notificationData) {
-            await _updateInAppNotification(userDetails, versionData, userNotificationDocument);
+            await _updateInAppNotification(userId, versionData, userNotificationDocument);
           }
 
         }
@@ -727,13 +748,13 @@ var getLanguageData = function (languageId = "") {
   return new Promise(async function (resolve, reject) {
     try {
 
-      if (!elasticsearch.client) throw "Elastic search is down.";
+      if (!elasticsearch.client) throw new Error("Elastic search is down.");
 
-      if (languageId == "") throw "Invalid language id.";
+      if (languageId == "") throw new Error("Invalid language id.");
 
       const languageDocument = await getData(languageId, {
-        index: LANGUAGE_INDEX,
-        type: LANGUGAE_TYPE
+        index: COMMON_LANGUAGE_INDEX,
+        type: COMMON_LANGUGAE_TYPE
       });
 
       return resolve(languageDocument);
@@ -759,12 +780,12 @@ var getAllLanguagesData = function (appName) {
         throw "Elastic search is down.";
       }
 
-      let languageIndex = DEFAULT_LANGUAGE_INDEX;
-      let languageType = DEFAULT_LANGUGAE_TYPE;
+      let languageIndex = COMMON_LANGUAGE_INDEX;
+      let languageType = COMMON_LANGUGAE_TYPE;
 
-      if(appName === "unnati"){
-        languageIndex = UNNATI_LANGUAGE_INDEX;
-        languageType = UNNATI_LANGUAGE_TYPE;
+      if(appName === IMPROVEMENT_PROJECT_APPLICATION_APP_TYPE){
+        languageIndex = IMPROVEMENT_PROJECT_LANGUAGE_INDEX;
+        languageType = IMPROVEMENT_PROJECT_LANGUAGE_TYPE;
       }
 
       const checkIndexExistsOrNot = await _indexExistOrNot(languageIndex);

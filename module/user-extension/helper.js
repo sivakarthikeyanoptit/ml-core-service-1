@@ -142,7 +142,7 @@ module.exports = class UserExtensionHelper {
       * @returns {Promise} returns a promise.
      */
 
-    static updateDeviceStatus(deviceData, deviceArray, userId) {
+    static updateDeviceStatus(deviceId,deviceArray, userId) {
 
         return new Promise(async (resolve, reject) => {
 
@@ -152,7 +152,7 @@ module.exports = class UserExtensionHelper {
                     delete devices['message'];
                     delete devices['title'];
 
-                    if (devices.deviceId == deviceData.deviceId) {
+                    if (devices.deviceId == deviceId) {
                         devices.status = "inactive";
                         devices.deactivatedAt = new Date();
                     }
