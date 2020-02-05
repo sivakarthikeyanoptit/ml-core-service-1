@@ -62,6 +62,13 @@ module.exports = class InAppNotifications {
 
             try {
 
+                const defaultAppType = gen.utils.checkIfEnvDataExistsOrNot("ASSESSMENT_APPLICATION_APP_TYPE").trim().toLowerCase(); // TODO - After some time if all app start supplying appType in header, remove this line.
+                
+                let appType = defaultAppType;
+                if(req.headers.apptype && req.headers.apptype != "") {
+                    appType = req.headers.apptype.trim().toLowerCase();
+                }
+
                 let notificationDocument = 
                 await notificationsHelper.list(
                     (req.params._id && req.params._id != "") ? 
@@ -69,10 +76,8 @@ module.exports = class InAppNotifications {
                     : req.userDetails.id, 
                     req.pageSize, 
                     req.pageNo, 
-                    (req.query.appName && req.query.appName != "") ? 
-                    req.query.appName : "",
-                    req.headers
-                    );
+                    appType
+                );
 
                 return resolve({
                     result: notificationDocument,
@@ -116,12 +121,18 @@ module.exports = class InAppNotifications {
         return new Promise(async (resolve, reject) => {
             try {
 
+                const defaultAppType = gen.utils.checkIfEnvDataExistsOrNot("ASSESSMENT_APPLICATION_APP_TYPE").trim().toLowerCase(); // TODO - After some time if all app start supplying appType in header, remove this line.
+                
+                let appType = defaultAppType;
+                if(req.headers.apptype && req.headers.apptype != "") {
+                    appType = req.headers.apptype.trim().toLowerCase();
+                }
+
                 let unReadCountDocument = 
                 await notificationsHelper.unReadCount(
                     req.userDetails.id, 
-                    (req.query.appName && req.query.appName != "") ?
-                     req.query.appName : "",
-                     req.headers);
+                    appType
+                );
 
                 return resolve({
                     message: req.t('unreadNotifocation'),
@@ -151,6 +162,8 @@ module.exports = class InAppNotifications {
      * Mark as Notification Read
      * @apiVersion 1.0.0
      * @apiGroup inAppNotifications
+     * @apiHeader {String} X-authenticated-user-token Authenticity token  
+     * @apiHeader {String} appType App Type  
      * @apiSampleRequest /kendra/api/v1/notifications/in-app/markAsRead/1
      * @apiUse successBody
      * @apiUse errorBody
@@ -169,12 +182,18 @@ module.exports = class InAppNotifications {
 
             try {
 
+                const defaultAppType = gen.utils.checkIfEnvDataExistsOrNot("ASSESSMENT_APPLICATION_APP_TYPE").trim().toLowerCase(); // TODO - After some time if all app start supplying appType in header, remove this line.
+                
+                let appType = defaultAppType;
+                if(req.headers.apptype && req.headers.apptype != "") {
+                    appType = req.headers.apptype.trim().toLowerCase();
+                }
 
                 await notificationsHelper.markAsRead(
                     req.userDetails.id, 
                     req.params._id, 
-                    (req.query.appName && req.query.appName != "") ? 
-                    req.query.appName : "");
+                    appType
+                );
 
                 return resolve({
                     message: req.t('markItReadNotification'),
@@ -244,37 +263,6 @@ module.exports = class InAppNotifications {
             })
         }
     })
-
-    }
-
-    // TODO:: This is a dirty fix.
-    // Required only for testing purpose. To clear the index given.
-
-    async deleteBasedOnIndex(req) {
-      return new Promise(async (resolve, reject) => {
-
-        try {
-
-            await elasticsearch.client.indices.delete({
-                index: req.params._id
-            })
-
-            return resolve({
-                message: "Successfully deleted",
-                status: httpStatusCode.ok.status
-            })
-        } catch (error) {
-            reject({
-                status: 
-                error.status ||
-                httpStatusCode["internal_server_error"].status,
-
-                message: 
-                error.message || 
-                httpStatusCode["internal_server_error"].message
-            })
-        }
-      })
 
     }
 

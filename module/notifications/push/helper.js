@@ -12,7 +12,6 @@ const fcmNotification = require('fcm-notification');
 const FCM_KEY_PATH = gen.utils.checkIfEnvDataExistsOrNot("FCM_KEY_PATH");
 const fcm_token_path = require(ROOT_PATH + FCM_KEY_PATH);
 const FCM = new fcmNotification(fcm_token_path);
-const THEME_COLOR = gen.utils.checkIfEnvDataExistsOrNot("SAMIKSHA_THEME_COLOR");
 const NODE_ENV = gen.utils.checkIfEnvDataExistsOrNot("NODE_ENV"); 
 const slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
 const userExtensionHelper = require(MODULES_BASE_PATH + "/user-extension/helper");
@@ -35,20 +34,20 @@ module.exports = class PushNotificationsHelper {
       * @returns {Promise} returns a promise.
      */
 
-    static pushToTopic(element) {
+    static pushToTopic(notification) {
         return new Promise(async (resolve, reject) => {
             try {
 
                 let pushNotificationRelatedInformation = {
-                    topic: element.topicName,
+                    topic: notification.topicName,
                     notification: {
-                        title: element.title,
-                        body: element.message
+                        title: notification.title,
+                        body: notification.message
                     }
                 };
 
                 let pushToTopicData = 
-                await this.sendMessage(pushNotificationRelatedInformation);
+                await _sendMessage(pushNotificationRelatedInformation);
 
                 return resolve(pushToTopicData);
 
@@ -58,180 +57,6 @@ module.exports = class PushNotificationsHelper {
         })
     }
 
-
-    /**
-      * Create notification in android.
-      * @method
-      * @name createNotificationInAndroid
-      * @param {Object} notificationData - Notification that need to a given android.
-      * @param {String} notificationData.data - Consists of Notification data.
-      * @param {String} notificationData.title - title of notification.
-      * @param {String} notificationData.text - text of notification. 
-      * @param {String} notificationData.deviceId - where to sent the notifications.                                           
-      * @returns {Promise} returns a promise.
-     */
-
-    static createNotificationInAndroid(notificationData) {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                let pushNotificationRelatedInformation = {
-                    android: {
-                        "data": notificationData.data ? notificationData.data : {},
-                        ttl: 3600 * 1000, // 1 hour in milliseconds
-                        priority: 'high',
-                        notification: {
-                            "click_action" : "FCM_PLUGIN_ACTIVITY",
-                            title : notificationData.title,
-                            body : notificationData.text ? 
-                            notificationData.text : notificationData.message,
-                            icon : 'stock_ticker_update',
-                            color: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_MESSAGE_COLOR")                        
-                        },
-
-                    },
-                    token: notificationData.deviceId
-                };
-
-                let pushToDevice = 
-                await this.sendMessage(pushNotificationRelatedInformation);
-
-                return resolve(pushToDevice);
-
-            } catch (error) {
-                return reject(error);
-            }
-        })
-    }
-
-      /**
-      * Create notification in ios.
-      * @method
-      * @name createNotificationInIos
-      * @param {Object} notificationData - Notification that need to a given android.
-      * @param {String} notificationData.title - title of notification.
-      * @param {String} notificationData.text - text of notification.   
-      * @param {String} notificationData.deviceId - where to sent the notifications.                                           
-      * @returns {Promise} returns a promise.
-     */
-
-    static createNotificationInIos(notificationData) {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                let pushNotificationRelatedInformation = {
-                    android: {
-                        notification: {
-                            "click_action" : "FCM_PLUGIN_ACTIVITY",
-                            title : notificationData.title,
-                            body : notificationData.text ? 
-                            notificationData.text : notificationData.message,
-                            icon : 'stock_ticker_update',
-                            color : '#f45342'
-                        }
-                    },
-                    token: notificationData.deviceId
-                };
-
-                let pushToDevice = await this.sendMessage(pushNotificationRelatedInformation);
-
-                return resolve(pushToDevice);
-
-
-            } catch (error) {
-                return reject(error);
-            }
-        })
-    }
-
-     /**
-      * Push to single device.
-      * @method
-      * @name pushToDeviceId
-      * @param {Object} notificationData - Notification that need to a given android.
-      * @param {String} notificationData.title - title of notification.
-      * @param {String} notificationData.text - text of notification.                                          
-      * @returns {Promise} returns a promise.
-     */
-
-    static pushToDeviceId(notificationData) {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                var token = notificationData.deviceId;
-
-                let pushNotificationRelatedInformation = {
-                    token: token,
-                    notification: {
-                        title: notificationData,
-                        body: notificationData.message
-                    }
-                };
-
-                let pushToFcmToken = await this.sendMessage(pushNotificationRelatedInformation);
-
-                return resolve(pushToFcmToken);
-
-            } catch (error) {
-                return reject(error)
-            }
-        })
-    }
-
-    /**
-      * FCM send message functionality.
-      * @method
-      * @name sendMessage
-      * @param {Object} notificationInformation - Notification information.                                      
-      * @returns {Promise} returns a promise.
-     */
-
-    static sendMessage(notificationInformation) {
-
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                let deviceId = notificationInformation.token;
-
-                FCM.send(notificationInformation, (err, response) => {
-
-                    let success;
-                    let message = "";
-                    if (err) {
-                        if (err.errorInfo && err.errorInfo.message) {
-                            if (err.errorInfo.message === "The registration token is not a valid FCM registration token") {
-
-                                slackClient.sendMessageToSlack({
-                                    "code" : err.errorInfo.code,
-                                    "message" : err.errorInfo.message,
-                                    slackErrorName: 
-                                    gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_NAME"),
-                                    color: 
-                                    gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_MESSAGE_COLOR")
-                                });
-
-                                message = err.errorInfo.message;
-                            }
-                        }
-
-                        success = false;
-
-                    } else {
-                        success = true;
-                    }
-
-                    return resolve({
-                        success: success,
-                        message: message
-                    });
-                });
-
-            } catch (error) {
-                return reject(error);
-            }
-        })
-
-    }
 
      /**
       * Subscribe to topic.
@@ -347,7 +172,7 @@ module.exports = class PushNotificationsHelper {
             try {
 
                 if (!allUserData.topicName) {
-                    allUserData.topicName = "allUsers";
+                    throw "topic name is required"
                 }
 
                 if (allUserData.message && allUserData.title) {
@@ -477,47 +302,46 @@ module.exports = class PushNotificationsHelper {
       * @returns {Promise} returns a promise.
      */
 
-    static sendNotificationsToBodh(notificationsData,activatedDevices,userId,topicName) {
+    static pushToUsers( notificationsData,devices,userId,topicName = "" ) {
         return new Promise(async (resolve, reject) => {
             try {
 
                 let userInfo = new Array;
-                let topic = topicName;
 
                 for(let pointerToDevices = 0;
-                    pointerToDevices<activatedDevices.length;
+                    pointerToDevices<devices.length;
                     pointerToDevices++
                 ) {
                     let userInfoData = {};
 
                     notificationsData["deviceId"] = 
-                    activatedDevices[pointerToDevices].deviceId;
+                    devices[pointerToDevices].deviceId;
 
                     let pushNotificationInAndroid = 
-                    await this.createNotificationInAndroid(
-                        notificationsData
+                    await this.sendNotifications(
+                        notificationsData,
+                        devices,
+                        userId,
+                        devices[pointerToDevices].os
                     );
 
                     userInfoData["deviceId"] = 
-                    activatedDevices[pointerToDevices].deviceId;
+                    devices[pointerToDevices].deviceId;
 
                     if (!pushNotificationInAndroid.success) {
-                        
-                        await userExtensionHelper.updateDeviceStatus(
-                            activatedDevices[pointerToDevices], 
-                            activatedDevices, 
-                            userId
-                        );
 
                         userInfoData["success"] = false; 
 
                     } else {
-                        userInfoData["success"] = true; 
-                        let subscribeData = {
-                            deviceId : activatedDevices[pointerToDevices].deviceId,
-                            topic : topic
+                        userInfoData["success"] = true;
+                        
+                        if(topicName !== "") {
+                            let subscribeData = {
+                                deviceId : devices[pointerToDevices].deviceId,
+                                topic : topicName
+                            }
+                            await this.subscribeToTopic(subscribeData)
                         }
-                        await this.subscribeToTopic(subscribeData)
                     }
 
                     userInfo.push(userInfoData);
@@ -535,5 +359,228 @@ module.exports = class PushNotificationsHelper {
         })
     }
 
+      /**
+      * Send notifications to android or ios
+      * @method
+      * @name sendNotifications
+      * @param {Object} notificationData - Notification data to be sent.                                                 
+      * @returns {Promise} returns a promise.
+     */
+
+    static sendNotifications(notificationData,devices,userId,os) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                
+                let response = await _createNotificationInAndroidOrIos(
+                    notificationData,
+                    devices,
+                    userId
+                );
+
+                return resolve(response);
+            } catch(error) {
+                return reject(error);
+            }
+        })
+    }
+
+    /**
+      * Push notifications data pushed to the particular logged in user.
+      * @method
+      * @name pushNotificationMessageToDevice
+      * @param {String} userId - Logged in user id.
+      * @param {Object} notificationMessage - 
+      * @param {String} notificationMessage.title - title of notification.
+      * @param {String} notificationMessage.text - text of notification.
+      * @param {String} notificationMessage.id - id of notification.
+      * @param {String} notificationMessage.is_read - is_read property of notification.
+      * @param {Object} notificationMessage.payload - payload of notification. 
+      * @param {String} notificationMessage.action - action of notification.
+      * @param {String} notificationMessage.internal - internal of notification.
+      * @param {String} notificationMessage.created_at - created_at date of notification.
+      * @param {String} notificationMessage.type - type date of notification.         
+      * @returns {Promise} returns a promise.
+     */
+
+    static pushNotificationMessageToDevice(userId, notificationMessage) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let getAllDevices = 
+                await userExtensionHelper.userExtensionDocument({
+                    userId: userId,
+                    status: "active",
+                    isDeleted: false
+                }, { devices: 1 });
+
+                if (!getAllDevices.devices.length > 0) {
+                    throw "No devices found";
+                }
+
+                let activeDevices = 
+                getAllDevices.devices.filter(eachDeviceName => eachDeviceName.appType === notificationMessage.appType
+                    && eachDeviceName.status === "active"
+                );
+
+                if( activeDevices.length > 0 ) {
+                
+                    for (let pointerToDevices = 0; 
+                        pointerToDevices < activeDevices.length; 
+                        pointerToDevices++
+                        ) {
+                            
+                            let notificationDataToBeSent = {
+                                deviceId: activeDevices[pointerToDevices].deviceId,
+                                title: notificationMessage.title,
+                                data: {
+                                    "title": notificationMessage.title,
+                                    "text": notificationMessage.text,
+                                    id: JSON.stringify(notificationMessage.id),
+                                    is_read: JSON.stringify(notificationMessage.is_read),
+                                    payload: JSON.stringify(notificationMessage.payload),
+                                    action: notificationMessage.action,
+                                    internal: JSON.stringify(notificationMessage.internal),
+                                    created_at: notificationMessage.created_at,
+                                    type: notificationMessage.type
+                                },
+                                text: notificationMessage.text
+                            };
+
+                            await this.sendNotifications(
+                                notificationDataToBeSent,
+                                activeDevices,
+                                userId,
+                                activeDevices[pointerToDevices].os
+                            );
+                    }
+                } else {
+                    logger.error("No devices found");
+                }
+
+                return resolve();
+
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
 
 };
+
+
+    /**
+      * Create notification in android.
+      * @method
+      * @name createNotificationInAndroid
+      * @param {Object} notificationData - Notification that need to a given android.
+      * @param {String} notificationData.data - Consists of Notification data.
+      * @param {String} notificationData.title - title of notification.
+      * @param {String} notificationData.text - text of notification. 
+      * @param {String} notificationData.deviceId - where to sent the notifications.                                           
+      * @returns {Promise} returns a promise.
+     */
+
+    async function _createNotificationInAndroidOrIos(
+        notificationData,
+        devices = [], 
+        userId = ""
+    ) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let pushNotificationRelatedInformation = {
+                    notification : {
+                        title : notificationData.title,
+                        body : notificationData.text ? 
+                        notificationData.text : notificationData.message
+                    },
+                    data: notificationData.data ? notificationData.data : {},
+                    android: {
+                        ttl: 3600 * 1000, // 1 hour in milliseconds
+                        priority: 'high',
+                        notification: {
+                            click_action : "FCM_PLUGIN_ACTIVITY",
+                            icon : 'notifications_icon',
+                            color: gen.utils.checkIfEnvDataExistsOrNot("RED_COLOR")                        
+                        },
+
+                    },
+                    apns: {},
+                    token: notificationData.deviceId
+                };
+
+                let pushToDevice = 
+                await _sendMessage(pushNotificationRelatedInformation);
+
+                if ( !pushToDevice.success && devices.length > 0 && userId !== "" ) { 
+
+                    await userExtensionHelper.updateDeviceStatus(
+                        notificationData.deviceId, 
+                        devices, 
+                        userId
+                    );
+                }
+
+                return resolve(pushToDevice);
+
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+
+    /**
+      * FCM send message functionality.
+      * @method
+      * @name sendMessage
+      * @param {Object} notificationInformation - Notification information.                                      
+      * @returns {Promise} returns a promise.
+     */
+
+    async function _sendMessage(notificationInformation) {
+
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let deviceId = notificationInformation.token;
+
+                FCM.send(notificationInformation, (err, response) => {
+
+                    let success;
+                    let message = "";
+                    if (err) {
+                        if (err.errorInfo && err.errorInfo.message) {
+                            if (err.errorInfo.message === "The registration token is not a valid FCM registration token") {
+
+                                slackClient.sendMessageToSlack({
+                                    "code" : err.errorInfo.code,
+                                    "message" : err.errorInfo.message,
+                                    slackErrorName: 
+                                    gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_NAME"),
+                                    color: 
+                                    gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_MESSAGE_COLOR")
+                                });
+
+                                message = err.errorInfo.message;
+                            }
+                        }
+
+                        success = false;
+
+                    } else {
+                        success = true;
+                    }
+
+                    return resolve({
+                        success: success,
+                        message: message
+                    });
+                });
+
+            } catch (error) {
+                return reject(error);
+            }
+        })
+
+    }
