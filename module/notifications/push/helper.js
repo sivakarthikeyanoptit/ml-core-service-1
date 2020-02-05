@@ -410,6 +410,7 @@ module.exports = class PushNotificationsHelper {
                 await userExtensionHelper.userExtensionDocument({
                     userId: userId,
                     status: "active",
+                    devices: {$exists : true},
                     isDeleted: false
                 }, { devices: 1 });
 
@@ -435,7 +436,7 @@ module.exports = class PushNotificationsHelper {
                                 data: {
                                     "title": notificationMessage.title,
                                     "text": notificationMessage.text,
-                                    id: JSON.stringify(notificationMessage.id),
+                                    id: "0",
                                     is_read: JSON.stringify(notificationMessage.is_read),
                                     payload: JSON.stringify(notificationMessage.payload),
                                     action: notificationMessage.action,
@@ -453,8 +454,6 @@ module.exports = class PushNotificationsHelper {
                                 activeDevices[pointerToDevices].os
                             );
                     }
-                } else {
-                    logger.error("No devices found");
                 }
 
                 return resolve();
@@ -501,7 +500,7 @@ module.exports = class PushNotificationsHelper {
                         notification: {
                             click_action : "FCM_PLUGIN_ACTIVITY",
                             icon : 'notifications_icon',
-                            color: gen.utils.checkIfEnvDataExistsOrNot("RED_COLOR")                        
+                            color: "#A63936"                        
                         },
 
                     },

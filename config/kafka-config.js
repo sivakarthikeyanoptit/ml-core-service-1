@@ -90,7 +90,8 @@ var _sendToKafkaConsumers = function (topic,client, commit = false) {
       } else if (message && message.topic === EMAIL_TOPIC) {
         emailConsumer.messageReceived(message, consumer);
       } else if (message && message.topic === NOTIFICATIONS_TOPIC) {
-        notificationsConsumer.messageReceived(message);
+        inappnotificationsConsumer.messageReceived(message);
+        pushnotificationsConsumer.messageReceived(message);
       }
     });
 
@@ -103,7 +104,8 @@ var _sendToKafkaConsumers = function (topic,client, commit = false) {
       } else if (error.topics && error.topics[0] === EMAIL_TOPIC) {
         emailConsumer.errorTriggered(error);
       } else if(error.topics && error.topics[0] === NOTIFICATIONS_TOPIC){
-        notificationsConsumer.errorTriggered(error);
+        inappnotificationsConsumer.errorTriggered(error);
+        pushnotificationsConsumer.errorTriggered(error);
       }
     });
 

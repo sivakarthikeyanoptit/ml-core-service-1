@@ -1,8 +1,8 @@
 /**
- * name : languages-consumer.js
+ * name : inapp-notifications-consumer.js
  * author : Aman Jung Karki
  * created-date : 05-Dec-2019
- * Description : consume languages data sent from kafka.
+ * Description : consume all the in-app notifications.
  */
 
 //dependencies
@@ -10,7 +10,6 @@
 const elasticSearchHelper = require(GENERIC_HELPERS_PATH + "/elastic-search");
 let processingUsersTrack = {}
 const slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
-const pushNotificationsHelper = require(MODULES_BASE_PATH + "/notifications/push/helper")
 
 /**
   * notification consumer message received.
@@ -27,11 +26,11 @@ var messageReceived = function (message) {
 
     try {
       
-      let parsedMessage = JSON.parse(message.value)
+      let parsedMessage = JSON.parse(message.value);
 
       if (parsedMessage.action === "deletion") {
 
-        await elasticSearchHelper.deleteReadOrUnReadNotificationData(parsedMessage.users, parsedMessage)
+        await elasticSearchHelper.deleteReadOrUnReadNotificationData(parsedMessage.users, parsedMessage);
 
       } else if (parsedMessage.action === "versionUpdate") {
 
@@ -39,44 +38,36 @@ var messageReceived = function (message) {
         await elasticSearchHelper.updateAppVersion(parsedMessage);
 
       } else {
-        let userId = parsedMessage.user_id
-        delete parsedMessage.user_id
-        parsedMessage.is_read = false
+        let userId = parsedMessage.user_id;
+        delete parsedMessage.user_id;
+        parsedMessage.is_read = false;
 
 
         let checkifUserIdIsUnderProcessing = function (userId) {
-          return (processingUsersTrack[userId]) ? true : false
+          return (processingUsersTrack[userId]) ? true : false;
         }
 
-        let isUserUpdationUnderProcess = checkifUserIdIsUnderProcessing([userId])
+        let isUserUpdationUnderProcess = checkifUserIdIsUnderProcessing([userId]);
         if (!isUserUpdationUnderProcess) {
-          processingUsersTrack[userId] = true
-          let elasticsearchPushResponse = await elasticSearchHelper.pushNotificationData(userId, parsedMessage)
-          await pushNotificationsHelper.pushNotificationMessageToDevice(
-            userId, 
-            parsedMessage
-          )
-          delete processingUsersTrack[userId]
+          processingUsersTrack[userId] = true;
+          await elasticSearchHelper.pushNotificationData(userId, parsedMessage);
+          delete processingUsersTrack[userId];
         } else {
           // repeat with the interval of 1 seconds
           let timerId = setInterval(async () => {
-            isUserUpdationUnderProcess = checkifUserIdIsUnderProcessing([userId])
+            isUserUpdationUnderProcess = checkifUserIdIsUnderProcessing([userId]);
             if (!isUserUpdationUnderProcess) {
-              clearInterval(timerId)
-              processingUsersTrack[userId] = true
-              let elasticsearchPushResponse = 
-              await elasticSearchHelper.pushNotificationData(userId, parsedMessage)
-              await pushNotificationsHelper.pushNotificationMessageToDevice(
-                userId, 
-                parsedMessage
-              )
-              delete processingUsersTrack[userId]
+              clearInterval(timerId);
+              processingUsersTrack[userId] = true;
+              await elasticSearchHelper.pushNotificationData(userId, parsedMessage);
+              delete processingUsersTrack[userId];
             }
           }, 1000);
 
           // after 50 seconds stop
           setTimeout(() => {
             clearInterval(timerId);
+            delete processingUsersTrack[userId];
             logger.error(`Failed to process user id - ${userId}`);
           }, 50000);
         }
