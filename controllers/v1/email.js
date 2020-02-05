@@ -39,21 +39,16 @@ module.exports = class Email {
     }
 
     /**
-     * @api {post} /kendra/api/v1/email/send 
+     * @api {post} /kendra/api/v1/email/jenkins 
      * send email to users
      * @apiVersion 1.0.0
      * @apiGroup Email
      * @apiHeader {String} X-authenticated-user-token Authenticity token
-     * @apiSampleRequest /kendra/api/v1/email/send
-     * @apiParam {File} email Mandatory email file of type CSV.
+     * @apiSampleRequest /kendra/api/v1/email/jenkins
      * @apiUse successBody
      * @apiUse errorBody
      * @apiParamExample {json} Request:
      * {
-	    "from": "example@example.com",
-	    "to": "example1@example.com",
-	    "cc": ["example2@example.com"],
-	    "bcc": ["example3@example.com"],
 	    "subject": "Regarding nodemailer",
 	    "text": "First Text",
 	    "html":"<p><b>Hello</b> from Angel Drome!</p>"
@@ -63,21 +58,21 @@ module.exports = class Email {
     /**
       *  send email notifications.
       * @method
-      * @name send
+      * @name jenkins
       * @param  {Request} req request body.
       * @returns {JSON} Response consists of status and message.
      */
 
-    send(req) {
+    jenkins(req) {
 
         return new Promise(async (resolve, reject) => {
 
             try {
 
-                await emailHelper.send(req.body);
+                let emailSent = await emailHelper.sendJenkinsEmail(req.body);
 
                 return resolve({
-                    message: "Email sent successfully"
+                    result: emailSent
                 })
 
             } catch (error) {

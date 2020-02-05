@@ -8,7 +8,7 @@
 
 //dependencies
 
-const emailHelper = require(ROOT_PATH + "/generics/helpers/nodemailer");
+const emailHelper = require(ROOT_PATH + "/generics/helpers/email");
 const slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
 
  /**
