@@ -61,7 +61,8 @@ module.exports = class PushNotifications {
         return new Promise(async (resolve, reject) => {
             try {
 
-                const defaultAppType = gen.utils.checkIfEnvDataExistsOrNot("ASSESSMENT_APPLICATION_APP_TYPE").trim().toLowerCase(); // TODO - After some time if all app start supplying appType in header, remove this line.
+                const defaultAppType = 
+                gen.utils.checkIfEnvDataExistsOrNot("ASSESSMENT_APPLICATION_APP_TYPE").trim().toLowerCase(); // TODO - After some time if all app start supplying appType in header, remove this line.
                 
                 let appType = defaultAppType;
                 if(req.headers.apptype && req.headers.apptype != "") {
@@ -86,7 +87,9 @@ module.exports = class PushNotifications {
                     activatedAt: new Date()
                 };
 
-                let result = await userExtensionHelper.createOrUpdate(deviceData, _.pick(req.userDetails, ["userId", "email", "userName"]));
+
+                let result = 
+                await userExtensionHelper.createOrUpdate(deviceData, _.pick(req.userDetails, ["userId", "email", "userName","userToken"]));
 
                 let response = {};
 
