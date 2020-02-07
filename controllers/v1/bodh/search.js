@@ -87,7 +87,7 @@ module.exports = class Search {
 
                 // Add did you mean if user query is different from searched query.
                 if(queryString != userQueryString) {
-                    getBodhServiceResponse.data[messageConstants.apiResponses.BODH_SEARCH_MIDDLEWARE_DID_YOU_MEAN_KEY] = `Showing results for ${queryString}`
+                    getBodhServiceResponse.data[messageConstants.apiResponses.BODH_SEARCH_MIDDLEWARE_DID_YOU_MEAN_KEY] = `${queryString}`
                 }
 
                 // Parse content from Bodh for latest keywords and update ES
