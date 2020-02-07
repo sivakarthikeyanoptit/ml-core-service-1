@@ -286,14 +286,6 @@ module.exports = class InAppNotificationsHelper {
                 for (let indexToAssessmentOrObservationData = 0; 
                     indexToAssessmentOrObservationData < assessmentOrObservationData.length; 
                     indexToAssessmentOrObservationData++) {
-                      
-                      let createdAtDate = 
-                      moment(assessmentOrObservationData[indexToAssessmentOrObservationData].createdAt)
-                      .format("YYYY-MM-DD");
-
-                      let checkDate = moment(currentDate).isSame(createdAtDate, 'month');
-
-                       if (checkDate) {
 
                         if (
                             !userCompletionData[assessmentOrObservationData[indexToAssessmentOrObservationData].userId]
@@ -303,7 +295,7 @@ module.exports = class InAppNotificationsHelper {
                         }
 
                         userCompletionData[assessmentOrObservationData[indexToAssessmentOrObservationData].userId]["count"] += 1;
-                    }
+
                 }
 
                 let allUserCompletionData = Object.keys(userCompletionData);
@@ -339,7 +331,7 @@ module.exports = class InAppNotificationsHelper {
                              let errorObject = {
                                 slackErrorName: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_NAME"),
                                 color: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_MESSAGE_COLOR"),
-                                message: observations ? 
+                                message: observation ? 
                                 `Failed to push completed observations to kafka` : 
                                 `Failed to push completed assessments to kafka`,
                                 payload: result.payload

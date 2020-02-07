@@ -26,7 +26,7 @@ let pendingObservations = function () {
       try{
         let pendingObservations = await samikshaService.pendingObservations();
 
-        if (pendingObservations.result.length > 0) {
+        if ( pendingObservations.result && pendingObservations.result.length > 0 ) {
           await notificationsHelper.pendingAssessmentsOrObservations(
             pendingObservations.result, true
           );
@@ -34,7 +34,7 @@ let pendingObservations = function () {
   
         logger.info("<----- Pending Observations cron stopped --->", new Date());
         resolve();
-      } catch(error){
+      } catch(error) {
         return reject(error);
       }
 

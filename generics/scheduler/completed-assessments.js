@@ -25,7 +25,10 @@ let completedAssessment = function () {
       try{
         let completedAssessments = await samikshaService.completedAssessments();
 
-        if (completedAssessments.result.length > 0) {
+        if (
+          completedAssessments.result && 
+          completedAssessments.result.length > 0
+        ) {
   
           await notificationsHelper.completedAssessmentsOrObservations(completedAssessments.result);
   
