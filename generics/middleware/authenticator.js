@@ -92,6 +92,11 @@ module.exports = async function (req, res, next) {
     return
   }
 
+  // Allow search endpoints for non-logged in users.
+  if (req.path.includes("bodh")) {
+    next();
+    return
+  }
 
   if (req.path.includes("keywords")) {
     if(req.headers["internal-access-token"] !== process.env.INTERNAL_ACCESS_TOKEN) {

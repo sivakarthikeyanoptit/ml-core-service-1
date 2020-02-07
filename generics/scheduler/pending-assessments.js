@@ -27,7 +27,10 @@ let pendingAssessments = function () {
                 let pendingAssessments = 
                 await samikshaService.pendingAssessments();
 
-                if (pendingAssessments.result.length > 0) {
+                if (
+                    pendingAssessments.result && 
+                    pendingAssessments.result.length > 0
+                ) {
     
                     await notificationsHelper.pendingAssessmentsOrObservations(
                         pendingAssessments.result
