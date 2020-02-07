@@ -25,7 +25,10 @@ let completedObservation = function () {
       try{
         let completedObservations = await samikshaService.completedObservations();
 
-        if (completedObservations.result.length > 0) {
+        if (
+          completedObservations.result && 
+          completedObservations.result.length > 0
+        ) {
   
           await notificationsHelper.completedAssessmentsOrObservations(completedObservations.result, true);
         }
@@ -33,7 +36,7 @@ let completedObservation = function () {
         logger.info("<---- Completed Observations cron stopped --->", new Date());
         resolve();
       } catch(err){
-        return reject(error);
+        return reject(err);
       }
 
     })
