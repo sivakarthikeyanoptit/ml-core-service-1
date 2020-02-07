@@ -6,7 +6,7 @@
  */
 
 // dependencies
-const samikshaService = require(ROOT_PATH + "/generics/helpers/samiksha");
+const samikshaService = require(ROOT_PATH + "/generics/services/samiksha");
 const notificationsHelper = require(MODULES_BASE_PATH + "/notifications/in-app/helper");
 
 /**
