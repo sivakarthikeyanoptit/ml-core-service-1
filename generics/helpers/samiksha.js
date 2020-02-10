@@ -8,7 +8,8 @@
 //dependencies
 
 const request = require('request');
-const slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
+const slackClient = 
+require(ROOT_PATH + "/generics/helpers/slack-communications");
 
 /**
   * Samiksha api for getting all the pending assessments. 
@@ -112,11 +113,15 @@ var pendingObservations = function () {
 
 var completedAssessments = function () {
 
-    const samikshaServiceUrl = 
-    process.env.APPLICATION_BASE_HOST + 
-    process.env.SAMIKSHA_SERVICE_BASE_URL + 
-    process.env.SAMIKSHA_COMPLETED_ASSESSMENTS;
+    let currentDate = new Date();
+    let currentMonth = currentDate.getMonth()+1;
+    let currentYear = currentDate.getFullYear();
+    let lastDateOfMonth = new Date(currentYear,currentMonth,0).getDate();
+    let fromDate = `01-${currentMonth}-${currentYear}`;
+    let toDate = `${lastDateOfMonth}-${currentMonth}-${currentYear}`;
 
+    const completedAssessmentsUrl = `${process.env.APPLICATION_BASE_HOST}${process.env.SAMIKSHA_SERVICE_BASE_URL}${process.env.SAMIKSHA_COMPLETED_ASSESSMENTS}?fromDate=${fromDate}&toDate=${toDate}`;
+    
     return new Promise((resolve, reject) => {
         try {
             const samikshaCallBack = function (err, response) {
@@ -136,7 +141,7 @@ var completedAssessments = function () {
                 }
             }
 
-            request.get(samikshaServiceUrl, {
+            request.get(completedAssessmentsUrl, {
                 headers: {
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN
                 }
@@ -157,14 +162,19 @@ var completedAssessments = function () {
 
 var completedObservations = function () {
 
-    const samikshaServiceUrl = 
-    process.env.APPLICATION_BASE_HOST + 
-    process.env.SAMIKSHA_SERVICE_BASE_URL + 
-    process.env.SAMIKSHA_COMPLETED_OBSERVATIONS;
+    let currentDate = new Date();
+    let currentMonth = currentDate.getMonth()+1;
+    let currentYear = currentDate.getFullYear();
+    let lastDateOfMonth = new Date(currentYear,currentMonth,0).getDate();
+    let fromDate = `01-${currentMonth}-${currentYear}`;
+    let toDate = `${lastDateOfMonth}-${currentMonth}-${currentYear}`;
+
+    const completedObservationsUrl = `${process.env.APPLICATION_BASE_HOST}${process.env.SAMIKSHA_SERVICE_BASE_URL}${process.env.SAMIKSHA_COMPLETED_OBSERVATIONS}?fromDate=${fromDate}&toDate=${toDate}`;
 
     return new Promise((resolve, reject) => {
         try {
             const samikshaCallBack = function (err, response) {
+
                 if (err) {
 
                     let errorObject = {
@@ -183,7 +193,7 @@ var completedObservations = function () {
                 }
             }
 
-            request.get(samikshaServiceUrl, {
+            request.get(completedObservationsUrl, {
                 headers: {
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN
                 }
