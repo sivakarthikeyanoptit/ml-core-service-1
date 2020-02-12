@@ -1,4 +1,14 @@
-const userExtensionHelper = require(MODULES_BASE_PATH + "/user-extension/helper");
+/**
+ * name : user-extensions.js
+ * author : Aman Jung Karki
+ * created-date : 11-Feb-2020
+ * Description : All user extension related information.
+ */
+
+/**
+    * UserExtension
+    * @class
+*/
 
 module.exports = class UserExtension extends Abstract {
   
