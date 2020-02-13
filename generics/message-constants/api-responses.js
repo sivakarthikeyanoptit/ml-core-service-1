@@ -14,5 +14,9 @@ module.exports = {
   "BODH_SEARCH_AUTOCOMPLETE_FAILURE" : "Failed to retrieve search suggestions.",
   "DICTIONARY_KEYWORDS_MISSING_FILE_ERROR" : "Missing keywords file",
   "DICTIONARY_KEYWORDS_MAPPING_MISSING_ERROR" : "Dictionary keywords mapping is missing.",
-  "DICTIONARY_KEYWORDS_UPDATE_SUCCESS" : "Content keywords updated successfully."
+  "DICTIONARY_KEYWORDS_UPDATE_SUCCESS" : "Content keywords updated successfully.",
+
+  "ENTITY_NOT_FOUND" : "No entity found",
+  "ENTITIES_FETCHED" : "List of entities fetched successfully",
+  "IMMEDIATE_ENTITIES_FETCHED" : "List of immediate entities fetched"
 };
