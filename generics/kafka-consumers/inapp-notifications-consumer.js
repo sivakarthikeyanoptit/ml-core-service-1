@@ -39,6 +39,10 @@ var messageReceived = function (message) {
 
       } else {
         let userId = parsedMessage.user_id;
+
+        if( parsedMessage.verified ) {
+          delete parsedMessage.verified;
+        }
         delete parsedMessage.user_id;
         parsedMessage.is_read = false;
 
