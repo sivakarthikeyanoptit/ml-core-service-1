@@ -87,4 +87,30 @@ module.exports = class UserProfileHelper {
     })
   }
 
+  /**
+   * Details user profile.
+   * @method
+   * @name details
+   * @param  {userId} - logged in user id.
+   * @param  {token} - logged in user token.
+   * @returns {json} Response consists of user details data.
+   */
+
+  static details( userId,token ) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let userProfileDetails = 
+            await userManagementService.userProfileDetails(
+                userId,
+                token
+            );
+
+            return resolve(userProfileDetails);
+
+        } catch(error) {
+            return reject(error);
+        }
+    });
+  }
+
 };

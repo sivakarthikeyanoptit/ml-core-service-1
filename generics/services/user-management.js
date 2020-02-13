@@ -177,9 +177,51 @@ var platformUserProfile = function ( userId,token ) {
 
 }
 
+/**
+  * User profile details.
+  * @function
+  * @name userProfileDetails
+  * @returns {JSON} returns a profile details data.
+*/
+
+var userProfileDetails = function ( userId,token ) {
+
+    const userProfileDetailsUrl = 
+    urlPrefix + messageConstants.common.endPoints.userProfileDetails+"/"+userId;
+    
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            const _userManagementCallBack = function (err, response) {
+                if (err) {
+                    logger.error("Failed to connect to user management service.");
+                } else {
+                    let userManagementData = JSON.parse(response.body);
+                    return resolve(userManagementData);
+                }
+            }
+
+            request.get(
+                userProfileDetailsUrl,{
+                    headers: {
+                        "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
+                        "X-authenticated-user-token" : token 
+                    }
+                },
+                _userManagementCallBack
+            )
+
+        } catch (error) {
+            return reject(error);
+        }
+    })
+
+}
+
 module.exports = {
     createUserProfile: createUserProfile,
     updateUserProfile: updateUserProfile,
     verifyUserProfile: verifyUserProfile,
-    platformUserProfile : platformUserProfile
+    platformUserProfile : platformUserProfile,
+    userProfileDetails : userProfileDetails
 };

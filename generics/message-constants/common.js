@@ -20,6 +20,7 @@ module.exports = {
     createProfile : "/userProfile/create",
     updateProfile : "/userProfile/update",
     verifyProfile : "/userProfile/verify",
-    platformUserProfile : "/platformUserRoles/getProfile"
+    platformUserProfile : "/platformUserRoles/getProfile",
+    userProfileDetails : "/userProfile/details"
   }
 };

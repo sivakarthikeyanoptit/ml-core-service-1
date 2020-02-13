@@ -24,7 +24,7 @@ module.exports = class UserProfile {
      * @api {post} /kendra/api/v1/user-profile/create 
      * Create user profile.
      * @apiVersion 1.0.0
-     * @apiGroup Email
+     * @apiGroup user profile
      * @apiHeader {String} X-authenticated-user-token Authenticity token
      * @apiSampleRequest /kendra/api/v1/user-profile/create
      * @apiUse successBody
@@ -93,7 +93,7 @@ module.exports = class UserProfile {
      * @api {post} /kendra/api/v1/user-profile/update 
      * Updated user profile information.
      * @apiVersion 1.0.0
-     * @apiGroup Email
+     * @apiGroup user profile
      * @apiHeader {String} X-authenticated-user-token Authenticity token
      * @apiSampleRequest /kendra/api/v1/user-profile/update
      * @apiUse successBody
@@ -151,7 +151,7 @@ module.exports = class UserProfile {
      * @api {post} /kendra/api/v1/user-profile/verify/:userId 
      * Verify user profile information.
      * @apiVersion 1.0.0
-     * @apiGroup Email
+     * @apiGroup user profile
      * @apiHeader {String} X-authenticated-user-token Authenticity token
      * @apiSampleRequest /kendra/api/v1/user-profile/verify/abc
      * @apiUse successBody
@@ -184,5 +184,51 @@ module.exports = class UserProfile {
       }
     });
   }
+
+   /**
+   * User profile information details.
+   * @method
+   * @name details
+   * @param  {Request} req request body.
+   * @returns {json} details user profile information.
+  */
+
+   /**
+     * @api {post} /kendra/api/v1/user-profile/details
+     * details user profile information.
+     * @apiVersion 1.0.0
+     * @apiGroup user profile
+     * @apiHeader {String} X-authenticated-user-token Authenticity token
+     * @apiSampleRequest /kendra/api/v1/user-profile/details
+     * @apiUse successBody
+     * @apiUse errorBody
+  */
+
+ details(req) {
+  return new Promise(async (resolve, reject) => {
+
+    try {
+
+      let userProfileDocument = await userProfileHelper.details(
+        req.params._id ? req.params._id : req.userDetails.userId,
+        req.userDetails.userToken
+      );
+
+      return resolve(userProfileDocument);
+
+    } catch(error) {
+      
+      return reject({
+        status: 
+        error.status || 
+        httpStatusCode["internal_server_error"].status,
+
+        message: 
+        error.message || 
+        httpStatusCode["internal_server_error"].message
+      });
+    }
+  });
+}
 
 };
