@@ -21,6 +21,7 @@ module.exports = {
     updateProfile : "/userProfile/update",
     verifyProfile : "/userProfile/verify",
     platformUserProfile : "/platformUserRoles/getProfile",
-    userProfileDetails : "/userProfile/details"
+    userProfileDetails : "/userProfile/details",
+    getFilePublicBaseUrl : "/files/getFilePublicBaseUrl"
   }
 };
