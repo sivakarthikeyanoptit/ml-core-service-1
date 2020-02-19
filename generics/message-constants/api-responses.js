@@ -18,5 +18,8 @@ module.exports = {
 
   "ENTITY_NOT_FOUND" : "No entity found",
   "ENTITIES_FETCHED" : "List of entities fetched successfully",
-  "IMMEDIATE_ENTITIES_FETCHED" : "List of immediate entities fetched"
+  "IMMEDIATE_ENTITIES_FETCHED" : "List of immediate entities fetched",
+  "BODY_NOT_FOUND" : "Body data not found",
+  "QR_CODE_EXISTS" : "Qr code alreasy exists",
+  "QR_CODE_DATA_SIZE" : "Qr code data should be greater than 0"
 };
