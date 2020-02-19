@@ -37,7 +37,7 @@ const s3 = new AWS.S3({
 });
 
 
-let getFilePublicBaseUrl = function(imageUrlPath) {
+let getFilePublicBaseUrl = function( imageUrlPath ) {
   return `https://${BUCKET_NAME}.${AWS_BUCKET_ENDPOINT}/${imageUrlPath}`;
 }
 

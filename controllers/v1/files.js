@@ -95,7 +95,8 @@ module.exports = class Files {
 
         let signedUrl = await filesHelper.getSignedUrls(
             req.body.folderPath, 
-            req.body.files
+            req.body.files,
+            req.body.bucketName
         );
 
         if(signedUrl.success) {

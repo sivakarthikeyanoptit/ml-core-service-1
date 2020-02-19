@@ -9,6 +9,8 @@
 module.exports = {
   "SUCCESS" : "Success.",
   "FAILED" : "Failed.",
+  "UNNATI_APP" : "unnati",
+  "AWS_SERVICE" : "AWS",
   schema : {
     METAINFORMATION : "metaInformation",
     EXTERNALID : "externalId",

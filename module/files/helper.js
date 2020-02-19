@@ -8,19 +8,28 @@
 // Dependencies
 let unnatiServices = require(ROOT_PATH + "/generics/services/unnati");
 let cloudStorage = process.env.CLOUD_STORAGE;
-let awsFileUploadServices = 
-require(ROOT_PATH + "/generics/cloud-services/aws-file-upload");
+let aws = require(ROOT_PATH + "/generics/cloud-services/aws-file-upload");
 
 module.exports = class FileHelper {
     
-    static getFilePublicBaseUrl(requestedData) {
+    /**
+   * Get the url of the image upload.
+   * @method
+   * @name getFilePublicBaseUrl
+   * @param {Object} requestedData -requested Data.
+   * @param {String} requestedData.headers - header data
+   * @param {String} requestedData.headers.app - app name
+   * @returns {JSON} - Response data.
+   */
+
+    static getFilePublicBaseUrl( requestedData ) {
         return new Promise( async (resolve,reject) => {
             try {
 
                 let appName = requestedData.headers.app;
                 let bucketPath;
 
-                if( appName === "unnati" ) {
+                if( appName === messageConstants.common.UNNATI_APP ) {
                     bucketPath = await unnatiServices.getFilePublicBaseUrl(
                         requestedData.body.projectId
                     )
@@ -28,9 +37,9 @@ module.exports = class FileHelper {
 
                 let result;
 
-                if(cloudStorage === "AWS") {
+                if( cloudStorage === messageConstants.common.AWS_SERVICE ) {
                     
-                    result = awsFileUploadServices.getFilePublicBaseUrl(
+                    result = aws.getFilePublicBaseUrl(
                         bucketPath
                     );
                 }
@@ -49,25 +58,39 @@ module.exports = class FileHelper {
         })
     }
 
-    static getSignedUrls(folderPath , fileNames ) {
+    /**
+   * Get all the signed urls.
+   * @method
+   * @name getSignedUrls
+   * @param {Object} requestedData -requested Data.
+   * @param {String} requestedData.headers - header data
+   * @param {String} requestedData.headers.app - app name
+   * @returns {JSON} - Response data.
+   */
+
+    static getSignedUrls( folderPath , fileNames ) {
         return new Promise(async (resolve, reject) => {
             try {
 
-                if(folderPath == "") {
-                    throw new Error("File base url not given.");
+                if( folderPath == "" ) {
+                    throw new Error(
+                        messageConstants.apiResponses.NO_FOLDER_PATH_FOUND
+                    );
                 }
 
-                if(!Array.isArray(fileNames) || fileNames.length < 1) {
-                    throw new Error("File names not given.");
+                if( !Array.isArray(fileNames) || fileNames.length < 1 ) {
+                    throw new Error(
+                        messageConstants.apiResponses.NO_FILE_BASE_URL
+                    );
                 }
 
-                if(cloudStorage == "") {
+                if( cloudStorage == "" ) {
                     throw new Error(
                         messageConstants.apiResponses.MISSING_CLOUD_STORAGE_PROVIDER
                     );
                 }
 
-                if( cloudStorage != "AWS" ) {
+                if( cloudStorage != messageConstants.common.AWS_SERVICE  ) {
                     throw new Error(
                         messageConstants.apiResponses.INVALID_CLOUD_STORAGE_PROVIDER
                     );
@@ -79,11 +102,15 @@ module.exports = class FileHelper {
                     const file = fileNames[pointerToFileNames];
                     let signedUrlResponse;
                     
-                    if (cloudStorage == "AWS") {
-                        signedUrlResponse = await this.getS3SignedUrl(folderPath, file);
+                    if ( cloudStorage == messageConstants.common.AWS_SERVICE ) {
+                        signedUrlResponse = 
+                        await this.getS3SignedUrl(
+                            folderPath,
+                            file
+                        );
                     }
 
-                    if(signedUrlResponse.success) {
+                    if( signedUrlResponse.success ) {
                         signedUrls.push({
                             file: file,
                             url: signedUrlResponse.url,
@@ -94,7 +121,7 @@ module.exports = class FileHelper {
 
                 }
 
-                if(signedUrls.length == fileNames.length) {
+                if( signedUrls.length == fileNames.length ) {
                     return resolve({
                         success : true,
                         message : messageConstants.apiResponses.URL_GENERATED,
@@ -119,8 +146,8 @@ module.exports = class FileHelper {
      * Get aws s3 cloud signed url.
      * @method
      * @name getS3SignedUrl
-     * @param {String} [folderPath = ""] - link to the folder path.
-     * @param {Array} [fileName = ""] - fileName. 
+     * @param {String} folderPath - link to the folder path.
+     * @param {Array} fileName - fileName. 
      * @returns {Object} - signed url and s3 file name. 
      */
 
@@ -128,7 +155,7 @@ module.exports = class FileHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                if(folderPath == "" || fileName == "") {
+                if( folderPath == "" || fileName == "" ) {
                     throw new Error(httpStatusCode.bad_request.status);
                 }
 
@@ -137,16 +164,17 @@ module.exports = class FileHelper {
 
                 try {
                     const url = 
-                    await awsFileUploadServices.s3.getSignedUrlPromise('putObject', {
-                        Bucket: awsFileUploadServices.bucketName,
+                    await aws.s3.getSignedUrlPromise('putObject', {
+                        Bucket: aws.bucketName,
                         Key: folderPath + fileName,
                         Expires: expiry
                     });
                     
-                    if(url && url != "") {
+                    if( url && url != "" ) {
                         return resolve({
                             success : true,
-                            message : messageConstants.apiResponses.URL_GENERATED+"Signed.",
+                            message :
+                            messageConstants.apiResponses.URL_GENERATED+messageConstants.apiResponses.SIGNED,
                             url : url,
                             name : folderPath + fileName
                         });

@@ -21,5 +21,9 @@ module.exports = {
   "IMMEDIATE_ENTITIES_FETCHED" : "List of immediate entities fetched",
   "FILES_NAME_NOT_GIVEN" : "Files name not provided",
   "MISSING_CLOUD_STORAGE_PROVIDER" : "Cloud storage provider is missing",
-  "INVALID_CLOUD_STORAGE_PROVIDER" : "Invalid cloud storage provider"
+  "INVALID_CLOUD_STORAGE_PROVIDER" : "Invalid cloud storage provider",
+  "NO_FILE_BASE_URL" : "File base url not given.",
+  "NO_FOLDER_PATH_FOUND" : "Folder path not found",
+  "SIGNED" : "Signed.",
+  "URL_GENERATED" : "URLs generated successfully.",
 };
