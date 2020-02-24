@@ -15,6 +15,8 @@ const elasticSearchHelper = require(GENERIC_HELPERS_PATH + "/elastic-search");
 // Constants
 const bodhContentIndex = gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_BODH_CONTENT_INDEX");
 const bodhContentIndexType = gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_BODH_CONTENT_INDEX_TYPE");
+const qrCodeHelpers = require(MODULES_BASE_PATH+"/qr-code/helper");
+let bodhServices = require(ROOT_PATH+"/generics/services/bodh");
 
 /**
     * BodhHelper
@@ -468,6 +470,130 @@ module.exports = class BodhHelper {
                     message : error.message,
                     data : false
                 });
+            }
+        })
+    }
+
+    /**
+      * Get context keys for auto complete index.
+      * @method
+      * @name generateQrCode
+      * @returns {Promise} returns a promise.
+     */
+
+    static generateQrCode(qrCodeData,userId,userToken) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let codes = await qrCodeHelpers.generateCodes(
+                    qrCodeData.length,
+                    userToken
+                );
+
+                let generateQrCodeData = [];
+
+                for( let code = 0; code < codes.length; code ++ ) {
+                    
+                    await qrCodeHelpers.publishCode(
+                        codes[code],
+                        userToken
+                    )
+
+                    await this.linkContent(
+                        codes[code],
+                        qrCodeData[code].identifier,
+                        userToken
+                    );
+
+                    await this.publishContent(
+                        qrCodeData[code].identifier,
+                        qrCodeData[code].lastPublishedBy
+                    );
+
+                    generateQrCodeData.push({
+                        code : codes[code],
+                        courseName : qrCodeData[code].name,
+                        courseId : qrCodeData[code].identifier
+                    });
+                }
+
+                let generateQrCode = await qrCodeHelpers.generate(generateQrCodeData);
+
+                return resolve(generateQrCode);
+                
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+    /**
+      * Link content based on dial code and content id
+      * @method
+      * @name linkContent
+      * @param dialCode - dial code
+      * @param identifier - content id
+      * @param token - Logged in user token
+      * @returns {Promise}
+     */
+
+    static linkContent(dialCode,identifier,token) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let linkContentStatus = await bodhServices.linkContent(
+                    token,
+                    {
+                        "request" : {
+                            "content" : {
+                                "dialcode" : [ dialCode ],
+                                "identifier" : [ identifier ]
+                            }
+                        }
+                    }
+                )
+
+                if( linkContentStatus !== messageConstants.common.OK ){
+                    throw {
+                        message : messageConstants.apiResponses.COULD_NOT_LINK_BODH_CONTENT
+                    }
+                }
+
+                return resolve(linkContentStatus);
+                
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+    /**
+      * Publish content based oncontent id
+      * @method
+      * @name publishContent
+      * @param contentId - content id
+      * @returns {Promise}
+     */
+
+    static publishContent( contentId, lastPublishedBy ) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let publishContent = await bodhServices.publishContent(
+                    {
+                        "request" : {
+                            "content" : {
+                                "lastPublishedBy" : lastPublishedBy
+                            }
+                        }
+                    },
+                    contentId
+                );
+
+                return resolve(publishContent);
+                
+            } catch (error) {
+                return reject(error);
             }
         })
     }

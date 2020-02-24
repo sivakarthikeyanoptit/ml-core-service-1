@@ -60,6 +60,10 @@ typings/
 # firbase credentials
 config/fcm-keystore.json
 
+# GCP credentials
+
+config/gcp-credentials.json
+
 # next.js build output
 .next
 
