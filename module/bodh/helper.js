@@ -130,10 +130,11 @@ module.exports = class BodhHelper {
       * @method
       * @name parseContentForAutocomplete
       * @param {Array} content Contains array of content.
+      * @param {Boolean} isACourse Whether or not content is a course.
       * @returns {Promise} returns a promise.
      */
 
-    static parseContentForAutocomplete(content = []) {
+    static parseContentForAutocomplete(content = [], isACourse = false) {
         return new Promise(async (resolve, reject) => {
             try {
 
@@ -142,14 +143,6 @@ module.exports = class BodhHelper {
                 }
 
                 let contentUpdateResult = new Array
-
-                let autocompleteContextKeys =  await this.getAutocompleteContextKeys();
-
-                if(autocompleteContextKeys.success && autocompleteContextKeys.data) {
-                    autocompleteContextKeys = autocompleteContextKeys.data
-                } else {
-                    autocompleteContextKeys = [];
-                }
 
                 for (let pointerToContentData = 0;
                     pointerToContentData < content.length;
@@ -162,16 +155,10 @@ module.exports = class BodhHelper {
                                 eachContent.name.trim().toLowerCase(),
                                 eachContent.description.trim().toLowerCase()
                             ],
-                            contexts : {}
-                        }
-
-                        autocompleteContextKeys.forEach(contextKey => {
-                            if(eachContent[contextKey]) {
-                                suggestContent.contexts[contextKey] = eachContent[contextKey];
-                            } else {
-                                suggestContent.contexts[contextKey] = [];
+                            contexts : {
+                                isACourse : isACourse
                             }
-                        });
+                        }
 
                         const addCourseToAutocomplete = await elasticSearchHelper.createOrUpdateDocumentInIndex(
                             bodhContentIndex,
@@ -323,26 +310,12 @@ module.exports = class BodhHelper {
 
                 if(queryString == "") throw new Error("Missing query string.");
 
-                let filterConditons =  await this.getAutocompleteContextKeys();
-
-                if(filterConditons.success && filterConditons.data) {
-                    filterConditons = filterConditons.data
-                } else {
-                    filterConditons = [];
+                let searchContext = {
+                    isACourse : (queryFilters["isACourse"]) ? queryFilters["isACourse"] : false
                 }
 
-                let searchContext = {}
-
-                filterConditons.forEach(filterKey => {
-                    if(queryFilters[filterKey]) {
-                        searchContext[filterKey] = queryFilters[filterKey];
-                    } else {
-                        searchContext[filterKey] = [];
-                    }
-                })
-
                 let queryObject = {
-                    _source: "suggest",
+                    _source: "rawContent",
                     suggest: {
                         nameSuggestion: {
                             prefix: queryString.trim().toLowerCase(),
@@ -359,11 +332,91 @@ module.exports = class BodhHelper {
 
                 const searchResponse = await elasticSearchHelper.searchDocumentFromIndex(bodhContentIndex, bodhContentIndexType, queryObject);
 
-                let suggestions = new Array
+                let suggestions = new Array;
 
                 if(searchResponse.nameSuggestion[0].options.length > 0) {
-                    searchResponse.nameSuggestion[0].options.forEach(content => {
-                        suggestions.push(content.text)
+
+                    let allowedFilterConditons =  await this.getAutocompleteContextKeys();
+
+                    if(allowedFilterConditons.success && allowedFilterConditons.data) {
+                        allowedFilterConditons = allowedFilterConditons.data;
+                    } else {
+                        allowedFilterConditons = [];
+                    }
+
+                    let filters = {};
+                    let filterKeys = new Array;
+
+                    allowedFilterConditons.forEach(filterKey => {
+                        if(queryFilters[filterKey]) {
+                            if (typeof queryFilters[filterKey] === 'string') {
+                                filterKeys.push(filterKey);
+                                filters[filterKey] = queryFilters[filterKey];
+                            } else if (Array.isArray(queryFilters[filterKey]) && queryFilters[filterKey].length > 0) {
+                                filterKeys.push(filterKey);
+                                filters[filterKey] = queryFilters[filterKey];
+                            }
+                        }
+                    })
+
+                    let searchResults = _.map(searchResponse.nameSuggestion[0].options, '_source.rawContent');
+
+                    // searchResults = _.filter(searchResults, filters);
+
+                    searchResults.forEach(content => {
+                        let filterTestPass = true;
+                        for (let index = 0; index < filterKeys.length; index++) {
+                            const filterKey = filterKeys[index];
+
+                            // If content filter value is a string
+                            if(typeof filters[filterKey] === 'string') {
+
+                                // If content value for filter key is an array
+                                if(Array.isArray(content[filterKey])) {
+                                    if (!content[filterKey].includes(filters[filterKey])) {
+                                        filterTestPass = false;
+                                        break;
+                                    }
+                                } else { // If content value for filter key is a string
+                                    if(content[filterKey] != filters[filterKey]) {
+                                        filterTestPass = false;
+                                        break;
+                                    }
+                                }
+
+                            } else if(Array.isArray(filters[filterKey])) { // If content filter value is an array
+                                
+                                let allFilterValues = filters[filterKey];
+                                let atLeastOneFilterValueMatch = false;
+
+                                // Loop all values for filter key
+                                for (let pointerToFilterValues = 0; pointerToFilterValues < allFilterValues.length; pointerToFilterValues++) {
+                                    const filterValue = allFilterValues[pointerToFilterValues];
+                                    
+                                    // If content value for filter key is an array
+                                    if(typeof content[filterKey] === 'string') {
+                                        if(content[filterKey] == filterValue) {
+                                            atLeastOneFilterValueMatch = true;
+                                            break;
+                                        }
+                                    } else if(Array.isArray(content[filterKey])) { // If content value for filter key is a string
+                                        if (content[filterKey].includes(filters[filterKey])) {
+                                            atLeastOneFilterValueMatch = true;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if(!atLeastOneFilterValueMatch) {
+                                    filterTestPass = false;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if(filterTestPass) {
+                            suggestions.push(content.name);
+                        }
                     })
                 }
 
