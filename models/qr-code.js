@@ -19,6 +19,8 @@ module.exports = {
             default : false
         },
         "createdBy" : String,
-        "appName" : String
+        "appName" : String,
+        "imageUrl" : String,
+        "pdfUrl" : String
     }
 }

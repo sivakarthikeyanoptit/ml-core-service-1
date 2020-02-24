@@ -1,0 +1,30 @@
+<html>
+
+<head>
+    <title>Qr code pdf</title>
+
+    <style>
+        .container {
+            margin: 0 auto;
+            width : 30%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div>
+        <div class="container">
+            <% for(let i = 0 ; i < data.length ; i++){ %>
+                <b><span>courseName: </span><%= data[i].courseName %></b>
+                <div>
+                    <img src="<%= data[i].qrCodeImage %>"> 
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+
+</body>
+
+</html>

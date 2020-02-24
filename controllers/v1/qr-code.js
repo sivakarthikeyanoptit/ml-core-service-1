@@ -5,13 +5,13 @@
  * Description : Create qr code.
  */
 
+// Dependencies
+let qrCodeHelper = require(ROOT_PATH+"/module/qr-code/helper");
 
 /**
     * QrCode
     * @class
 */
-
-let qrCodeHelper = require(ROOT_PATH+"/module/qr-code/helper");
 
 module.exports = class QrCode extends Abstract {
   
@@ -45,13 +45,14 @@ module.exports = class QrCode extends Abstract {
      * @apiUse successBody
      * @apiUse errorBody
      * @apiParamExample {json} Request:
-     * [{
+     * { "qrCodeData":[{
      * "code" : "N7W8L4",
      * "metaInformation": {
      *   "courseId" : "a",
      *   "courseName" : "a" 
      * }
      * }]
+     * }
      * @apiParamExample {json} Response:
      * {
      * "message": "Qr code generated successfully",
@@ -84,7 +85,7 @@ module.exports = class QrCode extends Abstract {
                 }
                 
                 let generateQrCode = await qrCodeHelper.generate(
-                    req.body,
+                    req.body.qrCodeData,
                     req.userDetails.userId
                 );
 
@@ -135,9 +136,26 @@ module.exports = class QrCode extends Abstract {
 
       try {
 
-        let generateQrCode = "";
+        let generateQrCode = await database.models.qrCode.findOne({
+          code : req.params._id,
+          status : "active"
+        },{
+          updatedAt : 0,
+          createdAt : 0,
+          __v : 0,
+          isDeleted : 0
+        }).lean();
 
-        return resolve(generateQrCode);
+        if( !generateQrCode ) {
+          throw {
+            message : messageConstants.apiResponses.QR_CODE_NOT_FOUND
+          }
+        }
+
+        return resolve({
+          message : messageConstants.apiResponses.QR_CODE_FETCHED,
+          result : generateQrCode
+        });
 
       } catch(error) {
         
@@ -171,14 +189,14 @@ module.exports = class QrCode extends Abstract {
      * "N7W8L4"
      * ]    
     }
+
      * @apiParamExample {json} Request:
      * {
      * "message": "Qr code pdfs generated successfully",
      * "status": 200,
-     * "result":[{
+     * "result":{
      * "url": "https://sl-bodh-storage.s3.amazonaws.com/courses/courseId/a.pdf"
      * }
-     * ]
     }
   }
   */
@@ -196,9 +214,11 @@ module.exports = class QrCode extends Abstract {
 
       try {
 
-        let generateQrCode = ""
+        let generatePdfs = await qrCodeHelper.generatePdfs(
+          req.body.codes
+        )
 
-        return resolve(generateQrCode);
+        return resolve(generatePdfs);
 
       } catch(error) {
         
