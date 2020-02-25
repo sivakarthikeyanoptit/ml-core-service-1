@@ -10,6 +10,8 @@
     * UserExtensionHelper
     * @class
 */
+
+const userProfileHelper = require(MODULES_BASE_PATH + "/user-profile/helper.js");
 module.exports = class UserExtensionHelper {
 
        /**
@@ -119,6 +121,10 @@ module.exports = class UserExtensionHelper {
                     }
 
                 }
+
+                await userProfileHelper.create({
+                    userId : userDetails.userId
+                },userDetails.userToken);
 
                 return resolve(response);
 
