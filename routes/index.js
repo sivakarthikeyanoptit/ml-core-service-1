@@ -5,7 +5,6 @@
  * Description : All routes.
  */
 
-
 // dependencies
 const authenticator = require(ROOT_PATH + "/generics/middleware/authenticator");
 const slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
