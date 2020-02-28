@@ -179,7 +179,7 @@ function _immediateEntities(entities) {
                         entities[entityTypeList[pointerToEntityType]]
                     );
 
-                    immediateEntitiesData[immediateEntities.result.immediateEntityType+"list"] = 
+                    immediateEntitiesData[immediateEntities.result.immediateEntityType+"List"] = 
                     immediateEntities.result.data;
                 }
             }
