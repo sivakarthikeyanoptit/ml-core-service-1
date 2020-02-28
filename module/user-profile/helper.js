@@ -7,6 +7,7 @@
 
 let userManagementService = 
 require(ROOT_PATH +"/generics/services/user-management");
+let entitiesHelper = require(ROOT_PATH+"/module/entities/helper");
 
 module.exports = class UserProfileHelper {
 
@@ -96,16 +97,49 @@ module.exports = class UserProfileHelper {
    * @returns {json} Response consists of user details data.
    */
 
-  static details( userId,token ) {
+  static details( userId,token,pageSize,pageNo ) {
     return new Promise(async (resolve, reject) => {
         try {
+            
             let userProfileDetails = 
             await userManagementService.userProfileDetails(
                 userId,
                 token
             );
+            
+            let requestedData = {
+                pageSize : pageSize,
+                pageNo : pageNo,
+                entityType : "state"
+            };
+            
+            let stateList = await entitiesHelper.listByEntityType(requestedData);
+            
+            let immediateEntities = await _immediateEntities(
+                _.pick(userProfileDetails.result,
+                    [
+                        "state",
+                        "district",
+                        "block",
+                        "zone",
+                        "cluster",
+                        "taluk",
+                        "hub",
+                        "school"
+                    ])
+            );
 
-            return resolve(userProfileDetails);
+            userProfileDetails = {
+                ...userProfileDetails.result,
+                ...immediateEntities,
+                ...{
+                    stateList : stateList.result
+                }
+            }
+
+            return resolve({
+                result : userProfileDetails
+            });
 
         } catch(error) {
             return reject(error);
@@ -114,3 +148,45 @@ module.exports = class UserProfileHelper {
   }
 
 };
+
+ /**
+   * All immediate entities
+   * @method
+   * @name _immediateEntities
+   * @param {Array} entities - Array of entities.
+   * @returns {Object}
+   * */
+
+function _immediateEntities(entities) {
+    return new Promise(async (resolve,reject)=>{
+        try {
+
+            let immediateEntitiesData = {};
+
+            let entityTypeList = Object.keys(entities);
+
+            for( 
+                let pointerToEntityType = 0; 
+                pointerToEntityType < entityTypeList.length;
+                pointerToEntityType ++
+            ) {
+
+                let entityId = entities[entityTypeList[pointerToEntityType]];
+                if( entityId !== null  ) {
+                    
+                    let immediateEntities = 
+                    await entitiesHelper.immediateEntities(
+                        entities[entityTypeList[pointerToEntityType]]
+                    );
+
+                    immediateEntitiesData[immediateEntities.result.immediateEntityType+"list"] = 
+                    immediateEntities.result.data;
+                }
+            }
+
+            return resolve(immediateEntitiesData);
+        } catch(err) {
+            return reject(err);
+        }
+    })
+}
