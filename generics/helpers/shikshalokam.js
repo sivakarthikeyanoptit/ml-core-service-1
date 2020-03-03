@@ -1,6 +1,7 @@
 // dependencies.
 var http = require("https");
 const jwtDecode = require('jwt-decode');
+const request = require("request");
 
 /**
   * Shikshalokam getUserInfo
@@ -177,6 +178,57 @@ var getUserInfo = function (token, userId) {
   });
 };
 
+/**
+  * Shikshalokam generate token
+  * @function
+  * @name generateKeyCloakAccessToken
+  * @param {String} userName - user name
+  * @param {String} password - user password
+  * @returns {Promise} returns a promise.
+*/
+
+var generateKeyCloakAccessToken = function ( userName,password ) {
+
+  let keyCloakUrl = 
+  process.env.sunbird_keycloak_auth_server_url+"/realms/"+
+  process.env.sunbird_keycloak_realm+"/protocol/openid-connect/token";
+
+  return new Promise(async (resolve,reject)=>{
+    try {
+
+      let options = {
+        "headers" : {
+            "content-type": "application/x-www-form-urlencoded",
+        },
+        form : {
+          client_id : process.env.sunbird_admin_cli,
+          username : userName,
+          password : password,
+          grant_type : process.env.sunbird_grant_type
+        }
+      }
+
+      request.post(keyCloakUrl,options,callback);
+
+      function callback(err,data) {
+        if(err) {
+
+        } else {
+          let body = JSON.parse(data.body);
+
+          return resolve({
+            token : body.access_token
+          })
+        }
+      }
+
+    } catch (err) {
+      return reject(err);
+    }
+  })
+};
+
 module.exports = {
-  userInfo: getUserInfo
+  userInfo: getUserInfo,
+  generateKeyCloakAccessToken : generateKeyCloakAccessToken
 };
