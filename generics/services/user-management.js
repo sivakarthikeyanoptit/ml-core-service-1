@@ -24,7 +24,7 @@ const request = require('request');
 var createUserProfile = function ( bodyData,token ) {
 
     const createUserProfileUrl = 
-    urlPrefix + messageConstants.common.endPoints.createProfile;
+    urlPrefix + constants.endpoints.CREATE_USER_PROFILE;
 
     return new Promise(async (resolve, reject) => {
         try {
@@ -63,7 +63,7 @@ var createUserProfile = function ( bodyData,token ) {
 var updateUserProfile = function ( bodyData,token ) {
 
     const updateUserProfileUrl = 
-    urlPrefix + messageConstants.common.endPoints.updateProfile;
+    urlPrefix + constants.endpoints.UPDATE_USER_PROFILE;
 
     return new Promise(async (resolve, reject) => {
         try {
@@ -105,7 +105,7 @@ var updateUserProfile = function ( bodyData,token ) {
 var verifyUserProfile = function ( userId,token ) {
 
     const verifyUserProfileUrl = 
-    urlPrefix + messageConstants.common.endPoints.verifyProfile+"/"+userId;
+    urlPrefix + constants.endpoints.VERIFY_USER_PROFILE+"/"+userId;
     
     return new Promise(async (resolve, reject) => {
         try {
@@ -146,7 +146,7 @@ var verifyUserProfile = function ( userId,token ) {
 var platformUserProfile = function ( userId,token ) {
 
     const platformUserRolesUrl = 
-    urlPrefix + messageConstants.common.endPoints.platformUserProfile+"/"+userId;
+    urlPrefix + constants.endpoints.PLATFORM_USER_PROFILE+"/"+userId;
     
     return new Promise(async (resolve, reject) => {
         try {
@@ -187,7 +187,7 @@ var platformUserProfile = function ( userId,token ) {
 var userProfileDetails = function ( userId,token ) {
 
     const userProfileDetailsUrl = 
-    urlPrefix + messageConstants.common.endPoints.userProfileDetails+"/"+userId;
+    urlPrefix + constants.endpoints.USER_PROFILE_DETAILS+"/"+userId;
     
     return new Promise(async (resolve, reject) => {
         try {

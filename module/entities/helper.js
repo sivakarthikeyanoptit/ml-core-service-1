@@ -79,11 +79,11 @@ module.exports = class EntitiesHelper {
     return new Promise(async (resolve, reject) => {
         try {
 
-            let entityName = messageConstants.common.schema.METAINFORMATION+"."+
-            messageConstants.common.schema.NAME;
+            let entityName = constants.schema.METAINFORMATION+"."+
+            constants.schema.NAME;
 
-            let entityExternalId = messageConstants.common.schema.METAINFORMATION+"."+
-            messageConstants.common.schema.EXTERNALID;
+            let entityExternalId = constants.schema.METAINFORMATION+"."+
+            constants.schema.EXTERNALID;
 
             let projection = [entityName,entityExternalId];
             
@@ -103,7 +103,7 @@ module.exports = class EntitiesHelper {
             if ( entityDocuments.length < 1 ) {
               throw { 
                 status: httpStatusCode.not_found.status, 
-                message: messageConstants.apiResponses.ENTITY_NOT_FOUND
+                message: constants.apiResponses.ENTITY_NOT_FOUND
               };
             }
     
@@ -116,7 +116,7 @@ module.exports = class EntitiesHelper {
             });
 
             return resolve({
-                message : messageConstants.apiResponses.ENTITIES_FETCHED,
+                message : constants.apiResponses.ENTITIES_FETCHED,
                 result : entityDocuments
             });
 
@@ -139,8 +139,8 @@ module.exports = class EntitiesHelper {
     return new Promise(async (resolve, reject) => {
 
         let projection = [
-            messageConstants.common.schema.ENTITYTYPE,
-            messageConstants.common.schema.GROUPS
+            constants.schema.ENTITYTYPE,
+            constants.schema.GROUPS
         ];
 
         let entitiesDocument = await this.entityDocuments({
@@ -177,18 +177,18 @@ module.exports = class EntitiesHelper {
                 immediateEntitiesIds.length > 0 
             ) {
 
-                let entityName = messageConstants.common.schema.METAINFORMATION+"."+
-                messageConstants.common.schema.NAME;
+                let entityName = constants.schema.METAINFORMATION+"."+
+                constants.schema.NAME;
 
-                let entityExternalId = messageConstants.common.schema.METAINFORMATION+"."+
-                messageConstants.common.schema.EXTERNALID;
+                let entityExternalId = constants.schema.METAINFORMATION+"."+
+                constants.schema.EXTERNALID;
 
                 immediateEntities = await this.entityDocuments({
                     _id : { $in: immediateEntitiesIds}
                 },[
                     entityName,
                     entityExternalId,
-                    messageConstants.common.schema.ENTITYTYPE
+                    constants.schema.ENTITYTYPE
                 ]);
 
                 if( immediateEntities.length > 0 ) {
@@ -210,7 +210,7 @@ module.exports = class EntitiesHelper {
         }
 
         resolve({
-            message : messageConstants.apiResponses.IMMEDIATE_ENTITIES_FETCHED,
+            message : constants.apiResponses.IMMEDIATE_ENTITIES_FETCHED,
             result : result
         });
     })
