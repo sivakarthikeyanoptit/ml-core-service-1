@@ -15,8 +15,8 @@ const elasticSearchHelper = require(GENERIC_HELPERS_PATH + "/elastic-search");
 // Constants
 const bodhContentIndex = gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_BODH_CONTENT_INDEX");
 const bodhContentIndexType = gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_BODH_CONTENT_INDEX_TYPE");
-const qrCodeHelpers = require(MODULES_BASE_PATH+"/qr-code/helper");
-let bodhServices = require(ROOT_PATH+"/generics/services/bodh");
+const qrCodeHelpers = require(MODULES_BASE_PATH+"/qr-codes/helper");
+let sunbirdService = require(ROOT_PATH+"/generics/services/sunbird");
 
 /**
     * BodhHelper
@@ -99,7 +99,7 @@ module.exports = class BodhHelper {
                         if(!addKeywordOperation.data) {
                             keywordsUpdateResult.push({
                                 word : keywordsData[pointerToKeywordsData],
-                                status : messageConstants.common.FAILED
+                                status : constants.common.FAILED
                             })
                         } else {
                             keywordsUpdateResult.push({
@@ -179,12 +179,12 @@ module.exports = class BodhHelper {
                         if(!addCourseToAutocomplete.data) {
                             contentUpdateResult.push({
                                 IL_UNIQUE_ID : eachContent.IL_UNIQUE_ID,
-                                status : messageConstants.common.FAILED
+                                status : constants.common.FAILED
                             })
                         } else {
                             contentUpdateResult.push({
                                 IL_UNIQUE_ID : eachContent.IL_UNIQUE_ID,
-                                status : messageConstants.common.SUCCESS
+                                status : constants.common.SUCCESS
                             })
                         }
                         
@@ -438,8 +438,6 @@ module.exports = class BodhHelper {
         })
     }
 
-
-
      /**
       * Get context keys for auto complete index.
       * @method
@@ -475,51 +473,63 @@ module.exports = class BodhHelper {
     }
 
     /**
-      * Get context keys for auto complete index.
+      * Generate qr code from the content data
       * @method
       * @name generateQrCode
-      * @returns {Promise} returns a promise.
+      * @param contentData - Bodh content information
+      * @param userId - Logged in user id.
+      * @param userToken - Logged in user token.
+      * @returns {Arary} returns a array of qr code links.
      */
 
-    static generateQrCode(qrCodeData,userId,userToken) {
+    static generateQrCode( contentData,userId,userToken ) {
         return new Promise(async (resolve, reject) => {
             try {
 
                 let codes = await qrCodeHelpers.generateCodes(
-                    qrCodeData.length,
+                    contentData.length,
                     userToken
                 );
 
-                let generateQrCodeData = [];
+                await new Promise((resolve)=>setTimeout(() => {
+                    resolve();
+                }, 3000)); 
 
-                for( let code = 0; code < codes.length; code ++ ) {
+                let result = [];
+
+                for( let code = 0 ; code < codes.length ; code ++ ) {
                     
                     await qrCodeHelpers.publishCode(
                         codes[code],
                         userToken
-                    )
+                    );
 
                     await this.linkContent(
                         codes[code],
-                        qrCodeData[code].identifier,
+                        contentData[code].identifier,
                         userToken
                     );
-
+                    
+                    let generateQrCode = await qrCodeHelpers.generate(
+                        {
+                            code : codes[code],
+                            head : contentData[code].name,
+                            tail : contentData[code].identifier,
+                            metaInformation : { ... contentData[code] },
+                            appName : "bodh"
+                        },userId);
+                        
                     await this.publishContent(
-                        qrCodeData[code].identifier,
-                        qrCodeData[code].lastPublishedBy
+                        contentData[code].identifier,
+                        contentData[code].lastPublishedBy
                     );
-
-                    generateQrCodeData.push({
-                        code : codes[code],
-                        courseName : qrCodeData[code].name,
-                        courseId : qrCodeData[code].identifier
-                    });
+                        
+                    result.push(generateQrCode);
                 }
-
-                let generateQrCode = await qrCodeHelpers.generate(generateQrCodeData);
-
-                return resolve(generateQrCode);
+                return resolve({
+                    message : constants.apiResponses.QR_CODE_GENERATED,
+                    result : result
+                });
                 
             } catch (error) {
                 return reject(error);
@@ -537,11 +547,11 @@ module.exports = class BodhHelper {
       * @returns {Promise}
      */
 
-    static linkContent(dialCode,identifier,token) {
+    static linkContent( dialCode,identifier,token ) {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let linkContentStatus = await bodhServices.linkContent(
+                let linkContentData = await sunbirdService.linkContent(
                     token,
                     {
                         "request" : {
@@ -551,15 +561,16 @@ module.exports = class BodhHelper {
                             }
                         }
                     }
-                )
+                );
 
-                if( linkContentStatus !== messageConstants.common.OK ){
+                if( linkContentData.responseCode !== constants.common.OK ){
                     throw {
-                        message : messageConstants.apiResponses.COULD_NOT_LINK_BODH_CONTENT
+                        message : 
+                        constants.apiResponses.COULD_NOT_LINK_BODH_CONTENT
                     }
                 }
 
-                return resolve(linkContentStatus);
+                return resolve(linkContentData.responseCode);
                 
             } catch (error) {
                 return reject(error);
@@ -572,6 +583,7 @@ module.exports = class BodhHelper {
       * @method
       * @name publishContent
       * @param contentId - content id
+      * @param lastPublishedBy
       * @returns {Promise}
      */
 
@@ -579,7 +591,7 @@ module.exports = class BodhHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let publishContent = await bodhServices.publishContent(
+                let publishContentData = await sunbirdService.publishContent(
                     {
                         "request" : {
                             "content" : {
@@ -590,7 +602,14 @@ module.exports = class BodhHelper {
                     contentId
                 );
 
-                return resolve(publishContent);
+                if( publishContentData.responseCode !== constants.common.OK ){
+                    throw {
+                        message : 
+                        constants.apiResponses.COULD_NOT_PUBLISH_CONTENT_DATA
+                    }
+                }
+
+                return resolve(publishContentData.responseCode);
                 
             } catch (error) {
                 return reject(error);

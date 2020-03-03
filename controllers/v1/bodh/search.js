@@ -86,7 +86,7 @@ module.exports = class Search {
                 .getSearchResults(request);
                 
                 if(!getBodhServiceResponse.data) {
-                    throw { message: messageConstants.apiResponses.BODH_SEARCH_MIDDLEWARE_FAILURE }
+                    throw { message: constants.apiResponses.BODH_SEARCH_MIDDLEWARE_FAILURE }
                 }
 
                 let isRequestForACourse = false;
@@ -111,7 +111,7 @@ module.exports = class Search {
 
                     // Check if original query yielded any result and parse that content if yes.
                     if(!getBodhServiceResponse.data) {
-                        throw { message: messageConstants.apiResponses.BODH_SEARCH_MIDDLEWARE_FAILURE }
+                        throw { message: constants.apiResponses.BODH_SEARCH_MIDDLEWARE_FAILURE }
                     } else if (getBodhServiceResponse.data.data.result.count > 0) {
                         bodhHelper.parseContentForKeywords(getBodhServiceResponse.data.data.result.content);
                     }
@@ -119,7 +119,7 @@ module.exports = class Search {
 
                 // Add did you mean if user query is different from searched query.
                 if(queryString != userQueryString) {
-                    getBodhServiceResponse.data[messageConstants.apiResponses.BODH_SEARCH_MIDDLEWARE_DID_YOU_MEAN_KEY] = `${queryString}`
+                    getBodhServiceResponse.data[constants.apiResponses.BODH_SEARCH_MIDDLEWARE_DID_YOU_MEAN_KEY] = `${queryString}`
                 }
 
                 // Parse content from Bodh for updating auto complete
@@ -134,7 +134,7 @@ module.exports = class Search {
                 
                 return resolve({
                     result: getBodhServiceResponse.data,
-                    message: messageConstants.apiResponses.BODH_SEARCH_MIDDLEWARE_SUCCESS
+                    message: constants.apiResponses.BODH_SEARCH_MIDDLEWARE_SUCCESS
                 });
 
             } catch (error) {
@@ -189,12 +189,12 @@ module.exports = class Search {
                 .getSearchSuggestions(queryString,filters,size);
                 
                 if(!searchSuggestions.data) {
-                    throw { message: messageConstants.apiResponses.BODH_SEARCH_AUTOCOMPLETE_FAILURE };
+                    throw { message: constants.apiResponses.BODH_SEARCH_AUTOCOMPLETE_FAILURE };
                 }
                 
                 return resolve({
                     result: { suggestions : searchSuggestions.data },
-                    message: messageConstants.apiResponses.BODH_SEARCH_AUTOCOMPLETE_SUCCESS
+                    message: constants.apiResponses.BODH_SEARCH_AUTOCOMPLETE_SUCCESS
                 });
 
             } catch (error) {

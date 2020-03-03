@@ -179,30 +179,33 @@ var getUserInfo = function (token, userId) {
 };
 
 /**
-  * Shikshalokam verifyKeyCloakAccessToken
+  * Shikshalokam generate token
   * @function
-  * @name verifyKeyCloakAccessToken
+  * @name generateKeyCloakAccessToken
   * @param {String} userName - user name
   * @param {String} password - user password
   * @returns {Promise} returns a promise.
 */
 
-var verifyKeyCloakAccessToken = function ( formData ) {
+var generateKeyCloakAccessToken = function ( userName,password ) {
 
   let keyCloakUrl = 
-  process.env.BODH_URL+"/realms/"+
-  process.env.sunbird_keycloak_realm+"/"+
-  "protocol"+process.env.SUNBIRD_OPENID+
-  process.env.SUNBIRD_TOKEN;
+  process.env.sunbird_keycloak_auth_server_url+"/realms/"+
+  process.env.sunbird_keycloak_realm+"/protocol/openid-connect/token";
 
   return new Promise(async (resolve,reject)=>{
     try {
 
       let options = {
-        "headers":{
+        "headers" : {
             "content-type": "application/x-www-form-urlencoded",
         },
-        form : formData
+        form : {
+          client_id : process.env.sunbird_admin_cli,
+          username : userName,
+          password : password,
+          grant_type : process.env.sunbird_grant_type
+        }
       }
 
       request.post(keyCloakUrl,options,callback);
@@ -227,5 +230,5 @@ var verifyKeyCloakAccessToken = function ( formData ) {
 
 module.exports = {
   userInfo: getUserInfo,
-  verifyKeyCloakAccessToken : verifyKeyCloakAccessToken
+  generateKeyCloakAccessToken : generateKeyCloakAccessToken
 };

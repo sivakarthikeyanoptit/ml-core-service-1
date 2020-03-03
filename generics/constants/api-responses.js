@@ -1,5 +1,5 @@
 /**
- * name : message-constants/api-responses.js
+ * name : constants/api-responses.js
  * author : Akash Shah
  * Date : 09-Dec-2019
  * Description : All api response messages.
@@ -21,12 +21,16 @@ module.exports = {
   "IMMEDIATE_ENTITIES_FETCHED" : "List of immediate entities fetched",
   "BODY_NOT_FOUND" : "Body data not found",
   "QR_CODE_EXISTS" : "Qr code alreasy exists",
-  "QR_CODE_DATA_SIZE" : "Qr code data should be greater than 0",
   "QR_CODE_INCORRECT" : "Some code is incorrect",
   "QR_CODE_NOT_FOUND" : "No qr code found",
   "QR_CODE_FETCHED" : "Qr code information fetched successfully",
   "QR_CODE_EXISTS" : "Qr code already exists",
-  "BODH_SERVICE_DOWN" : "Could not connect to bodh service",
+  "QR_CODE_DATA_NOT_FOUND" : "Data for qr code not found",
+  "SUNBIRD_SERVICE_DOWN" : "Could not connect to bodh service",
   "DIAL_CODE_NOT_PUBLISHED" : "Dial code is not published",
-  "COULD_NOT_LINK_BODH_CONTENT" : "Could not link bodh content"
+  "COULD_NOT_LINK_BODH_CONTENT" : "Failed to link bodh content",
+  "QR_CODE_GENERATED" : "QR code generated successfully",
+  "DIAL_CODE_NOT_GENERATED" : "Failed to generate dial code",
+  "COULD_NOT_PUBLISH_DIAL_CODE" : "Failed to publish dial code",
+  "COULD_NOT_PUBLISH_CONTENT_DATA" : "Failed to publish content data"
 };

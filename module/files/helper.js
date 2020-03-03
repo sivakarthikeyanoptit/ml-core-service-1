@@ -26,7 +26,7 @@ module.exports = class FilesHelper{
       * @returns {json} Response consists of links of uploaded qr code.
     */
 
-   static upload( file,filePathForBucket ) {
+   static upload( file,filePathForBucket,bucketName ) {
        return new Promise(async (resolve, reject) => {
            try {
 
@@ -34,12 +34,14 @@ module.exports = class FilesHelper{
             if( process.env.CLOUD_STORAGE === "AWS" ) {
                 result = await awsServices.uploadFile(
                     file,
-                    filePathForBucket
+                    filePathForBucket,
+                    bucketName
                 );
             } else if( process.env.CLOUD_STORAGE === "GC" ) {
                 result = await googleCloudServices.uploadFile(
                     file,
-                    filePathForBucket
+                    filePathForBucket,
+                    bucketName
                 )
             }
 
@@ -49,4 +51,36 @@ module.exports = class FilesHelper{
             }
         })
    }
+
+   /**
+      * Get downloadable url
+      * @method
+      * @name getDownloadableUrl
+      * @param  {filePath}  - File path.
+      * @return {String} - Downloadable url link
+    */
+
+   static getDownloadableUrl( filePath,bucketName ) {
+       return new Promise(async (resolve, reject) => {
+           try {
+               let result;
+               
+               if( process.env.CLOUD_STORAGE === "AWS" ) {
+                   result = await awsServices.getDownloadableUrl(
+                       filePath,
+                       bucketName
+                    );
+                } else if( process.env.CLOUD_STORAGE === "GC" ) {
+                    result = await googleCloudServices.getDownloadableUrl(
+                        filePath,
+                        bucketName
+                    );
+                }
+                
+                return resolve(result);
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
 }

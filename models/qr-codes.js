@@ -6,9 +6,12 @@
  */
 
 module.exports = {
-    name: "qrCode",
+    name: "qrCodes",
     schema: {
-        "code" : String,
+        "code" : {
+            type : String,
+            required : true
+        },
         "metaInformation" : Object,
         "status" : {
             type : String,
@@ -18,9 +21,15 @@ module.exports = {
             type : Boolean,
             default : false
         },
-        "createdBy" : String,
-        "appName" : String,
-        "imageUrl" : String,
-        "pdfUrl" : String
+        "createdBy" : {
+            type : String,
+            required : true
+        },
+        "appName" : {
+            type : String,
+            required : true
+        },
+        "image" : String,
+        "pdf" : String
     }
 }

@@ -6,14 +6,14 @@
  */
 
 // Dependencies
-let qrCodeHelper = require(ROOT_PATH+"/module/qr-code/helper");
+let qrCodeHelper = require(ROOT_PATH+"/module/qr-codes/helper");
 
 /**
     * QrCode
     * @class
 */
 
-module.exports = class QrCode extends Abstract {
+module.exports = class QrCodes extends Abstract {
   
    /**
      * @apiDefine errorBody
@@ -28,11 +28,11 @@ module.exports = class QrCode extends Abstract {
      */
 
     constructor() {
-        super(schemas["qr-code"]);
+        super(schemas["qr-codes"]);
     }
     
     static get name() {
-        return "qr-code";
+        return "qr-codes";
     }
 
    /**
@@ -104,7 +104,7 @@ module.exports = class QrCode extends Abstract {
      * @api {get} /kendra/api/v1/qr-code/image/:uniquecode 
      * Get the image link of the qr code
      * @apiVersion 1.0.0
-     * @apiGroup qrCode
+     * @apiGroup qrCodes
      * @apiHeader {String} X-authenticated-user-token Authenticity token
      * @apiSampleRequest /kendra/api/v1/qr-code/image/N7W8L4
      * @apiUse successBody
@@ -133,26 +133,8 @@ module.exports = class QrCode extends Abstract {
 
       try {
 
-        let generateQrCode = await database.models.qrCode.findOne({
-          code : req.params._id,
-          status : "active"
-        },{
-          updatedAt : 0,
-          createdAt : 0,
-          __v : 0,
-          isDeleted : 0
-        }).lean();
-
-        if( !generateQrCode ) {
-          throw {
-            message : messageConstants.apiResponses.QR_CODE_NOT_FOUND
-          }
-        }
-
-        return resolve({
-          message : messageConstants.apiResponses.QR_CODE_FETCHED,
-          result : generateQrCode
-        });
+        let imageUrl = await qrCodeHelper.image(req.params._id);
+        return resolve(imageUrl);
 
       } catch(error) {
         
@@ -167,13 +149,13 @@ module.exports = class QrCode extends Abstract {
         });
       }
     });
-  }
+   }
 
   /**
      * @api {Post} /kendra/api/v1/qr-code/pdf
      * Get qr code pdfs.
      * @apiVersion 1.0.0
-     * @apiGroup qrCode
+     * @apiGroup qrCodes
      * @apiHeader {String} X-authenticated-user-token Authenticity token
      * @apiSampleRequest /kendra/api/v1/qr-code/pdf
      * @apiUse successBody
@@ -189,8 +171,10 @@ module.exports = class QrCode extends Abstract {
      * {
      * "message": "Qr code pdfs generated successfully",
      * "status": 200,
-     * "result":{
+     * "result":[{
+     * code : "N7W8L4"
      * "url": "https://sl-bodh-storage.s3.amazonaws.com/courses/courseId/a.pdf"
+     * }]
      * }
     }
   }

@@ -5,30 +5,40 @@
  * Description : All google cloud related functionality
  */
 
+// Dependencies
 const { Storage } = require("@google-cloud/storage");
-const BUCKET_NAME = process.env.GCP_BUCKET_NAME;
 
 const storage = new Storage({
   projectId: "shikshalokam",
   keyFilename:
-    ROOT_PATH+process.env.GCP_PATH
+    ROOT_PATH + process.env.GCP_PATH
 });
 
-var myBucket = storage.bucket(BUCKET_NAME);
+/**
+  * Upload file in google cloud.
+  * @function
+  * @name uploadFile
+  * @param file - file to upload.
+  * @param filePath - file path
+  * @returns {Object} - upload file information
+*/
 
-let uploadFile = (file,filePath) => {
+let uploadFile = ( fileName,filePath,bucketName ) => {
   return new Promise(async (resolve,reject)=>{
       try {
-          
-          let uploadedFile = await myBucket.upload(file,
+          let bucket = bucketName ? bucketName : process.env.DEFAULT_BUCKET_NAME;
+          let gcpBucket = storage.bucket(bucket);
+
+          let uploadedFile = await gcpBucket.upload(fileName,
             {
                 destination: filePath,
-                gzip : true
+                gzip : true,
+                metadata : {}
             }
           );
 
           return resolve(
-            uploadedFile[0].metadata.mediaLink
+            uploadedFile[0].metadata
           );
 
       } catch(err) {
@@ -37,6 +47,30 @@ let uploadFile = (file,filePath) => {
   })
 }
 
+/**
+  * Get download lik for google cloud data.
+  * @function
+  * @name downloadUrl
+  * @param fileName - Name of the file name.
+  * @returns {String} - Url link
+*/
+
+let getDownloadableUrl = ( filename,bucketName) =>{
+  return new Promise(async (resolve,reject)=>{
+    try {
+
+      let bucket = bucketName ? bucketName : process.env.DEFAULT_BUCKET_NAME;
+      let gcpBucket = storage.bucket(bucket);
+      let downloadableUrl = await gcpBucket.file(filename).getMetadata();
+      return resolve(downloadableUrl[0].mediaLink);
+      
+    } catch(err){
+      return reject(err);
+    }
+  })
+}
+
 module.exports = {
-    uploadFile: uploadFile
+    uploadFile: uploadFile,
+    getDownloadableUrl : getDownloadableUrl
 };

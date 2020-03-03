@@ -57,12 +57,8 @@ typings/
 # dotenv environment variables file
 .env
 
-# firbase credentials
-config/fcm-keystore.json
-
-# GCP credentials
-
-config/gcp-credentials.json
+# Ignore all credentials gcp,fcm
+config/credentials/*
 
 # next.js build output
 .next

@@ -21,7 +21,6 @@ let fs = require("fs");
 
 var generatePdf = async function ( formData,pdfPath ) {
     return new Promise(async (resolve,reject)=>{
-
         let options = 
         {
             url: process.env.GOTENBERG_HOST,
@@ -37,22 +36,17 @@ var generatePdf = async function ( formData,pdfPath ) {
             encoding : null
         };
 
-        request(options,callback)
-
+        request(options,callback);
+        
         function callback(error, response, body) {
             if (error) {
-
-                throw {
-                    message : "Gotenberg service is down !!"
-                }
-            
+                return reject({ message : "Gotenberg service is down !!"})
             } else {
-                
                 fs.writeFile(pdfPath,body, function (err,data) {
                     if(err) {
-                        throw {
+                        return reject({
                             message : "Could not append pdf in given path"
-                        }
+                        })
                     } else {
                         return resolve({})
                     }

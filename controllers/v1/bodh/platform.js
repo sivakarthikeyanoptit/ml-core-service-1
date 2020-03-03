@@ -33,7 +33,7 @@ module.exports = class Platform {
      * @apiUse errorBody
      * @apiParamExample {json} Request:
      * {
-     * "qrCodeData":[
+     * "contentData":[
      * {
      * "lastPublishedBy":"",
      * "identifier":"do_2127512157406167041194",
@@ -47,7 +47,7 @@ module.exports = class Platform {
       * @method
       * @name generate
       * @param  {req}  - requested data.
-      * @returns {json} Response consists of all the qr code generated links.
+      * @returns {json} Response consists of all generated qr codes data.
     */
 
     async generate(req) {
@@ -56,14 +56,14 @@ module.exports = class Platform {
             
             try {
                 
-                let generateQrCodeForBodh = 
+                let codes = 
                 await bodhHelpers.generateQrCode(
-                    req.body.qrCodeData,
+                    req.body.contentData,
                     req.userDetails.userId,
                     req.userDetails.userToken
                 );
   
-                return resolve(generateQrCodeForBodh);
+                return resolve(codes);
             } catch(error) {
                 
                 return reject({
