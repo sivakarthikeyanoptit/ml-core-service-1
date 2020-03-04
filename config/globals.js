@@ -119,14 +119,14 @@ module.exports = function () {
 
 
   // Load all message constants
-  global.messageConstants = new Array
-  fs.readdirSync(ROOT_PATH + "/generics/message-constants")
+  global.constants = new Array
+  fs.readdirSync(ROOT_PATH + "/generics/constants")
   .forEach(function (file) {
     if (file.match(/\.js$/) !== null) {
       let name = file.replace('.js', '');
       name = gen.utils.hyphenCaseToCamelCase(name);
-      global.messageConstants[name] = 
-      require(ROOT_PATH + "/generics/message-constants/" + file);
+      global.constants[name] = 
+      require(ROOT_PATH + "/generics/constants/" + file);
     }
   });
 
