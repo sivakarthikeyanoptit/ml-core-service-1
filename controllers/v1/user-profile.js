@@ -211,7 +211,9 @@ module.exports = class UserProfile {
 
       let userProfileDocument = await userProfileHelper.details(
         req.params._id ? req.params._id : req.userDetails.userId,
-        req.userDetails.userToken
+        req.userDetails.userToken,
+        req.pageSize,
+        req.pageNo
       );
 
       return resolve(userProfileDocument);
@@ -229,6 +231,6 @@ module.exports = class UserProfile {
       });
     }
   });
-}
+ }
 
 };

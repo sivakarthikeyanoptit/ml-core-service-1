@@ -61,14 +61,14 @@ module.exports = class Keywords {
             try {
 
                 if (!req.files || !req.files.keywords) {
-                    throw { message: messageConstants.apiResponses.DICTIONARY_KEYWORDS_MISSING_FILE_ERROR };
+                    throw { message: constants.apiResponses.DICTIONARY_KEYWORDS_MISSING_FILE_ERROR };
                 }
 
                 const checkIfKeywordsCanBeUploaded = await dictionaryHelper
                 .keywordsIndexTypeMapExists();
                 
                 if(!checkIfKeywordsCanBeUploaded.data) {
-                    throw { message: messageConstants.apiResponses.DICTIONARY_KEYWORDS_MAPPING_MISSING_ERROR }
+                    throw { message: constants.apiResponses.DICTIONARY_KEYWORDS_MAPPING_MISSING_ERROR }
                 }
 
                 let keywordsData = 
@@ -90,7 +90,7 @@ module.exports = class Keywords {
                     pointerToKeywordsData < keywordsData.length;
                     pointerToKeywordsData++) {
                         const row = keywordsData[pointerToKeywordsData];
-                        row.status = messageConstants.common.FAILED;
+                        row.status = constants.common.FAILED;
                         if(row.word && row.word != "") {
                             let addOrRemoveOperation
                             if(row.action == "remove") {
@@ -99,9 +99,9 @@ module.exports = class Keywords {
                                 addOrRemoveOperation = await dictionaryHelper.addWordToDictionary(row.word);
                             }
                             if(!addOrRemoveOperation.data) {
-                                row.status = messageConstants.common.FAILED;
+                                row.status = constants.common.FAILED;
                             } else {
-                                row.status = messageConstants.common.SUCCESS;
+                                row.status = constants.common.SUCCESS;
                             }
                         }
                         input.push(row);
@@ -164,7 +164,7 @@ module.exports = class Keywords {
                 .keywordsIndexTypeMapExists();
                 
                 if(!checkIfKeywordsCanBeUploaded.data) {
-                    throw { message: messageConstants.apiResponses.DICTIONARY_KEYWORDS_MAPPING_MISSING_ERROR }
+                    throw { message: constants.apiResponses.DICTIONARY_KEYWORDS_MAPPING_MISSING_ERROR }
                 }
 
                 let keywordsData = req.body.keywords;
@@ -175,14 +175,14 @@ module.exports = class Keywords {
                     pointerToKeywordsData < keywordsData.length;
                     pointerToKeywordsData++) {
                         const keyword = keywordsData[pointerToKeywordsData];
-                        let status = messageConstants.common.FAILED;
+                        let status = constants.common.FAILED;
                         if(keyword != "") {
                             let addOrUpdateKeyword = await dictionaryHelper.addWordToDictionary(keyword);
                             
                             if(!addOrUpdateKeyword.data) {
-                                status = messageConstants.common.FAILED;
+                                status = constants.common.FAILED;
                             } else {
-                                status = messageConstants.common.SUCCESS;
+                                status = constants.common.SUCCESS;
                             }
                         }
                         keywordsUpdateResult.push({
@@ -193,7 +193,7 @@ module.exports = class Keywords {
 
                 return resolve({
                     result: keywordsUpdateResult,
-                    message: messageConstants.apiResponses.DICTIONARY_KEYWORDS_UPDATE_SUCCESS
+                    message: constants.apiResponses.DICTIONARY_KEYWORDS_UPDATE_SUCCESS
                 });
 
             } catch (error) {
