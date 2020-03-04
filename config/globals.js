@@ -145,4 +145,26 @@ module.exports = function () {
     }]
   });
 
+  // Get the current versions of all the app
+
+  let versionsData = new Promise(async (resolve,reject)=>{
+    let versions = await database.models.appVersion.find({
+      status:"active"
+    },{version : 1,appName:1});
+
+    return resolve(versions);
+  });
+
+  global.allAppVersions = {}
+ 
+  versionsData.then((data)=>{
+    if( data.length > 0 ) {
+      data.forEach( singleData => {
+        global.allAppVersions[singleData.appName] = singleData.versions
+      })
+    }
+  })
+
+  global.versions = {}
+
 };
