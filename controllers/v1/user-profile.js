@@ -230,5 +230,39 @@ module.exports = class UserProfile {
     }
   });
 }
+   /**
+     * @api {post} /kendra/api/v1/user-profile/getForm
+     * getForm return user profile form
+     * @apiVersion 1.0.0
+     * @apiGroup user profile
+     * @apiHeader {String} X-authenticated-user-token Authenticity token
+     * @apiSampleRequest /kendra/api/v1/user-profile/getForm
+     * @apiUse successBody
+     * @apiUse errorBody
+  */
+
+ getForm(req) {
+  return new Promise(async (resolve, reject) => {
+
+    try {
+
+      let userProfileForm = await userProfileHelper.getForm();
+
+      return resolve(userProfileForm);
+
+    } catch(error) {
+      
+      return reject({
+        status: 
+        error.status || 
+        httpStatusCode["internal_server_error"].status,
+
+        message: 
+        error.message || 
+        httpStatusCode["internal_server_error"].message
+      });
+    }
+  });
+}
 
 };

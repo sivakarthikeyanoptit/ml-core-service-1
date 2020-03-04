@@ -113,4 +113,31 @@ module.exports = class UserProfileHelper {
     });
   }
 
+  /**
+   * Details user profile.
+   * @method
+   * @name getForm
+   * @returns {json} Response consists of user details data.
+   */
+
+  static getForm() {
+    return new Promise(async (resolve, reject) => {
+        try {
+            // let userProfileDetails = 
+            // await userManagementService.userProfileDetails(
+            //     userId,
+            //     token
+            // );
+
+            let userProfileForm =
+            await  database.models.forms.find({ name:"userProfile" });
+
+            return resolve(userProfileForm);
+
+        } catch(error) {
+            return reject(error);
+        }
+    });
+  }
+
 };
