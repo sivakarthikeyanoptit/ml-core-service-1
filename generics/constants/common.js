@@ -10,5 +10,8 @@ module.exports = {
   "SUCCESS" : "Success.",
   "FAILED" : "Failed.",
   "OK" : "OK",
-  BODH_DIAL_CODE_LIVE_STATUS : "Live"
+  "ALL_APP_VERSION" : "allAppVersion",
+  "ACTIVE" : "active",
+  "IN_ACTIVE" : "inactive",
+  "BODH_DIAL_CODE_LIVE_STATUS" : "Live"
 };
