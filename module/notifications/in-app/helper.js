@@ -118,7 +118,7 @@ module.exports = class InAppNotificationsHelper {
       * @returns {Promise} returns a promise.
      */
 
-    static unReadCount(userId,apptype) {
+    static unReadCount(userId,apptype,appname,currentAppVersion) {
         return new Promise(async (resolve, reject) => {
             try {
 
@@ -126,42 +126,23 @@ module.exports = class InAppNotificationsHelper {
                     count: 0,
                     data: []
                 };
+                
+                let getNotificationDocument = 
+                await elasticSearchHelper.getNotificationData(
+                    userId, apptype
+                );
 
-                // TODO:: This is a dirty fix.
-                // Removing updateVersion flow for now as planned to
-                // get updateVersion from module instead of hitting to elastic search
-                // again and again
+                if (getNotificationDocument.statusCode === httpStatusCode["ok"].status) {
+                    
+                    response["count"] = 
+                    getNotificationDocument.body._source.notificationUnreadCount;
+                }
 
-                // if (os && appname) {
-                    // await elasticSearchHelper.pushAppVersionToLoggedInUser(
-                    //     userId, 
-                    //     appname,
-                    //     apptype
-                    // );
-
-                    let getNotificationDocument = 
-                    await elasticSearchHelper.getNotificationData(
-                        userId, 
-                        apptype
-                    );
-
-                    if (getNotificationDocument.statusCode === httpStatusCode["ok"].status) {
-
-                        response["count"] = 
-                        getNotificationDocument.body._source.notificationUnreadCount;
-
-                        // let data = 
-                        // getNotificationDocument.body._source.notifications.filter(
-                        //     item => item.payload.type === "appUpdate" && 
-                        //     item.is_read === false && 
-                        //     item.payload.os === os);
-
-                        // if (data.length > 0) {
-                        //     response["data"] = data;
-                        // }
-
-                    }
-                // }
+                if( sessions.allAppVersion[appname] && 
+                    sessions.allAppVersion[appname].payload.appVersion > currentAppVersion
+                ) {
+                    response.data.push(sessions.allAppVersion[appname]);
+                }
 
                 return resolve(response);
 

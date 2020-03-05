@@ -117,7 +117,6 @@ module.exports = function () {
     }
   });
 
-
   // Load all message constants
   global.constants = new Array
   fs.readdirSync(ROOT_PATH + "/generics/constants")
@@ -145,26 +144,44 @@ module.exports = function () {
     }]
   });
 
-  // Get the current versions of all the app
+  global.sessions = {
+    allAppVersion : {}
+  };
 
-  let versionsData = new Promise(async (resolve,reject)=>{
+  const versionData = new Promise(async function(resolve, reject) {
+    
     let versions = await database.models.appVersion.find({
       status:"active"
-    },{version : 1,appName:1});
+    }).lean();
 
-    return resolve(versions);
+    resolve(versions)
+
   });
-
-  global.allAppVersions = {}
- 
-  versionsData.then((data)=>{
-    if( data.length > 0 ) {
-      data.forEach( singleData => {
-        global.allAppVersions[singleData.appName] = singleData.versions
+  
+  versionData.then(function(values) {
+    
+    if(values.length > 0 ) {
+      values.forEach(value=>{
+        
+        global.sessions.allAppVersion[value.appName] = {
+          is_read : false,
+          internal : true,
+          action : "versionUpdate",
+          appName : value.appName,
+          created_at : new Date(),
+          text : value.text,
+          title : value.title,
+          type : "Information",
+          payload : {
+              appVersion : value.version,
+              updateType : value.releaseType,
+              type : "appUpdate",
+              os : value.os,
+              releaseNotes : value.releaseNotes
+          },
+          appType : value.appType
+        };
       })
     }
-  })
-
-  global.versions = {}
-
+  });
 };

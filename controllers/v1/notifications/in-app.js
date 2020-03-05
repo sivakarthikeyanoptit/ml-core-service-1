@@ -121,7 +121,8 @@ module.exports = class InAppNotifications {
         return new Promise(async (resolve, reject) => {
             try {
 
-                const defaultAppType = gen.utils.checkIfEnvDataExistsOrNot("ASSESSMENT_APPLICATION_APP_TYPE").trim().toLowerCase(); // TODO - After some time if all app start supplying appType in header, remove this line.
+                const defaultAppType = 
+                gen.utils.checkIfEnvDataExistsOrNot("ASSESSMENT_APPLICATION_APP_TYPE").trim().toLowerCase(); // TODO - After some time if all app start supplying appType in header, remove this line.
                 
                 let appType = defaultAppType;
                 if(req.headers.apptype && req.headers.apptype != "") {
@@ -131,7 +132,9 @@ module.exports = class InAppNotifications {
                 let unReadCountDocument = 
                 await notificationsHelper.unReadCount(
                     req.userDetails.id, 
-                    appType
+                    appType,
+                    req.headers.appname,
+                    req.headers.version
                 );
 
                 return resolve({

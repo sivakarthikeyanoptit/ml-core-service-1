@@ -48,18 +48,20 @@
         try {
 
           if (!req.files || !req.files.versionUpdate) {
-              throw { message: "Missing file of type versionUpdate" }
+            return resolve(
+              {
+                status : httpStatusCode["bad_request"].status, 
+                message : constants.apiResponses.VERSION_UPDATE_FILE_TYPE
+              }
+            )
           }
 
           let versionData = 
           await csv().fromString(req.files.versionUpdate.data.toString());
 
-          await versionHelper.update(versionData);
+          let version = await versionHelper.update(versionData);
 
-          return resolve({
-              message: "Successfully Uploaded Version",
-              status: httpStatusCode.ok.status
-          })
+          return resolve(version);
       } catch (error) {
           reject({
               status: 

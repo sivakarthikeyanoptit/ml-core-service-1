@@ -5,14 +5,7 @@
  * Description : All version related helper functions.
  */
 
-
-/**
- * load modules.
- */
-
-
-const upload_type = 
-gen.utils.checkIfEnvDataExistsOrNot("APPLICATION_CONFIG_UPLOAD_TYPE");
+let sessionHelpers = require(ROOT_PATH+"/generics/helpers/sessions");
 /**
     * VersionHelper
     * @class
@@ -39,43 +32,116 @@ module.exports = class VersionHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let result = {};
+                let result = [];
+                let sessionsData = sessions.allAppVersion;
 
                 for ( let version = 0; version < versions.length; version++ ) {
 
-                    if( 
-                        Object.keys(allAppVersions).length == 0 
-                        // && allAppVersions[versions[version].appName] ===  
-                        // allAppVersions[versions[version].version]
-                    ) {
-                        result["message"] = ""
-                    }
-                    
-                    let result = {
-                        is_read : false,
-                        internal : true,
-                        action : "versionUpdate",
-                        appName : versions[version].appName,
-                        created_at : new Date(),
-                        text : versions[version].text,
-                        title : versions[version].title,
-                        type : "Information",
-                        payload : {
-                            appVersion : versions[version].version,
-                            updateType : versions[version].releaseType,
-                            type : "appUpdate",
-                            os : versions[version].os
-                        }
-                    };
+                    let obj = {};
+                    let updateVersionData = versions[version];
 
-                    // await kafkaCommunication.pushNotificationsDataToKafka(result);
+                    if( sessionsData && 
+                        Object.keys(sessionsData).length > 0 
+                        && sessionsData[updateVersionData.appName] && 
+                        sessionsData[updateVersionData.appName].payload.appVersion ===  
+                        updateVersionData.version
+                    ) {
+                        obj["message"] = 
+                        versions[version].appName+" "+
+                        constants.apiResponses.APP_VERSION_EXISTS;
+                    } else {
+                        
+                        let updateVersion = await this.create(updateVersionData);
+
+                        if( updateVersion.success ) {
+                            let versionData = _versionPayload(updateVersionData);
+                            sessionsData[updateVersionData.appName] = versionData;
+                            obj["message"] = versions[version].appName + " "+ 
+                            constants.apiResponses.APP_VERSION_UPDATED
+                        } else {
+                            obj["message"] = versions[version].appName + " "+
+                            constants.apiResponses.APP_VERSION_NOT_UPDATED;
+                        }
+
+                    }
+
+                    result.push(obj)
                 }
 
-                return resolve();
+                return resolve({
+                    result : result
+                });
 
             } catch (error) {
                 return reject(error);
             }
         })
     }
+
+     /**
+      * create app version.
+      * @method
+      * @name create
+      * @param {Object} versionData - version data.
+      * @param {String} versionData.appName - app name. 
+      * @param {String} versionData.title - title.
+      * @param {String} versionData.text - text.
+      * @param {String} versionData.version - version of the app.
+      * @param {String} versionData.status - status of the update notification.
+      * @param {String} versionData.os - device os.
+      * @param {String} versionData.releaseType - release type versions 
+      * @returns {Object}
+     */
+
+    static create( versionData,update = false ) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let result = await database.models.appVersion.create(versionData);
+
+                if( !result._id ) {
+                    return resolve({
+                        message : common.apiResponses.APP_VERSION_NOT_UPDATED
+                    })
+                }
+
+                return resolve({
+                    success : true,
+                    message : constants.apiResponses.APP_VERSION_CREATED,
+                    result : result
+                });
+
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+}
+
+/**
+  * Version payload data.
+  * @method
+  * @name _versionPayload
+  * @returns {Object} return version data.
+*/
+
+function _versionPayload(data) {
+    return {
+        is_read : false,
+        internal : true,
+        action : "versionUpdate",
+        appName : data.appName,
+        created_at : new Date(),
+        text : data.text,
+        title : data.title,
+        type : "Information",
+        payload : {
+            appVersion : data.version,
+            updateType : data.releaseType,
+            type : "appUpdate",
+            os : data.os
+        },
+        appType : data.appType
+    };
+
 }
