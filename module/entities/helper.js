@@ -268,7 +268,6 @@ module.exports = class EntitiesHelper {
                     data: entitiesDocument.data ? entitiesDocument.data : []
 
                 }
-
                 result.push(obj);
             }));
 

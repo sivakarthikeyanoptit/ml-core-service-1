@@ -8,11 +8,14 @@
 let userManagementService =
     require(ROOT_PATH + "/generics/services/user-management");
 let entitiesHelper = require(ROOT_PATH + "/module/entities/helper");
-const USER_PROFILE_PENDING_VERIFICATION_STATUS = gen.utils.checkIfEnvDataExistsOrNot("USER_PROFILE_PENDING_VERIFICATION_STATUS");
-const USER_PROFILE_ACTIVE_STATUS = gen.utils.checkIfEnvDataExistsOrNot("USER_PROFILE_ACTIVE_STATUS");
-const USER_PROFILE_VERIFIED_STATUS = gen.utils.checkIfEnvDataExistsOrNot("USER_PROFILE_VERIFIED_STATUS");
+// const USER_PROFILE_PENDING_VERIFICATION_STATUS = constants.common.USER_PROFILE_PENDING_VERIFICATION_STATUS;
+// const USER_PROFILE_ACTIVE_STATUS = constants.common.USER_PROFILE_ACTIVE_STATUS;
+// const USER_PROFILE_VERIFIED_STATUS = constants.common.USER_PROFILE_VERIFIED_STATUS;
+
 
 module.exports = class UserProfileHelper {
+
+    
 
     /**
    * Create user profile.
@@ -223,7 +226,7 @@ module.exports = class UserProfileHelper {
 
                 // console.log("userProfileData",userProfileData.status);
 
-                if (userProfileData && userProfileData.status != USER_PROFILE_PENDING_VERIFICATION_STATUS || !userProfileData) {
+                if (userProfileData && userProfileData.status != constants.common.USER_PROFILE_PENDING_VERIFICATION_STATUS || !userProfileData) {
 
                     // console.log("userProfileData", userProfileData);
 
@@ -241,7 +244,7 @@ module.exports = class UserProfileHelper {
                             message : "User Extenstion not found for userId "+userId
                         };
                     }
-                    requestedData['status'] = USER_PROFILE_PENDING_VERIFICATION_STATUS;
+                    requestedData['status'] = constants.common.USER_PROFILE_PENDING_VERIFICATION_STATUS;
                     requestedData['userId'] = userId;
                     requestedData["externalId"] = userExtensionDocument.externalId;
 
@@ -281,7 +284,7 @@ module.exports = class UserProfileHelper {
 
             let userProfileDocuments = 
                 await database.models.userProfile.find({
-                    status : USER_PROFILE_ACTIVE_STATUS,
+                    status : constants.common.USER_PROFILE_ACTIVE_STATUS,
                     isDeleted :false
                 }).lean();
 
@@ -310,7 +313,7 @@ module.exports = class UserProfileHelper {
 
             let userProfileDocuments = 
                 await database.models.userProfile.find({
-                    status : USER_PROFILE_VERIFIED_STATUS,
+                    status : constants.common.USER_PROFILE_VERIFIED_STATUS,
                     isDeleted :false,
                     sentPushNotifications:false,
                     verified:true, 
