@@ -144,26 +144,24 @@ module.exports = function () {
     }]
   });
 
-  global.sessions = {
-    allAppVersion : {}
-  };
+  global.sessions = {};
 
-  const versionData = new Promise(async function(resolve, reject) {
+  let versions = new Promise(async function(resolve, reject) {
     
     let versions = await database.models.appVersion.find({
       status:"active"
     }).lean();
 
-    resolve(versions)
+    resolve(versions);
 
   });
   
-  versionData.then(function(values) {
+  versions.then(function( versionData ) {
     
-    if(values.length > 0 ) {
-      values.forEach(value=>{
+    if( versionData.length > 0 ) {
+      versionData.forEach(value=>{
         
-        global.sessions.allAppVersion[value.appName] = {
+        global.sessions[`allAppVersion-${value.appName}`] = {
           is_read : false,
           internal : true,
           action : "versionUpdate",

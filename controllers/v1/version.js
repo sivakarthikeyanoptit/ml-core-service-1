@@ -8,6 +8,7 @@
  // Dependencies
  const versionHelper = require(MODULES_BASE_PATH + "/version/helper");
  const csv = require('csvtojson');
+ const csvFileStream = require(ROOT_PATH + "/generics/file-stream");
 
  
   /**
@@ -59,9 +60,23 @@
           let versionData = 
           await csv().fromString(req.files.versionUpdate.data.toString());
 
-          let version = await versionHelper.update(versionData);
+          const fileName = `version-update`;
+          let fileStream = new csvFileStream(fileName);
+          let input = fileStream.initStream();
 
-          return resolve(version);
+          (async function () {
+              await fileStream.getProcessorPromise();
+              return resolve({
+                  isResponseAStream: true,
+                  fileNameWithPath: fileStream.fileNameWithPath()
+              });
+          })();
+
+          for( let version = 0; version < versionData.length; version ++) {
+            let result = await versionHelper.upload(versionData[version]);
+            input.push(result);
+          }
+          input.push(null);
       } catch (error) {
           reject({
               status: 

@@ -38,5 +38,8 @@ module.exports = {
   "APP_VERSION_CREATED" : "App version created",
   "APP_VERSION_NOT_UPDATED" : "App version could not be updated",
   "APP_VERSION_UPDATED" : "App version updated",
-  "VERSION_UPDATE_FILE_TYPE" : "Missing file of type versionUpdate" 
+  "VERSION_UPDATE_FILE_TYPE" : "Missing file of type versionUpdate",
+  "NOTIFICATION_LIST": "List Of Notifications",
+  "UNREAD_NOTIFICATION": "Unread Notification",
+  "MARK_AS_READ_NOTIFICATION": "Notification Updated Successfully", 
 };

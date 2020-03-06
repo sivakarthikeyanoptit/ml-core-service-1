@@ -81,7 +81,7 @@ module.exports = class InAppNotifications {
 
                 return resolve({
                     result: notificationDocument,
-                    message: req.t('notificationList')
+                    message: constants.apiResponses.NOTIFICATION_LIST
                 });
 
             } catch (error) {
@@ -134,11 +134,11 @@ module.exports = class InAppNotifications {
                     req.userDetails.id, 
                     appType,
                     req.headers.appname,
-                    req.headers.version
+                    req.headers.appversion
                 );
 
                 return resolve({
-                    message: req.t('unreadNotifocation'),
+                    message: constants.apiResponses.UNREAD_NOTIFICATION,
                     status: httpStatusCode.ok.status,
                     result: {
                         count: unReadCountDocument.count,
@@ -199,7 +199,7 @@ module.exports = class InAppNotifications {
                 );
 
                 return resolve({
-                    message: req.t('markItReadNotification'),
+                    message: constants.apiResponses.MARK_AS_READ_NOTIFICATION,
                     status: httpStatusCode.ok.status
                 });
             } catch (error) {

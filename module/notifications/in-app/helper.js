@@ -11,6 +11,8 @@ const kafkaCommunication = require(ROOT_PATH + "/generics/helpers/kafka-communic
 const moment = require("moment-timezone");
 let currentDate = moment(new Date());
 const slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
+let sessionHelpers = require(ROOT_PATH+"/generics/helpers/sessions");
+
 const userExtensionHelper = require(MODULES_BASE_PATH + "/user-extension/helper");
 const pushNotificationsHelper = require(MODULES_BASE_PATH + "/notifications/push/helper");
 // const FCM_HELPER = require(MODULES_BASE_PATH + "/notifications/fcm/helper");
@@ -138,10 +140,13 @@ module.exports = class InAppNotificationsHelper {
                     getNotificationDocument.body._source.notificationUnreadCount;
                 }
 
-                if( sessions.allAppVersion[appname] && 
-                    sessions.allAppVersion[appname].payload.appVersion > currentAppVersion
+                let sessionPath = `${constants.common.ALL_APP_VERSION}-${appname}`;
+                let sessionData = sessionHelpers.get(sessionPath);
+
+                if( sessionData !== undefined && 
+                    sessionData.payload.appVersion > currentAppVersion
                 ) {
-                    response.data.push(sessions.allAppVersion[appname]);
+                    response.data.push(sessionData);
                 }
 
                 return resolve(response);
