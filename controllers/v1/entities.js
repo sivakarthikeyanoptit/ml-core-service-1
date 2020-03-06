@@ -144,9 +144,10 @@ module.exports = class Entities extends Abstract {
     
           try {
 
-            let entityDocuments = await entitiesHelper.immediateEntities(
+              let entityDocuments = await entitiesHelper.immediateEntities(
                 req.params._id
             );
+            
     
             return resolve(entityDocuments);
     
@@ -164,5 +165,43 @@ module.exports = class Entities extends Abstract {
         })
     }
 
+
+    /**
+      * Get the immediate entities .
+      * @method
+      * @name immediateEntitiesByArray
+      * @param  {Request} req request body.
+      * @returns {JSON} Returns list of immediate entities
+     */
+
+    immediateEntitiesByArray(req) {
+        
+      return new Promise(async (resolve, reject) => {
+    
+          try {
+
+            console.log("req.body",req.body);
+              let entityDocuments = await entitiesHelper.immediateEntitiesByArray(
+                req.body
+            );
+            
+    
+            return resolve(entityDocuments);
+    
+          } catch (error) {
+    
+            return reject({
+              status: error.status || httpStatusCode.internal_server_error.status,
+              message: error.message || httpStatusCode.internal_server_error.message,
+              errorObject: error
+            })
+    
+          }
+    
+    
+        })
+    }
+
+  
 };
 
