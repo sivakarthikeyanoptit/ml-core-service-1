@@ -132,8 +132,6 @@ module.exports = class UserExtensionHelper {
                 return reject(error);
             }
         })
-
-
     }
 
      /**
