@@ -32,5 +32,14 @@ module.exports = {
   "QR_CODE_GENERATED" : "QR code generated successfully",
   "DIAL_CODE_NOT_GENERATED" : "Failed to generate dial code",
   "COULD_NOT_PUBLISH_DIAL_CODE" : "Failed to publish dial code",
-  "COULD_NOT_PUBLISH_CONTENT_DATA" : "Failed to publish content data"
+  "COULD_NOT_PUBLISH_CONTENT_DATA" : "Failed to publish content data",
+  "APP_VERSION_EXISTS" : "version exists",
+  "APP_VERSION_NOT_CREADTED" : "App version could not be created",
+  "APP_VERSION_CREATED" : "App version created",
+  "APP_VERSION_NOT_UPDATED" : "App version could not be updated",
+  "APP_VERSION_UPDATED" : "App version updated",
+  "VERSION_UPDATE_FILE_TYPE" : "Missing file of type versionUpdate",
+  "NOTIFICATION_LIST": "List Of Notifications",
+  "UNREAD_NOTIFICATION": "Unread Notification",
+  "MARK_AS_READ_NOTIFICATION": "Notification Updated Successfully"
 };
