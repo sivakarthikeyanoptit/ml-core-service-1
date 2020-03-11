@@ -15,5 +15,8 @@ module.exports = {
   "USER_PROFILE_ACTIVE_STATUS":"active",
   "USER_PROFILE_VERIFIED_STATUS":"verified",
   "USER_PROFILE_FORM_NAME":"userProfileForm",
-  "STATE_ENTITY_TYPE":"state"
+  "STATE_ENTITY_TYPE":"state",
+  "ALL_APP_VERSION" : "allAppVersion",
+  "ACTIVE" : "active",
+  "IN_ACTIVE" : "inactive"
 };

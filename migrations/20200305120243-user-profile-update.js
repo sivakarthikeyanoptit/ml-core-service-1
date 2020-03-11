@@ -88,16 +88,8 @@ module.exports = {
       process.env.SUNBIRD_PUBLISHER_USERNAME,
       process.env.SUNBIRD_PUBLISHER_PASSWORD
     );
-
-
-  
-
     let userProfiles =
       await db.collection('userProfile').find({}).toArray();
-
-
-    
-
     if (userProfiles && userProfiles.length > 0) {
       await Promise.all(userProfiles.map(async function (userInfo) {
 
@@ -113,75 +105,58 @@ module.exports = {
         };
 
         let userInfoApiData = await getUserProfileInfo(options);
-        console.log("userInfoApiData",userInfo.userId);
-
         let state = {};
-        let cluster = {};
-        let block = {};
-        let district = {};
-        let taluk = {};
-        let zone = {};
-        let school = {};
-        let hub = {};
+        let cluster = [];
+        let block = [];
+        let district = [];
+        let taluk = [];
+        let zone = [];
+        let school = [];
+        let hub = [];
 
-       
         let userExtensionDoc = await db.collection('userExtension').findOne({ userId: userInfo.userId},{ roles:1 });
-
-        console.log( userInfo.userId,"userExtensionDoc",userExtensionDoc);
         if (userExtensionDoc && userExtensionDoc.roles) {
-
           await Promise.all(userExtensionDoc.roles.map(async function (rolesInfo) {
 
-            console.log("rolesInfo.entities", rolesInfo.entities[0]);
-
             let entityDoc = await db.collection('entities').findOne({ _id: rolesInfo.entities[0] },{ entityType: 1, _id: 1 });
-
-            // entityDoc.entityType
-
-            console.log(entityDoc.entityType,"entityDoc",entityDoc._id);
             if (entityDoc) {
               // let groupsOf =  "groups["+entityDoc.entityType+"]: "+entityDoc._id;
 
-              let label = "groups."+entityDoc.entityType
               let query = {}
                 query = {
                   entityType: { $ne: entityDoc.entityType },
                 }
-                query["groups."+entityDoc.entityType] = { $ne :entityDoc._id }
-              // console.log(query,"groupsOf");
-
+                query["groups."+entityDoc.entityType] = entityDoc._id;
+              
               let entityDocs = await db.collection('entities').find(query, { entityType: 1, metaInformation: 1 }).toArray();
 
 
               if (entityDocs) {
-                // console.log("entityDocs",entityDocs)
-
                 await Promise.all(entityDocs.map(async function (entityDocsInfo) {
-
-                  
 
                   if (entityDocsInfo && entityDocsInfo.entityType && entityDocsInfo.metaInformation) {
                     obj = {
-                      name: entityDocsInfo.metaInformation.name,
-                      externalId: entityDocsInfo.metaInformation.externalId,
-                      _id: entityDocsInfo._id
+                      label: entityDocsInfo.metaInformation.name,
+                      value: entityDocsInfo._id,
+                      externalId: entityDocsInfo.metaInformation.externalId
+                      
                     }
                     if (entityDocsInfo.entityType == "state") {
                       state = obj;
                     } else if (entityDocsInfo.entityType == "hub") {
-                      hub = obj;
+                      hub.push(obj);
                     } else if (entityDocsInfo.entityType == "taluk") {
-                      taluk = obj;
+                      taluk.push(obj);
                     } else if (entityDocsInfo.entityType == "district") {
-                      district = obj;
+                      district.push(obj);
                     } else if (entityDocsInfo.entityType == "school") {
-                      school = obj;
+                      school.push(obj);
                     } else if (entityDocsInfo.entityType == "zone") {
-                      zone = obj;
+                      zone.push(obj);
                     } else if (entityDocsInfo.entityType == "block") {
-                      block = obj;
+                      block.push(obj);
                     } else if (entityDocsInfo.entityType == "cluster") {
-                      cluster = obj;
+                      cluster.push(obj);
                     }
                   }
                 }));
@@ -190,7 +165,6 @@ module.exports = {
             }
           }));
         }
-
 
         let userIncomingData = userInfo;
         if (userInfoApiData.result && userInfoApiData.result.response) {
@@ -231,17 +205,10 @@ module.exports = {
         let updateInfo = await db.collection('userProfile').findOneAndUpdate({
           _id: userInfo._id
         }, { $set: { metaInformation } }, { upsert: true }, { $unset: { unSetFields } });
-
-        //  await db.collection('userProfile').findOneAndUpdate({
-        //     _id: userInfo._id
-        //   }, { $unset: { unSetFields } });
-
+ 
       }));
-
     }
-
     return true;
-
   },
 
   async down(db) {

@@ -9,15 +9,18 @@ let userManagementService =
     require(ROOT_PATH + "/generics/services/user-management");
 let entitiesHelper = require(ROOT_PATH + "/module/entities/helper");
 
-// const USER_PROFILE_FORM_NAME = constants.common.USER_PROFILE_FORM_NAME;
-// const STATE_ENTITY_TYPE = constants.common.STATE_ENTITY_TYPE;
 
+let shikshlokamhelper =
+    require(ROOT_PATH + "/generics/helpers/shikshalokam");
+
+const sunBirdUserName = gen.utils.checkIfEnvDataExistsOrNot("SUNBIRD_PUBLISHER_USERNAME");
+const sunBirdPassword = gen.utils.checkIfEnvDataExistsOrNot("SUNBIRD_PUBLISHER_PASSWORD");
 
 
 
 module.exports = class UserProfileHelper {
 
-    
+
 
     /**
    * Create user profile.
@@ -162,92 +165,77 @@ module.exports = class UserProfileHelper {
     * @returns {json} Response consists of user details data.
     */
 
-    static getForm(userId,appName="",device="") {
+    static getForm(userId, appName = "", device = "") {
         return new Promise(async (resolve, reject) => {
             try {
 
                 let userProfileForm =
                     await database.models.forms.findOne({ name: constants.common.USER_PROFILE_FORM_NAME }).lean();
 
+                let name = appName + "." + device;
+                let userProfileScreenVisitedTrack = {}
+                userProfileScreenVisitedTrack[name] = true;
 
-                    // userProfileScreenVisitedTrack
-
-                    // console.log("userId",userId);
-                    let name =  appName+"."+device;
-                    let userProfileScreenVisitedTrack = {
-                       
-                    }
-                    userProfileScreenVisitedTrack[name]=true;
-
-                    // console.log("userProfileScreenVisitedTrack",userProfileScreenVisitedTrack);
-
-                   let userExt = await database.models.userExtension.findOne({ userId:userId },
+                let userExt = await database.models.userExtension.findOne({ userId: userId },
                     { userProfileScreenVisitedTrack: 1 });
 
-                    // console.log("userExt",userExt);
-                   if(userExt){
+                if (userExt) {
                     let updateData = {};
-                    if(userExt.userProfileScreenVisitedTrack){
-                        updateData =  userExt.userProfileScreenVisitedTrack;
-                        updateData[name]=true;
-                    }else{
+                    if (userExt.userProfileScreenVisitedTrack) {
+                        updateData = userExt.userProfileScreenVisitedTrack;
+                        updateData[name] = true;
+                    } else {
                         updateData = userProfileScreenVisitedTrack;
-                    }   
-
+                    }
                     database.models.userExtension.findOneAndUpdate(
-                        { userId:userId },{ "$set": { userProfileScreenVisitedTrack:updateData } } );
-                       
-                   }
+                        { userId: userId }, { "$set": { userProfileScreenVisitedTrack: updateData } });
+                }
 
 
                 if (userProfileForm) {
-                    let stateInfo = await database.models.entities.find({ entityType:  constants.common.STATE_ENTITY_TYPE },{ entityTypeId:1,_id:1,metaInformation:1  }).lean();
-
+                    let stateInfo = await database.models.entities.find({ entityType: constants.common.STATE_ENTITY_TYPE }, { entityTypeId: 1, _id: 1, metaInformation: 1, groups: 1, childHierarchyPath: 1 }).lean();
                     let states = [];
-
-
                     let stateListWithSubEntities = [];
+                    let stateInfoWithSub = {};
 
+                    // console.log("stateInfo",stateInfo);
                     if (stateInfo) {
                         await Promise.all(stateInfo.map(async function (state) {
-
-                           let found =  await checkStateWithSubEntities(state.entityTypeId);
-
-                           if(found){
-                            stateListWithSubEntities.push(state._id);
-                           }
-                        states.push(
-                                { 
-                                //   externalId: state.metaInformation.externalId,
-                                  label: state.metaInformation.name,
-                                  value: state._id
-                                 }
-                            );
+                            if (state.groups) {
+                                let found = await checkStateWithSubEntities(state.groups, state.entityTypeId);
+                                if (found && state.groups) {
+                                    stateInfoWithSub[state._id] = state.childHierarchyPath;
+                                }
+                            }
+                            states.push({
+                                label: state.metaInformation.name,
+                                value: state._id
+                            });
                         }));
-                        let getUserData = await database.models.userProfile.findOne({ userId:userId }).sort({ createdAt : -1  });
+
+                        stateListWithSubEntities.push(stateInfoWithSub);
+                        let getUserData = await database.models.userProfile.findOne({ userId: userId }, { metaInformation: 1, _id: 1 }).sort({ createdAt: -1 });
+
+                        if (!getUserData) {
+                            let profileInfo = await createUserProfile(userId);
+                            getUserData = profileInfo;
+                        }
 
                         await Promise.all(userProfileForm.value.map(async function (fields, index) {
                             if (fields.field == "state") {
-
-                                // let imidiateEnt = await _immediateEntities(states);
-                                // let immediateEntities =
-                                // await entitiesHelper.immediateEntities(
-                                //     states[0]._id
-                                // );
-
-                                // console.log("imidiateEnt",immediateEntities);
                                 userProfileForm.value[index].options = states;
                             }
-                            if(getUserData && getUserData.metaInformation){
-                                if(getUserData.metaInformation[fields.field]){
+                            userProfileForm.value[index]['placeholder'] = getUserData.metaInformation[fields.field];
+                            if (getUserData && getUserData.metaInformation) {
+                                if (getUserData.metaInformation[fields.field]) {
                                     userProfileForm.value[index].value = getUserData.metaInformation[fields.field];
                                 }
                             }
                         }));
 
                         let UserForm = {
-                            form:userProfileForm.value,
-                            stateListWithSubEntities:stateListWithSubEntities
+                            form: userProfileForm.value,
+                            stateListWithSubEntities: stateListWithSubEntities
                         }
 
                         return resolve(UserForm);
@@ -276,19 +264,12 @@ module.exports = class UserProfileHelper {
             try {
                 let userProfileData = await database.models.userProfile.findOne({
                     userId: userId,
-                    isDeleted:false
+                    isDeleted: false
                 }, {
-                    status:1,
+                    status: 1,
                     _id: 1
-                }).sort({ createdAt:-1 }).lean();
-                // deleteUserId
-                // if( userProfileData ) {
-                // }
-
-                // console.log("userProfileData",userProfileData.status);
-
-                if (userProfileData && userProfileData.status != constants.common.USER_PROFILE_PENDING_VERIFICATION_STATUS || !userProfileData) {
-
+                }).sort({ createdAt: -1 }).lean();
+                if (userProfileData && userProfileData.status != constants.common.USER_PROFILE_PENDING_VERIFICATION_STATUS) {
                     // console.log("userProfileData", userProfileData);
 
                     let userExtensionDocument =
@@ -302,8 +283,11 @@ module.exports = class UserProfileHelper {
 
                     if (!userExtensionDocument) {
                         throw {
-                            message : "User Extenstion not found for userId "+userId
+                            message: "User Extenstion not found for userId " + userId
                         };
+                    }
+                    if (!userProfileData) {
+                        // await
                     }
                     requestedData['status'] = constants.common.USER_PROFILE_PENDING_VERIFICATION_STATUS;
                     requestedData['userId'] = userId;
@@ -317,11 +301,11 @@ module.exports = class UserProfileHelper {
 
                     return resolve(userProfileCreation);
 
-                }else{
+                } else {
 
                     return resolve({
-                        success:false,
-                        message:"User profile is under Pending for verification"
+                        success: false,
+                        message: "User profile is under Pending for verification"
                     });
                 }
 
@@ -339,80 +323,80 @@ module.exports = class UserProfileHelper {
     * @returns {json} Response consists of user details data.
     */
 
-   static pendingProfileUsers() {
-    return new Promise(async (resolve, reject) => {
-        try {
+    static pendingProfileUsers() {
+        return new Promise(async (resolve, reject) => {
+            try {
 
-            let userProfileDocuments = 
-                await database.models.userProfile.find({
-                    status : constants.common.USER_PROFILE_ACTIVE_STATUS,
-                    isDeleted :false
-                }).lean();
+                let userProfileDocuments =
+                    await database.models.userProfile.find({
+                        status: constants.common.USER_PROFILE_ACTIVE_STATUS,
+                        isDeleted: false
+                    }).lean();
 
-                console.log("userProfileDocuments ",userProfileDocuments);
-            // if(userProfileDocuments  && userProfileDocuments.length > 0){
-              return resolve(userProfileDocuments);
-            // }else{
-            //     throw "No pednig for update profile users"
-            // }
-        } catch (error) {
-            return reject(error);
-        }
-    });
-}
+                console.log("userProfileDocuments ", userProfileDocuments);
+                // if(userProfileDocuments  && userProfileDocuments.length > 0){
+                return resolve(userProfileDocuments);
+                // }else{
+                //     throw "No pednig for update profile users"
+                // }
+            } catch (error) {
+                return reject(error);
+            }
+        });
+    }
 
-  /**
-    * verified User Profile List.
-    * @method
-    * @name verifiedUserProfile
-    * @returns {json} Response consists of user details data.
-    */
+    /**
+      * verified User Profile List.
+      * @method
+      * @name verifiedUserProfile
+      * @returns {json} Response consists of user details data.
+      */
 
-   static verifiedUserProfile() {
-    return new Promise(async (resolve, reject) => {
-        try {
+    static verifiedUserProfile() {
+        return new Promise(async (resolve, reject) => {
+            try {
 
-            let userProfileDocuments = 
-                await database.models.userProfile.find({
-                    status : constants.common.USER_PROFILE_VERIFIED_STATUS,
-                    isDeleted :false,
-                    sentPushNotifications:false,
-                    verified:true, 
-                }).lean();
-             
-              return resolve(userProfileDocuments);
-           
-        } catch (error) {
-            return reject(error);
-        }
-    });
-}
+                let userProfileDocuments =
+                    await database.models.userProfile.find({
+                        status: constants.common.USER_PROFILE_VERIFIED_STATUS,
+                        isDeleted: false,
+                        sentPushNotifications: false,
+                        verified: true,
+                    }).lean();
+
+                return resolve(userProfileDocuments);
+
+            } catch (error) {
+                return reject(error);
+            }
+        });
+    }
 
 
-  /**
-    * update sentPushNotifications as true
-    * @method
-    * @name updatePushNotificationSent
-    * @returns {json} Response updated user details data.
-    */
-static updatePushNotificationSent(userId){
-    return new Promise(async (resolve, reject) => {
-        try {
+    /**
+      * update sentPushNotifications as true
+      * @method
+      * @name updatePushNotificationSent
+      * @returns {json} Response updated user details data.
+      */
+    static updatePushNotificationSent(userId) {
+        return new Promise(async (resolve, reject) => {
+            try {
 
-            let userProfileDocuments = 
-                await database.models.userProfile.update({
-                    userId:userId,
-                    sentPushNotifications:false,
-                    verified:true, 
-                },{ sentPushNotifications:true }).lean();
-             
-              return resolve(userProfileDocuments);
-           
-        } catch (error) {
-            return reject(error);
-        }
-    });
-}
+                let userProfileDocuments =
+                    await database.models.userProfile.update({
+                        userId: userId,
+                        sentPushNotifications: false,
+                        verified: true,
+                    }, { sentPushNotifications: true }).lean();
+
+                return resolve(userProfileDocuments);
+
+            } catch (error) {
+                return reject(error);
+            }
+        });
+    }
 
 };
 
@@ -468,22 +452,153 @@ function _immediateEntities(entities) {
   * @returns {boolean}
   * */
 
-function checkStateWithSubEntities(entityTypeId){
+function checkStateWithSubEntities(groups, entityTypeId) {
     return new Promise(async (resolve, reject) => {
         try {
-      let entityTypeDoc = 
-            await database.models.entityTypes.findOne({
-                _id:entityTypeId
-            },{ immediateChildrenEntityType:1 }).lean();
-            if( entityTypeDoc && entityTypeDoc.immediateChildrenEntityType && entityTypeDoc.immediateChildrenEntityType.length > 0){
-                resolve(true);
-            }else{
+
+            // console.log("groups",groups);
+
+            let entityTypeList = Object.keys(groups);
+            // console.log("groups", entityTypeList);
+            let entityTypeDoc =
+                await database.models.entityTypes.findOne({
+                    _id: entityTypeId
+                }, { immediateChildrenEntityType: 1 }).lean();
+            if (entityTypeDoc && entityTypeDoc.immediateChildrenEntityType && entityTypeDoc.immediateChildrenEntityType.length > 0) {
+
+                Promise.all(entityTypeList.map(async function (types) {
+                    // console.log(entityTypeDoc.immediateChildrenEntityType,"types", types);
+                    if (entityTypeDoc.immediateChildrenEntityType.includes(types)) {
+                        resolve(true);
+                    }
+                }));
+                resolve(false)
+            } else {
                 resolve(false);
             }
         } catch (err) {
             return reject(err);
         }
     });
+}
+
+/**
+  * to create UserProfile entry
+  * @method
+  * @name createUserProfile
+  * @param { string } userId - user keyclock id.
+  * @returns {object}
+  * */
+
+function createUserProfile(userId) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let userProfile = {
+                "userId": userId,
+                metaInformation: {
+                    "firstName": null,
+                    "lastName": null,
+                    "phoneNumber": null,
+                    "state": null,
+                    "district": null,
+                    "block": null,
+                    "zone": null,
+                    "cluster": null,
+                    "taluk": null,
+                    "hub": null,
+                    "school": null,
+                    "email":null
+                },
+                "status": "active",
+                "isDeleted": false,
+                "verified": false,
+                "updatedBy": false,
+                "updatedBy": null
+            }
+            let tokenInfo = await shikshlokamhelper.generateKeyCloakAccessToken(sunBirdUserName, sunBirdPassword);
+            let profileInfo = await shikshlokamhelper.userInfo(tokenInfo.token, userId);
+
+            let state = {};
+            let cluster = [];
+            let block = [];
+            let district = [];
+            let taluk = [];
+            let zone = [];
+            let school = [];
+            let hub = [];
+
+            let userExtensionDoc = await database.models.userExtension.findOne({ userId: userId }, { roles: 1 });
+           if (userExtensionDoc && userExtensionDoc.roles) {
+                await Promise.all(userExtensionDoc.roles.map(async function (rolesInfo) {
+                    let entityDoc = await database.models.entities.findOne({ _id: rolesInfo.entities[0] }, { entityType: 1, _id: 1 });
+                    if (entityDoc) {
+
+                        let label = "groups." + entityDoc.entityType
+                        let query = {}
+
+                       
+                        query = {
+                            entityType: { $ne: entityDoc.entityType },
+                        }
+                        query["groups." + entityDoc.entityType] = entityDoc._id;
+
+                        let entityDocs = await database.models.entities.find(query, { entityType: 1, metaInformation: 1 }).lean();
+
+                        if (entityDocs) {
+                            await Promise.all(entityDocs.map(async function (entityDocsInfo) {
+                                if (entityDocsInfo && entityDocsInfo.entityType && entityDocsInfo.metaInformation) {
+                                    obj = {
+                                        label:entityDocsInfo.metaInformation.name,
+                                        value:entityDocsInfo._id,
+                                        externalId: entityDocsInfo.metaInformation.externalId,
+                                    }
+
+                                    // obj[entityDocsInfo.metaInformation.name]=entityDocsInfo._id;
+                                    if (entityDocsInfo.entityType == "state") {
+                                        state = obj;
+                                    } else if (entityDocsInfo.entityType == "hub") {
+                                        hub.push(obj);
+                                    } else if (entityDocsInfo.entityType == "taluk") {
+                                        taluk.push(obj);
+                                    } else if (entityDocsInfo.entityType == "district") {
+                                        district.push(obj);
+                                    } else if (entityDocsInfo.entityType == "school") {
+                                        school.push(obj);
+                                    } else if (entityDocsInfo.entityType == "zone") {
+                                        zone.push(obj);
+                                    } else if (entityDocsInfo.entityType == "block") {
+                                        block.push(obj);
+                                    } else if (entityDocsInfo.entityType == "cluster") {
+                                        cluster.push(obj);
+                                    }
+                                }
+                            }));
+                        }
+                    }
+                }));
+            }
+
+            userProfile.metaInformation.firstName = profileInfo.result.response.firstName;
+            userProfile.metaInformation.lastName = profileInfo.result.response.lastName;
+            userProfile.metaInformation.email = profileInfo.result.response.email;
+            userProfile.metaInformation.phoneNumber = profileInfo.result.response.phone;
+            userProfile.metaInformation.state = state;
+            userProfile.metaInformation.cluster = cluster;
+            userProfile.metaInformation.block = block;
+            userProfile.metaInformation.district = district;
+            userProfile.metaInformation.taluk = taluk;
+            userProfile.metaInformation.zone = zone;
+            userProfile.metaInformation.hub = hub;
+            userProfile.metaInformation.school = school;
+
+            let userProfileDoc = await database.models.userProfile.create(userProfile);
+
+            resolve(userProfileDoc);
+        } catch (err) {
+            return reject(err);
+        }
+    });
+
 }
 
 

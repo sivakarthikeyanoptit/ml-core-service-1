@@ -4,7 +4,7 @@ module.exports = {
     // return await db.collection('albums').updateOne({artist: 'The Beatles'}, {$set: {blacklisted: true}});
 
     let userProfileForm = 
-    await db.collection('forms').findOne({ name:"userProfileForm" });
+    await db.collection('forms').findOne({ name:"userProfileForm2" });
     if(!userProfileForm){
 
      let inputFields =  [ {
@@ -13,6 +13,7 @@ module.exports = {
         value:"",
         visible:true,
         editable:true,
+        regex:"/^[A-Za-z]+$/",
         validation: { required:true },
         input:"text"
       },{
@@ -21,6 +22,7 @@ module.exports = {
         value:"",
         visible:true,
         editable:true,
+        regex:"/^[A-Za-z]+$/",
         validation: { required:true },
         input:"text"
       },{
@@ -29,6 +31,7 @@ module.exports = {
         value:"",
         visible:true,
         editable:true,
+        regex:"^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$",
         validation: { required:true },
         input:"text"
       },{
@@ -37,6 +40,7 @@ module.exports = {
         value:"",
         visible:true,
         editable:true,
+        regex:"^((\+)?(\d{2}[-]))?(\d{10}){1}?$",
         validation: { required:true },
         input:"text"
       },{
