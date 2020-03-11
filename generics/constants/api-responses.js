@@ -41,5 +41,7 @@ module.exports = {
   "NOTIFICATION_LIST": "List Of Notifications",
   "UNREAD_NOTIFICATION": "Unread Notification",
   "MARK_AS_READ_NOTIFICATION": "Notification Updated Successfully",
-  "ENTITY_ID_NOT_FOUND" : "Entity id not found in params or body data"
+  "ENTITY_ID_NOT_FOUND" : "Entity id not found in params or body data",
+  "MISSING_ENTITYID_ENTITYTYPE_ENTITYTYPEID" : "Missing entity type,entity type id and entity id",
+  "USER_EXTENSION_FETCHED" : "User profile fetched successfully."
 };

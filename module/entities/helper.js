@@ -227,18 +227,19 @@ module.exports = class EntitiesHelper {
                     Object.keys(entitiesDocument[0].groups).length > 0
                 ) {
     
-                    let getEmmediateEntityTypes =
-                        await entityTypesHelper.immediateChildrenEntityType(
-                            entitiesDocument[0].entityType
+                    let getImmediateEntityTypes =
+                        await entityTypesHelper.list({
+                            name : entitiesDocument[0].entityType
+                        },["immediateChildrenEntityType"]
                         );
     
                     let immediateEntitiesIds;
     
                     Object.keys(entitiesDocument[0].groups).forEach(entityGroup => {
                         if (
-                            getEmmediateEntityTypes.immediateChildrenEntityType &&
-                            getEmmediateEntityTypes.immediateChildrenEntityType.length > 0 &&
-                            getEmmediateEntityTypes.immediateChildrenEntityType.includes(entityGroup)
+                            getImmediateEntityTypes[0].immediateChildrenEntityType &&
+                            getImmediateEntityTypes[0].immediateChildrenEntityType.length > 0 &&
+                            getImmediateEntityTypes[0].immediateChildrenEntityType.includes(entityGroup)
                         ) {
                             immediateEntitiesIds = entitiesDocument[0].groups[entityGroup];
                         }
@@ -414,5 +415,49 @@ module.exports = class EntitiesHelper {
             }
         })
    }
+
+   /**
+   * All the related entities for the given entities.
+   * @method
+   * @name relatedEntities
+   * @param {String} entityId - entity id.
+   * @param {String} entityTypeId - entity type id.
+   * @param {String} entityType - entity type.
+   * @param {Array} [projection = "all"] - total fields to be projected.
+   * @returns {Array} - returns an array of related entities data.
+   */
+
+  static relatedEntities(entityId, entityTypeId, entityType, projection = "all") {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            let relatedEntitiesQuery = {};
+
+            if (entityTypeId && entityId && entityType) {
+                relatedEntitiesQuery[`groups.${entityType}`] = entityId;
+                relatedEntitiesQuery["entityTypeId"] = {};
+                relatedEntitiesQuery["entityTypeId"]["$ne"] = entityTypeId;
+            } else {
+                return resolve({ 
+                    status: httpStatusCode.bad_request.status, 
+                    message: constants.apiResponses.MISSING_ENTITYID_ENTITYTYPE_ENTITYTYPEID 
+                });
+            }
+
+            let relatedEntitiesDocument = await this.entityDocuments(relatedEntitiesQuery, projection);
+            
+            relatedEntitiesDocument = relatedEntitiesDocument ? relatedEntitiesDocument : [];
+
+            return resolve(relatedEntitiesDocument);
+
+
+        } catch (error) {
+            return reject({
+                status: error.status || httpStatusCode.internal_server_error.status,
+                message: error.message || httpStatusCode.internal_server_error.message
+            });
+        }
+    })
+  }
 
 }
