@@ -3,21 +3,15 @@ module.exports = {
     global.migrationMsg = "using forms collection it create record"
     // return await db.collection('albums').updateOne({artist: 'The Beatles'}, {$set: {blacklisted: true}});
 
-    console.log("=======");
-
     let userProfileForm = 
     await db.collection('forms').findOne({ name:"userProfileForm" });
-    console.log("userProfileForm",userProfileForm);
-   
-
     if(!userProfileForm){
-     
 
      let inputFields =  [ {
         field:"firstName",
         label:"firstName",
         value:"",
-        visible:"",
+        visible:true,
         editable:true,
         validation: { required:true },
         input:"text"
@@ -25,7 +19,7 @@ module.exports = {
         field:"lastName",
         label:"lastName",
         value:"",
-        visible:"",
+        visible:true,
         editable:true,
         validation: { required:true },
         input:"text"
@@ -33,7 +27,7 @@ module.exports = {
         field:"emailId",
         label:"emailId",
         value:"",
-        visible:"",
+        visible:true,
         editable:true,
         validation: { required:true },
         input:"text"
@@ -41,7 +35,7 @@ module.exports = {
         field:"phoneNumber",
         label:"phoneNumber",
         value:"",
-        visible:"",
+        visible:true,
         editable:true,
         validation: { required:true },
         input:"text"
@@ -49,25 +43,22 @@ module.exports = {
         field:"state",
         label:"state",
         value:"",
-        visible:"",
+        visible:true,
         editable:true,
         validation: { required:true },
-        input:"dropdown",
+        input:"select",
         options:[{
           
         }]
       }]
-
       let userProfileForm = {
         name:"userProfileForm",
         value:inputFields
       }
 
+      console.log("userProfileForm",userProfileForm);
       await db.collection('forms').insertOne(userProfileForm);
     }
-
-  
-
 
   },
 

@@ -9,54 +9,6 @@ module.exports = {
     name: "userProfile",
     schema: {
       metaInformation:{
-        firstName: {
-          type : String,
-          default : null
-        },
-        lastName: {
-          type : String,
-           default : null
-        },
-        emailId: {
-          type: String,
-           default : null
-        },
-        phoneNumber: {
-          type : String,
-          default : null
-        },
-        state: {
-          type : String,
-          default : null
-        },
-        district: {
-          type : Array,
-          default : null
-        },
-        block: {
-          type: Array,
-          default: null
-        },
-        zone: {
-          type : Array,
-          default : null
-        },
-        cluster: {
-          type : Array,
-          default : null
-        },
-        taluk: {
-          type : Array,
-          default : null
-        },
-        hub: {
-          type : Array,
-          default : null
-        },
-        school: {
-          type : Array,
-          default : null
-        }
       },
       createdBy: {
         type : String,

@@ -8,9 +8,11 @@
 let userManagementService =
     require(ROOT_PATH + "/generics/services/user-management");
 let entitiesHelper = require(ROOT_PATH + "/module/entities/helper");
-// const USER_PROFILE_PENDING_VERIFICATION_STATUS = constants.common.USER_PROFILE_PENDING_VERIFICATION_STATUS;
-// const USER_PROFILE_ACTIVE_STATUS = constants.common.USER_PROFILE_ACTIVE_STATUS;
-// const USER_PROFILE_VERIFIED_STATUS = constants.common.USER_PROFILE_VERIFIED_STATUS;
+
+// const USER_PROFILE_FORM_NAME = constants.common.USER_PROFILE_FORM_NAME;
+// const STATE_ENTITY_TYPE = constants.common.STATE_ENTITY_TYPE;
+
+
 
 
 module.exports = class UserProfileHelper {
@@ -160,36 +162,95 @@ module.exports = class UserProfileHelper {
     * @returns {json} Response consists of user details data.
     */
 
-    static getForm() {
+    static getForm(userId,appName="",device="") {
         return new Promise(async (resolve, reject) => {
             try {
 
                 let userProfileForm =
-                    await database.models.forms.findOne({ name: "userProfileForm" }).lean();
+                    await database.models.forms.findOne({ name: constants.common.USER_PROFILE_FORM_NAME }).lean();
+
+
+                    // userProfileScreenVisitedTrack
+
+                    // console.log("userId",userId);
+                    let name =  appName+"."+device;
+                    let userProfileScreenVisitedTrack = {
+                       
+                    }
+                    userProfileScreenVisitedTrack[name]=true;
+
+                    // console.log("userProfileScreenVisitedTrack",userProfileScreenVisitedTrack);
+
+                   let userExt = await database.models.userExtension.findOne({ userId:userId },
+                    { userProfileScreenVisitedTrack: 1 });
+
+                    // console.log("userExt",userExt);
+                   if(userExt){
+                    let updateData = {};
+                    if(userExt.userProfileScreenVisitedTrack){
+                        updateData =  userExt.userProfileScreenVisitedTrack;
+                        updateData[name]=true;
+                    }else{
+                        updateData = userProfileScreenVisitedTrack;
+                    }   
+
+                    database.models.userExtension.findOneAndUpdate(
+                        { userId:userId },{ "$set": { userProfileScreenVisitedTrack:updateData } } );
+                       
+                   }
+
 
                 if (userProfileForm) {
-                    let stateInfo = await database.models.entities.find({ entityType: "state" }).lean();
+                    let stateInfo = await database.models.entities.find({ entityType:  constants.common.STATE_ENTITY_TYPE },{ entityTypeId:1,_id:1,metaInformation:1  }).lean();
 
                     let states = [];
 
+
+                    let stateListWithSubEntities = [];
+
                     if (stateInfo) {
                         await Promise.all(stateInfo.map(async function (state) {
-                            states.push(
+
+                           let found =  await checkStateWithSubEntities(state.entityTypeId);
+
+                           if(found){
+                            stateListWithSubEntities.push(state._id);
+                           }
+                        states.push(
                                 { 
-                                  externalId: state.metaInformation.externalId,
-                                  name: state.metaInformation.name,
-                                  _id: state._id
+                                //   externalId: state.metaInformation.externalId,
+                                  label: state.metaInformation.name,
+                                  value: state._id
                                  }
                             );
                         }));
-
+                        let getUserData = await database.models.userProfile.findOne({ userId:userId }).sort({ createdAt : -1  });
 
                         await Promise.all(userProfileForm.value.map(async function (fields, index) {
                             if (fields.field == "state") {
+
+                                // let imidiateEnt = await _immediateEntities(states);
+                                // let immediateEntities =
+                                // await entitiesHelper.immediateEntities(
+                                //     states[0]._id
+                                // );
+
+                                // console.log("imidiateEnt",immediateEntities);
                                 userProfileForm.value[index].options = states;
                             }
+                            if(getUserData && getUserData.metaInformation){
+                                if(getUserData.metaInformation[fields.field]){
+                                    userProfileForm.value[index].value = getUserData.metaInformation[fields.field];
+                                }
+                            }
                         }));
-                        return resolve(userProfileForm);
+
+                        let UserForm = {
+                            form:userProfileForm.value,
+                            stateListWithSubEntities:stateListWithSubEntities
+                        }
+
+                        return resolve(UserForm);
                     } else {
                         throw "Could not get sate list";
                     }
@@ -396,6 +457,33 @@ function _immediateEntities(entities) {
             return reject(err);
         }
     })
+}
+
+
+/**
+  * check state has subEntities
+  * @method
+  * @name checkStateWithSubEntities
+  * @param { string } stateId - Array of entities.
+  * @returns {boolean}
+  * */
+
+function checkStateWithSubEntities(entityTypeId){
+    return new Promise(async (resolve, reject) => {
+        try {
+      let entityTypeDoc = 
+            await database.models.entityTypes.findOne({
+                _id:entityTypeId
+            },{ immediateChildrenEntityType:1 }).lean();
+            if( entityTypeDoc && entityTypeDoc.immediateChildrenEntityType && entityTypeDoc.immediateChildrenEntityType.length > 0){
+                resolve(true);
+            }else{
+                resolve(false);
+            }
+        } catch (err) {
+            return reject(err);
+        }
+    });
 }
 
 

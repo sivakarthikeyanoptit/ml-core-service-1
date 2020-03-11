@@ -250,10 +250,8 @@ module.exports = class UserProfile extends Abstract {
 
       try {
 
-        // console.log("req.body",req.userDetails.userId);
-
-        let userProfileForm = await userProfileHelper.getForm();
-
+        let userProfileForm = await userProfileHelper.getForm(req.userDetails.userId,req.headers['app-name'],req.headers['device-name']);
+       
         resolve({
           result: userProfileForm
         });

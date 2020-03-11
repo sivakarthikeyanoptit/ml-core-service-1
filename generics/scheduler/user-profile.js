@@ -110,15 +110,15 @@
             let userProfileData = {
                     "is_read" : false,
                     "action" : "Update",
-                    "appName" : process.env.ELASTICSEARCH_UNNATI_INDEX,
+                    "appName" : NOTIFICATION_TO_ALL,
                     "created_at" : new Date(),
                     "text" : "text",
                     "type" : process.env.ELASTICSEARCH_USER_NOTIFICATIONS_TYPE,
                     "internal" : false,
                     "payload" : {
-                        "type" :  process.env.IMPROVEMENT_PROJECT_APPLICATION_APP_TYPE
+                        "type" :  process.env.ELASTICSEARCH_USER_NOTIFICATIONS_TYPE
                     },
-                    "appType" :  process.env.IMPROVEMENT_PROJECT_APPLICATION_APP_TYPE
+                    "appType" : NOTIFICATION_TO_ALL
             };
 
             let response = [];

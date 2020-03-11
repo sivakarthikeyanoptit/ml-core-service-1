@@ -1,13 +1,10 @@
 /**
- * name : entityTypesController.js
- * author : Akash
- * created-date : 22-Nov-2018
- * Description : Entity types information. 
+ * name : forms.js
+ * author : Rakesh Kumar
+ * created-date : 03-March-2020
+ * Description : Forms information. 
  */
 
- // Dependencies
-//  const entitiyTypesHelper = require(MODULES_BASE_PATH + "/entityTypes/helper");
-//  const entitiesHelper = require(MODULES_BASE_PATH + "/entities/helper");
  
   /**
      * EntityTypes

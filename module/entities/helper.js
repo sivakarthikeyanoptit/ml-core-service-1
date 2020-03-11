@@ -2,7 +2,8 @@ let entityTypesHelper = require(MODULES_BASE_PATH + "/entityTypes/helper");
 
 module.exports = class EntitiesHelper {
 
-    /**
+
+     /**
    * List entity documents.
    * @method
    * @name entityDocuments
@@ -14,55 +15,110 @@ module.exports = class EntitiesHelper {
    * @param {Number} [skippingValue = ""] - total data to skip.
    * @returns {Array} - returns an array of entities data.
    */
+  static entityDocuments(
+    findQuery = "all", 
+    fields = "all", 
+    limitingValue = "", 
+    skippingValue = "",
+    sortedData = ""
+) {
+  return new Promise(async (resolve, reject) => {
+      try {
+          let queryObject = {};
+          if (findQuery != "all") {
+              queryObject = findQuery;
+          }
+          let projectionObject = {};
+          if (fields != "all") {
+              fields.forEach(element => {
+                  projectionObject[element] = 1;
+              });
+          }
+          let entitiesDocuments;
+          if( sortedData !== "" ) {
+          entitiesDocuments = await database.models.entities
+              .find(queryObject, projectionObject)
+              .sort(sortedData)
+              .limit(limitingValue)
+              .skip(skippingValue)
+              .lean();
+          } else {
+              entitiesDocuments = await database.models.entities
+              .find(queryObject, projectionObject);
+            //   .limit(limitingValue)
+            //   .skip(skippingValue)
+            //   .lean();
+          }
+          return resolve(entitiesDocuments);
+      } catch (error) {
+          return reject(error);
+      }
+  });
+}
+//     /**
+//    * List entity documents.
+//    * @method
+//    * @name entityDocuments
+//    * @param {Object} [findQuery = "all"] - filter query object if not provide 
+//    * it will load all the document.
+//    * @param {Array} [fields = "all"] - All the projected field. If not provided
+//    * returns all the field
+//    * @param {Number} [limitingValue = ""] - total data to limit.
+//    * @param {Number} [skippingValue = ""] - total data to skip.
+//    * @returns {Array} - returns an array of entities data.
+//    */
 
-    static entityDocuments(
-        findQuery = "all",
-        fields = "all",
-        limitingValue = "",
-        skippingValue = "",
-        sortedData = "",
-    ) {
-        return new Promise(async (resolve, reject) => {
-            try {
+    // static entityDocuments(
+    //     findQuery = "all",
+    //     fields = "all",
+    //     limitingValue = "",
+    //     skippingValue = "",
+    //     sortedData = "",
+    // ) {
+    //     return new Promise(async (resolve, reject) => {
+    //         try {
 
-                let queryObject = {};
+    //             let queryObject = {};
 
-                if (findQuery != "all") {
-                    queryObject = findQuery;
-                }
+    //             if (findQuery != "all") {
+    //                 queryObject = findQuery;
+    //             }
 
-                let projectionObject = {};
+    //             let projectionObject = {};
 
-                if (fields != "all") {
-                    fields.forEach(element => {
-                        projectionObject[element] = 1;
-                    });
-                }
+    //             if (fields != "all") {
+    //                 fields.forEach(element => {
+    //                     projectionObject[element] = 1;
+    //                 });
+    //             }
 
-                let entitiesDocuments;
+    //             let entitiesDocuments;
 
-                if (sortedData !== "") {
-                    entitiesDocuments = await database.models.entities
-                        .find(queryObject, projectionObject)
-                        .sort(sortedData)
-                        .limit(limitingValue)
-                        .skip(skippingValue)
-                        .lean();
-                } else {
-                    entitiesDocuments = await database.models.entities
-                        .find(queryObject, projectionObject)
-                        .limit(limitingValue)
-                        .skip(skippingValue)
-                        .lean();
-                }
+    //             console.log("queryObject",queryObject);
+            
+    //             if (sortedData !== "") {
+    //                 entitiesDocuments = await database.models.entities
+    //                     .find(queryObject, projectionObject)
+    //                     .sort(sortedData)
+    //                     .limit(limitingValue)
+    //                     .skip(skippingValue)
+    //                     .lean();
+    //             } else {
 
+    //                 entitiesDocuments = await database.models.entities
+    //                     .find(queryObject, projectionObject)
+    //                     .limit(limitingValue)
+    //                     .skip(skippingValue)
+    //                     .lean();
+    //             }
 
-                return resolve(entitiesDocuments);
-            } catch (error) {
-                return reject(error);
-            }
-        });
-    }
+    //             console.log("entitiesDocuments",entitiesDocuments);
+    //             return resolve(entitiesDocuments);
+    //         } catch (error) {
+    //             return reject(error);
+    //         }
+    //     });
+    // }
 
     /**
      * List all entities based on type.
@@ -145,10 +201,13 @@ module.exports = class EntitiesHelper {
                 constants.schema.GROUPS
             ];
 
+            console.log("entityId",entityId);
 
             let entitiesDocument = await this.entityDocuments({
                 _id: entityId
             }, projection);
+
+            console.log("entitiesDocument ====",entitiesDocument);
 
             let immediateEntities = [];
             let immediateEntityType = "";
@@ -262,10 +321,11 @@ module.exports = class EntitiesHelper {
             await Promise.all(requestBody.entities.map(async function (entityId) {
                 let entitiesDocument = await self.immediateEntities(entityId, requestBody.seachText,requestBody.pageSize,requestBody.pageNo);
 
+                console.log("entitiesDocument entitiesDocument ", entitiesDocument.result);
                 let obj = {
                     entityId: entityId,
-                    immediateEntityType: entitiesDocument.immediateEntityType ? entitiesDocument.immediateEntityType : [],
-                    data: entitiesDocument.data ? entitiesDocument.data : []
+                    immediateEntityType: entitiesDocument.result.immediateEntityType ? entitiesDocument.result.immediateEntityType : [],
+                    data: entitiesDocument.result.data ? entitiesDocument.result.data : []
 
                 }
                 result.push(obj);
