@@ -236,9 +236,6 @@ module.exports = class EntitiesHelper {
         })
     }
 
-
-
-
     /**
      * Get immediate entities for requested Array.
      * @method
@@ -247,37 +244,112 @@ module.exports = class EntitiesHelper {
      * @returns {Array} - List of all immediateEntities based on Array.
      */
 
-    static immediateEntitiesByArray(requestBody) {
+    static immediateEntitiesByArray( entities,search,limit,pageNo,type ) {
         return new Promise(async (resolve, reject) => {
 
-            // let array = {
-            //    _id: { $in :  requestBody  }
-            // };
-
-            // requestBody.entities = 
-
-            // console.log("array",array);/
-            let self = this;
             let result = [];
-            await Promise.all(requestBody.entities.map(async function (entityId) {
-                let entitiesDocument = await self.immediateEntities(entityId, requestBody.seachText,requestBody.pageSize,requestBody.pageNo);
 
-                let obj = {
-                    entityId: entityId,
-                    immediateEntityType: entitiesDocument.immediateEntityType ? entitiesDocument.immediateEntityType : [],
-                    data: entitiesDocument.data ? entitiesDocument.data : []
+            await Promise.all(entities.map(async (entityId)=> {
 
+                let entitiesDocument;
+
+                if( type ) {
+
+                    entitiesDocument = await this.entityTraversal(
+                        entityId,
+                        type,
+                        search,
+                        limit,
+                        pageNo
+                    );
+
+                } else {
+                    entitiesDocument = await this.immediateEntities(
+                        entityId, 
+                        search,
+                        limit,
+                        pageNo
+                    );
                 }
-                result.push(obj);
+
+                result.push(entitiesDocument);
+                
+                
+
+                // let obj = {
+                //     entityId: entityId,
+                //     immediateEntityType: entitiesDocument.immediateEntityType ? entitiesDocument.immediateEntityType : [],
+                //     data: entitiesDocument.data ? entitiesDocument.data : []
+
+                // }
+                // result.push(obj);
             }));
-
-
-            // let result = result
 
             resolve({
                 message: constants.apiResponses.IMMEDIATE_ENTITIES_FETCHED,
                 result: result
             });
+        })
+    }
+
+
+    /**
+    * Get immediate entities.
+    * @method
+    * @name listByEntityType
+    * @param {Object} entityId
+    * @returns {Array} - List of all immediateEntities based on entityId.
+    */
+
+   static entityTraversal(
+       entityId,
+       entityTraversalType = "", 
+       seachText = "",
+       pageSize="",
+       pageNo=""
+    ) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                
+                let entityTraversal = `groups.${entityTraversalType}`;
+
+                let skippingValue = pageSize * (pageNo - 1);
+
+                let entitiesDocument = 
+                await this.entityDocuments(
+                    { 
+                        _id: entityId, 
+                        [entityTraversal] : { $exists: true } 
+                    },
+                    [ entityTraversal ],
+                    // pageSize,
+                    // skippingValue
+                );
+
+                let result = [];
+                
+                if( entitiesDocument[0].groups[entityTraversalType].length > 0 ) {
+                    
+                    let entityTraversalData = await this.entityDocuments(
+                        {
+                            _id : { 
+                                $in : entitiesDocument[0].groups[entityTraversalType] 
+                            } 
+                        },
+                        ["_id","metaInformation.name","metaInformation.externalId"],
+                        pageSize,
+                        skippingValue
+                    );
+
+                    result = entityTraversalData;
+
+                }
+
+                return resolve(result);
+
+            } catch(error) {
+                return reject(error);
+            }
         })
     }
 

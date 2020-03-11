@@ -179,13 +179,15 @@ module.exports = class Entities extends Abstract {
       return new Promise(async (resolve, reject) => {
     
           try {
-
-            console.log("req.body",req.body);
-              let entityDocuments = await entitiesHelper.immediateEntitiesByArray(
-                req.body
+            
+            let entityDocuments = await entitiesHelper.immediateEntitiesByArray(
+              req.body.entities,
+              req.searchText,
+              req.pageSize,
+              req.pageNo,
+              req.query.type ? req.query.type : ""
             );
             
-    
             return resolve(entityDocuments);
     
           } catch (error) {
