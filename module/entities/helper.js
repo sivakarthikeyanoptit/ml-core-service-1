@@ -64,6 +64,77 @@ module.exports = class EntitiesHelper {
         });
     }
 
+     /**
+   * Search entity.
+   * @method 
+   * @name search
+   * @param {String} searchText - Text to be search.
+   * @param {Number} pageSize - total page size.
+   * @param {Number} pageNo - Page no.
+   * @param {Array} [entityIds = false] - Array of entity ids.
+   */
+
+  static search( searchText, pageSize, pageNo, entityIds = false ) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            let queryObject = {};
+
+            queryObject["$match"] = {};
+
+            if (entityIds && entityIds.length > 0) {
+                queryObject["$match"]["_id"] = {};
+                queryObject["$match"]["_id"]["$in"] = entityIds;
+            }
+
+            if( searchText !== "") {
+                queryObject["$match"]["$or"] = [
+                    { "metaInformation.name": new RegExp(searchText, 'i') },
+                    { "metaInformation.externalId": new RegExp("^" + searchText, 'm') },
+                    { "metaInformation.addressLine1": new RegExp(searchText, 'i') },
+                    { "metaInformation.addressLine2": new RegExp(searchText, 'i') }
+                ];
+            }
+
+            let entityDocuments = await database.models.entities.aggregate([
+                queryObject,
+                {
+                    $project: {
+                        name: "$metaInformation.name",
+                        externalId: "$metaInformation.externalId",
+                        addressLine1: "$metaInformation.addressLine1",
+                        addressLine2: "$metaInformation.addressLine2",
+                        entityType : 1
+                    }
+                },
+                {
+                    $facet: {
+                        "totalCount": [
+                            { "$count": "count" }
+                        ],
+                        "data": [
+                            { $skip: pageSize * (pageNo - 1) },
+                            { $limit: pageSize }
+                        ],
+                    }
+                }, {
+                    $project: {
+                        "data": 1,
+                        "count": {
+                            $arrayElemAt: ["$totalCount.count", 0]
+                        }
+                    }
+                }
+            ]);
+
+            return resolve(entityDocuments);
+
+        } catch (error) {
+            return reject(error);
+        }
+    })
+  }
+
     /**
      * List all entities based on type.
      * @method
@@ -135,163 +206,162 @@ module.exports = class EntitiesHelper {
     * @returns {Array} - List of all immediateEntities based on entityId.
     */
 
-    static immediateEntities(entityId, seachText = "",pageSize="",pageNo="") {
+    static immediateEntities(entityId, searchText = "",pageSize="",pageNo="") {
         return new Promise(async (resolve, reject) => {
 
-
-
-            let projection = [
-                constants.schema.ENTITYTYPE,
-                constants.schema.GROUPS
-            ];
-
-
-            let entitiesDocument = await this.entityDocuments({
-                _id: entityId
-            }, projection);
-
-            let immediateEntities = [];
-            let immediateEntityType = "";
-
-            if (entitiesDocument[0] &&
-                entitiesDocument[0].groups &&
-                Object.keys(entitiesDocument[0].groups).length > 0
-            ) {
-
-                let getEmmediateEntityTypes =
-                    await entityTypesHelper.immediateChildrenEntityType(
-                        entitiesDocument[0].entityType
-                    );
-
-                let immediateEntitiesIds;
-
-                Object.keys(entitiesDocument[0].groups).forEach(entityGroup => {
-                    if (
-                        getEmmediateEntityTypes.immediateChildrenEntityType &&
-                        getEmmediateEntityTypes.immediateChildrenEntityType.length > 0 &&
-                        getEmmediateEntityTypes.immediateChildrenEntityType.includes(entityGroup)
-                    ) {
-                        immediateEntitiesIds = entitiesDocument[0].groups[entityGroup];
-                    }
-                })
-
-                if (
-                    Array.isArray(immediateEntitiesIds) &&
-                    immediateEntitiesIds.length > 0
+            try {
+                
+                let projection = [
+                    constants.schema.ENTITYTYPE,
+                    constants.schema.GROUPS
+                ];
+    
+                let entitiesDocument = await this.entityDocuments({
+                    _id: entityId
+                }, projection);
+    
+                let immediateEntities = [];
+    
+                if (entitiesDocument[0] &&
+                    entitiesDocument[0].groups &&
+                    Object.keys(entitiesDocument[0].groups).length > 0
                 ) {
-
-                    let entityName = constants.schema.METAINFORMATION + "." +
-                        constants.schema.NAME;
-
-                    let entityExternalId = constants.schema.METAINFORMATION + "." +
-                        constants.schema.EXTERNALID;
-
-
-                    let query = {}
-                    if (seachText) {
-                        query = {
-                            _id: { $in: immediateEntitiesIds }, "metaInformation.name": { $regex: seachText, $options: "i" }
+    
+                    let getEmmediateEntityTypes =
+                        await entityTypesHelper.immediateChildrenEntityType(
+                            entitiesDocument[0].entityType
+                        );
+    
+                    let immediateEntitiesIds;
+    
+                    Object.keys(entitiesDocument[0].groups).forEach(entityGroup => {
+                        if (
+                            getEmmediateEntityTypes.immediateChildrenEntityType &&
+                            getEmmediateEntityTypes.immediateChildrenEntityType.length > 0 &&
+                            getEmmediateEntityTypes.immediateChildrenEntityType.includes(entityGroup)
+                        ) {
+                            immediateEntitiesIds = entitiesDocument[0].groups[entityGroup];
                         }
-                    } else {
-                        query = {
-                            _id: { $in: immediateEntitiesIds }
-                        }
-                    }
-
-
-                    let skippingValue = "";
-                    
-                    if(pageSize && pageNo){
-                         skippingValue = pageSize * (pageNo - 1);
-                    }
-               
-                    immediateEntities = await this.entityDocuments(query, [
-                        entityName,
-                        entityExternalId,
-                        constants.schema.ENTITYTYPE
-                    ],pageSize,skippingValue);
-
-                    if (immediateEntities.length > 0) {
-                        immediateEntityType = immediateEntities[0].entityType;
-                        immediateEntities = immediateEntities.map(entities => {
-                            return {
-                                externalId: entities.metaInformation.externalId,
-                                name: entities.metaInformation.name,
-                                _id: entities._id
-                            }
-                        })
+                    })
+    
+                    if (
+                        Array.isArray(immediateEntitiesIds) &&
+                        immediateEntitiesIds.length > 0
+                    ) {
+                   
+                        let searchImmediateData = await this.search(
+                            searchText, 
+                            pageSize, 
+                            pageNo, 
+                            immediateEntitiesIds
+                        );
+    
+                        immediateEntities = searchImmediateData[0];
                     }
                 }
-            }
+    
+                return resolve(immediateEntities);
 
-            let result = {
-                immediateEntityType: immediateEntityType,
-                data: immediateEntities,
+            } catch(error) {
+                return reject(error);
             }
-
-            resolve({
-                message: constants.apiResponses.IMMEDIATE_ENTITIES_FETCHED,
-                result: result
-            });
         })
     }
 
     /**
      * Get immediate entities for requested Array.
      * @method
-     * @name immediateEntitiesByArray
-     * @param {body} requestBody
-     * @returns {Array} - List of all immediateEntities based on Array.
+     * @name subList
+     * @param {params} entities - array of entitity ids
+     * @param {params} entityId - single entitiy id
+     * @param {params} type - sub list entity type. 
+     * @param {params} search - search entity data. 
+     * @param {params} limit - page limit. 
+     * @param {params} pageNo - page no. 
+     * @returns {Array} - List of all sub list entities.
      */
 
-    static immediateEntitiesByArray( entities,search,limit,pageNo,type ) {
+    static subEntityList( entities,entityId,type,search,limit,pageNo ) {
         return new Promise(async (resolve, reject) => {
 
-            let result = [];
+            try {
 
-            await Promise.all(entities.map(async (entityId)=> {
-
-                let entitiesDocument;
-
-                if( type ) {
-
-                    entitiesDocument = await this.entityTraversal(
-                        entityId,
-                        type,
-                        search,
-                        limit,
-                        pageNo
-                    );
-
-                } else {
-                    entitiesDocument = await this.immediateEntities(
-                        entityId, 
-                        search,
-                        limit,
-                        pageNo
-                    );
+                let result = [];
+                let obj = {
+                    entityId : entityId,
+                    type : type,
+                    search : search,
+                    limit : limit,
+                    pageNo : pageNo
                 }
-
-                result.push(entitiesDocument);
-                
-                
-
-                // let obj = {
-                //     entityId: entityId,
-                //     immediateEntityType: entitiesDocument.immediateEntityType ? entitiesDocument.immediateEntityType : [],
-                //     data: entitiesDocument.data ? entitiesDocument.data : []
-
-                // }
-                // result.push(obj);
-            }));
-
-            resolve({
-                message: constants.apiResponses.IMMEDIATE_ENTITIES_FETCHED,
-                result: result
-            });
+    
+                if ( entityId !== "" ) {
+                    result = await this.subEntities(
+                        obj
+                    );
+                } else {
+    
+                    await Promise.all(entities.map(async (entity)=> {
+    
+                        obj["entityId"] = entity;
+                        let entitiesDocument = await this.subEntities(
+                            obj
+                        );
+    
+                        result.push(entitiesDocument);
+                    }));
+                }
+    
+                resolve({
+                    message: constants.apiResponses.ENTITIES_FETCHED,
+                    result: result
+                });   
+            } catch(error) {
+                return reject(error);
+            }
         })
     }
 
+     /**
+     * Get either immediate entities or entity traversal based upon the type.
+     * @method
+     * @name subEntities
+     * @param {body} entitiesData
+     * @returns {Array} - List of all immediate entities or traversal data.
+     */
+
+    static subEntities( entitiesData ) {
+        return new Promise(async (resolve, reject) => {
+
+            try {
+                
+                let entitiesDocument;
+                
+                if( entitiesData.type !== "" ) {
+                    
+                    entitiesDocument = await this.entityTraversal(
+                        entitiesData.entityId,
+                        entitiesData.type,
+                        entitiesData.search,
+                        entitiesData.limit,
+                        entitiesData.pageNo
+                        );
+                } else {
+                    
+                    entitiesDocument = await this.immediateEntities(
+                        entitiesData.entityId, 
+                        entitiesData.search,
+                        entitiesData.limit,
+                        entitiesData.pageNo
+                    );
+                }
+                
+                return resolve(entitiesDocument);
+            } catch(error) {
+                return reject(error);
+            }
+        })
+    }
 
     /**
     * Get immediate entities.
@@ -304,16 +374,14 @@ module.exports = class EntitiesHelper {
    static entityTraversal(
        entityId,
        entityTraversalType = "", 
-       seachText = "",
-       pageSize="",
-       pageNo=""
+       searchText = "",
+       pageSize,
+       pageNo
     ) {
         return new Promise(async (resolve, reject) => {
             try {
                 
                 let entityTraversal = `groups.${entityTraversalType}`;
-
-                let skippingValue = pageSize * (pageNo - 1);
 
                 let entitiesDocument = 
                 await this.entityDocuments(
@@ -321,27 +389,21 @@ module.exports = class EntitiesHelper {
                         _id: entityId, 
                         [entityTraversal] : { $exists: true } 
                     },
-                    [ entityTraversal ],
-                    // pageSize,
-                    // skippingValue
+                    [ entityTraversal ]
                 );
 
                 let result = [];
                 
                 if( entitiesDocument[0].groups[entityTraversalType].length > 0 ) {
                     
-                    let entityTraversalData = await this.entityDocuments(
-                        {
-                            _id : { 
-                                $in : entitiesDocument[0].groups[entityTraversalType] 
-                            } 
-                        },
-                        ["_id","metaInformation.name","metaInformation.externalId"],
+                    let entityTraversalData = await this.search(
+                        searchText,
                         pageSize,
-                        skippingValue
+                        pageNo,
+                        entitiesDocument[0].groups[entityTraversalType]
                     );
 
-                    result = entityTraversalData;
+                    result = entityTraversalData[0];
 
                 }
 
@@ -351,6 +413,6 @@ module.exports = class EntitiesHelper {
                 return reject(error);
             }
         })
-    }
+   }
 
 }

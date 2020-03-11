@@ -6,7 +6,7 @@
  */
 
 module.exports = (req, res, next) => {
-    if (req.method == "GET") {
+    if (req.method == "GET" || req.method == "POST") {
         req.pageNo = (req.query.page && Number(req.query.page) > 0) 
         ? Number(req.query.page) : 1;
 

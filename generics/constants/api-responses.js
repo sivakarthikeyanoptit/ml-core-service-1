@@ -18,7 +18,6 @@ module.exports = {
 
   "ENTITY_NOT_FOUND" : "No entity found",
   "ENTITIES_FETCHED" : "List of entities fetched successfully",
-  "IMMEDIATE_ENTITIES_FETCHED" : "List of immediate entities fetched",
   "BODY_NOT_FOUND" : "Body data not found",
   "QR_CODE_EXISTS" : "Qr code alreasy exists",
   "QR_CODE_INCORRECT" : "Some code is incorrect",
@@ -41,5 +40,6 @@ module.exports = {
   "VERSION_UPDATE_FILE_TYPE" : "Missing file of type versionUpdate",
   "NOTIFICATION_LIST": "List Of Notifications",
   "UNREAD_NOTIFICATION": "Unread Notification",
-  "MARK_AS_READ_NOTIFICATION": "Notification Updated Successfully"
+  "MARK_AS_READ_NOTIFICATION": "Notification Updated Successfully",
+  "ENTITY_ID_NOT_FOUND" : "Entity id not found in params or body data"
 };

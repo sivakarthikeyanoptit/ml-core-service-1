@@ -104,88 +104,64 @@ module.exports = class Entities extends Abstract {
         })
     }
 
-     /**
-     * @api {post} /kendra/api/v1/entities/immediateEntities/:entityId 
+
+    /**
+     * @api {post} /kendra/api/v1/entities/sublist/:entityId
      * List entities based on type
      * @apiVersion 1.0.0
      * @apiGroup User
      * @apiHeader {String} X-authenticated-user-token Authenticity token
-     * @apiSampleRequest /kendra/api/v1/entities/immediateEntities/5e26c2b0d007227fb039d994
+     * @apiSampleRequest /kendra/api/v1/entities/sublist/5dc92818e153ef2dc4b8cb4a
      * @apiUse successBody
      * @apiUse errorBody
      * @apiParamExample {json} Response:
-     {
-    "message": "List of immediate entities fetched",
-    "status": 200,
-    "result": {
-        "immediateEntityType": "school",
-        "data": [
-            {
-                "externalId": "3020508602",
-                "name": "PUNJAB GMS WARYAM NANGAL",
-                "_id": "5da70ff54c67d63cca1b8ee1"
-            }
-        ]
-    }   
-    }
-  */
+     * {
+     * "message": "List of immediate entities fetched",
+     * "status": 200,
+     * "result": [
+     * {
+     * "data": [
+     * {
+     * "_id": "5d7b91343a0f744513478522",
+     * "entityType": "zone",
+     * "name": "Zone 1",
+     * "externalId": "1"
+     * }
+     * ],
+     * "count": 1
+     * }
+     * ]
+     * }
+  }
 
     /**
       * Get the immediate entities .
       * @method
-      * @name immediateEntities
+      * @name subList
       * @param  {Request} req request body.
       * @returns {JSON} Returns list of immediate entities
      */
 
-    immediateEntities(req) {
+    subEntityList(req) {
         
       return new Promise(async (resolve, reject) => {
-    
-          try {
 
-              let entityDocuments = await entitiesHelper.immediateEntities(
-                req.params._id
-            );
-            
-    
-            return resolve(entityDocuments);
-    
-          } catch (error) {
-    
-            return reject({
-              status: error.status || httpStatusCode.internal_server_error.status,
-              message: error.message || httpStatusCode.internal_server_error.message,
-              errorObject: error
-            })
-    
-          }
-    
-    
-        })
-    }
-
-
-    /**
-      * Get the immediate entities .
-      * @method
-      * @name immediateEntitiesByArray
-      * @param  {Request} req request body.
-      * @returns {JSON} Returns list of immediate entities
-     */
-
-    immediateEntitiesByArray(req) {
-        
-      return new Promise(async (resolve, reject) => {
+        if( !(req.params._id || req.body.entities) ) {
+          return resolve({
+            status :  httpStatusCode.bad_request.status,
+            message : constants.apiResponses.ENTITY_ID_NOT_FOUND
+          })
+        }
     
           try {
             
-            let entityDocuments = await entitiesHelper.immediateEntitiesByArray(
-              req.body.entities,
+            let entityDocuments = await entitiesHelper.subEntityList(
+              req.body.entities ? req.body.entities : "",
+              req.params._id ? req.params._id : "",
+              req.query.type ? req.query.type : "",
               req.searchText,
               req.pageSize,
-              req.pageNo,
-              req.query.type ? req.query.type : ""
+              req.pageNo
             );
             
             return resolve(entityDocuments);
@@ -204,6 +180,5 @@ module.exports = class Entities extends Abstract {
         })
     }
 
-  
 };
 
