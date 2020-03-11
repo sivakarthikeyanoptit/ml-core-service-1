@@ -269,7 +269,7 @@ module.exports = class UserProfileHelper {
                     status: 1,
                     _id: 1
                 }).sort({ createdAt: -1 }).lean();
-                if (userProfileData && userProfileData.status != constants.common.USER_PROFILE_PENDING_VERIFICATION_STATUS) {
+                if (userProfileData && userProfileData.status != constants.common.USER_PROFILE_PENDING_VERIFICATION_STATUS || !userProfileData) {
                     // console.log("userProfileData", userProfileData);
 
                     let userExtensionDocument =
@@ -291,14 +291,14 @@ module.exports = class UserProfileHelper {
                     }
                     requestedData['status'] = constants.common.USER_PROFILE_PENDING_VERIFICATION_STATUS;
                     requestedData['userId'] = userId;
+                    requestedData["verified"] = false;
+                    requestedData["updatedBy"] = "";
+                    requestedData["createdBy"] = "";
                     requestedData["externalId"] = userExtensionDocument.externalId;
-
-                    // console.log("requestedData",requestedData);
-
+                   
                     let userProfileCreation = await database.models.userProfile.create(
                         requestedData
                     );
-
                     return resolve(userProfileCreation);
 
                 } else {

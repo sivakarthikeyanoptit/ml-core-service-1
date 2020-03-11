@@ -83,6 +83,23 @@ module.exports = {
 
     }
 
+    var getEntityInfo = function(entityId){
+      return new Promise(async function(resolve,reject){
+        let entityInfo =  await db.collection('entities').findOne({ _id:entityId },{ metaInformation:1 });
+
+        let entity = {};
+
+        if(entityInfo){
+          entity = {
+            label:entityInfo.metaInformation.name,
+            value:entityInfo.metaInformation._id,
+            externalId:entityInfo.metaInformation.externalId
+          }
+        }
+        resolve(entity);
+       
+      });
+    }
 
     let tokenInfo = await generateKeyCloakAccessToken(
       process.env.SUNBIRD_PUBLISHER_USERNAME,
@@ -114,70 +131,55 @@ module.exports = {
         let school = [];
         let hub = [];
 
-        let userExtensionDoc = await db.collection('userExtension').findOne({ userId: userInfo.userId},{ roles:1 });
-        if (userExtensionDoc && userExtensionDoc.roles) {
-          await Promise.all(userExtensionDoc.roles.map(async function (rolesInfo) {
+        if(userInfo.state){
 
-            let entityDoc = await db.collection('entities').findOne({ _id: rolesInfo.entities[0] },{ entityType: 1, _id: 1 });
-            if (entityDoc) {
-              // let groupsOf =  "groups["+entityDoc.entityType+"]: "+entityDoc._id;
+          state = await getEntityInfo(userInfo.state);
 
-              let query = {}
-                query = {
-                  entityType: { $ne: entityDoc.entityType },
-                }
-                query["groups."+entityDoc.entityType] = entityDoc._id;
-              
-              let entityDocs = await db.collection('entities').find(query, { entityType: 1, metaInformation: 1 }).toArray();
-
-
-              if (entityDocs) {
-                await Promise.all(entityDocs.map(async function (entityDocsInfo) {
-
-                  if (entityDocsInfo && entityDocsInfo.entityType && entityDocsInfo.metaInformation) {
-                    obj = {
-                      label: entityDocsInfo.metaInformation.name,
-                      value: entityDocsInfo._id,
-                      externalId: entityDocsInfo.metaInformation.externalId
-                      
-                    }
-                    if (entityDocsInfo.entityType == "state") {
-                      state = obj;
-                    } else if (entityDocsInfo.entityType == "hub") {
-                      hub.push(obj);
-                    } else if (entityDocsInfo.entityType == "taluk") {
-                      taluk.push(obj);
-                    } else if (entityDocsInfo.entityType == "district") {
-                      district.push(obj);
-                    } else if (entityDocsInfo.entityType == "school") {
-                      school.push(obj);
-                    } else if (entityDocsInfo.entityType == "zone") {
-                      zone.push(obj);
-                    } else if (entityDocsInfo.entityType == "block") {
-                      block.push(obj);
-                    } else if (entityDocsInfo.entityType == "cluster") {
-                      cluster.push(obj);
-                    }
-                  }
-                }));
-              }
-
-            }
-          }));
+          if(userInfo.district){
+            let res = await getEntityInfo(userInfo.district);
+            district.push(res);
+          }
+          if(userInfo.hub){
+            let res = await getEntityInfo(userInfo.hub);
+            hub.push(res);
+          }
+          if(userInfo.block){
+            let res = await getEntityInfo(userInfo.block);
+            block.push(res);
+          }
+          if(userInfo.cluster){
+            let res = await getEntityInfo(userInfo.cluster);
+            cluster.push(res);
+          }
+          if(userInfo.taluk){
+            let res = await getEntityInfo(userInfo.taluk);
+            taluk.push(res);
+          }
+          if(userInfo.zone){
+            let res = await getEntityInfo(userInfo.zone);
+            zone.push(res);
+          }
+          if(userInfo.school){
+            let res = await getEntityInfo(userInfo.school);
+            school.push(res);
+          }
+          
         }
 
         let userIncomingData = userInfo;
+
+        let profileAPiData = {};
         if (userInfoApiData.result && userInfoApiData.result.response) {
-          userIncomingData = userInfoApiData.result.response;
+          profileAPiData = userInfoApiData.result.response;
         }
 
 
 
         let metaInformation = {
-          firstName: userIncomingData.firstName ? userIncomingData.firstName : "",
-          lastName: userIncomingData.lastName ? userIncomingData.lastName : "",
-          emailId: userIncomingData.email ? userIncomingData.email : "",
-          phoneNumber: userIncomingData.phone ? userIncomingData.phone : "",
+          firstName: userIncomingData.firstName ? userIncomingData.firstName : profileAPiData.firstName,
+          lastName: userIncomingData.lastName ? userIncomingData.lastName : profileAPiData.lastName,
+          emailId: userIncomingData.email ? userIncomingData.email : profileAPiData.email,
+          phoneNumber: userIncomingData.phoneNumber ? userIncomingData.phoneNumber : profileAPiData.phone,
           state: state,
           district: district,
           block: block,
@@ -205,6 +207,23 @@ module.exports = {
         let updateInfo = await db.collection('userProfile').findOneAndUpdate({
           _id: userInfo._id
         }, { $set: { metaInformation } }, { upsert: true }, { $unset: { unSetFields } });
+
+        let updateInfoOnset = await db.collection('userProfile').findOneAndUpdate({
+          _id: userInfo._id
+        }, { $unset: {
+          firstName: "",
+          lastName: "",
+          emailId: "",
+          phoneNumber: "",
+          state: "",
+          district: "",
+          block: "",
+          zone: "",
+          cluster: "",
+          hub: "",
+          school: "",
+          taluk:""
+        } });
  
       }));
     }

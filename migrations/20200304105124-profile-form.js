@@ -4,7 +4,7 @@ module.exports = {
     // return await db.collection('albums').updateOne({artist: 'The Beatles'}, {$set: {blacklisted: true}});
 
     let userProfileForm = 
-    await db.collection('forms').findOne({ name:"userProfileForm2" });
+    await db.collection('forms').findOne({ name:"userProfileForm" });
     if(!userProfileForm){
 
      let inputFields =  [ {
@@ -60,7 +60,6 @@ module.exports = {
         value:inputFields
       }
 
-      console.log("userProfileForm",userProfileForm);
       await db.collection('forms').insertOne(userProfileForm);
     }
 

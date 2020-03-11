@@ -12,21 +12,24 @@
 module.exports = class EntityTypesHelper {
 
     /**
-      * Get immediate children entity type.
+      * List of all entity types.
       * @method
-      * @name immediateChildrenEntityType
-      * @param {String} entityType - entity type.
-      * @returns {Object} returns immediate children entity type.
+      * @name list
+      * @param {Object} [queryParameter = "all"] - Filtered query data.
+      * @param {Object} [projection = {}] - Projected data.   
+      * @returns {Object} returns a entity types list from the filtered data.
      */
 
-    static immediateChildrenEntityType(entityType) {
+    static list(queryParameter = "all", projection = {}) {
         return new Promise(async (resolve, reject) => {
             try {
 
+                if( queryParameter === "all" ) {
+                    queryParameter = {};
+                };
+
                 let entityTypeData = 
-                await database.models.entityTypes.findOne({
-                    name : entityType
-                },{ immediateChildrenEntityType : 1 }).lean();
+                await database.models.entityTypes.find(queryParameter, projection).lean();
 
                 return resolve(entityTypeData);
 
