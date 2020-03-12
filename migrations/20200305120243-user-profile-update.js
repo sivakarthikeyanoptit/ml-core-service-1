@@ -92,7 +92,7 @@ module.exports = {
         if(entityInfo){
           entity = {
             label:entityInfo.metaInformation.name,
-            value:entityInfo.metaInformation._id,
+            value:entityInfo._id,
             externalId:entityInfo.metaInformation.externalId
           }
         }
@@ -111,7 +111,7 @@ module.exports = {
       await Promise.all(userProfiles.map(async function (userInfo) {
 
         let options = {
-          host: process.env.SHIKSHALOKAM_BASE_HOST,
+          host: process.env.sunbird_uri,
           port: 443,
           path: "/api/user/v1/read/" + userInfo.userId,
           method: "GET",
@@ -131,40 +131,6 @@ module.exports = {
         let school = [];
         let hub = [];
 
-        if(userInfo.state){
-
-          state = await getEntityInfo(userInfo.state);
-
-          if(userInfo.district){
-            let res = await getEntityInfo(userInfo.district);
-            district.push(res);
-          }
-          if(userInfo.hub){
-            let res = await getEntityInfo(userInfo.hub);
-            hub.push(res);
-          }
-          if(userInfo.block){
-            let res = await getEntityInfo(userInfo.block);
-            block.push(res);
-          }
-          if(userInfo.cluster){
-            let res = await getEntityInfo(userInfo.cluster);
-            cluster.push(res);
-          }
-          if(userInfo.taluk){
-            let res = await getEntityInfo(userInfo.taluk);
-            taluk.push(res);
-          }
-          if(userInfo.zone){
-            let res = await getEntityInfo(userInfo.zone);
-            zone.push(res);
-          }
-          if(userInfo.school){
-            let res = await getEntityInfo(userInfo.school);
-            school.push(res);
-          }
-          
-        }
 
         let userIncomingData = userInfo;
 
@@ -173,22 +139,80 @@ module.exports = {
           profileAPiData = userInfoApiData.result.response;
         }
 
-
-
         let metaInformation = {
           firstName: userIncomingData.firstName ? userIncomingData.firstName : profileAPiData.firstName,
           lastName: userIncomingData.lastName ? userIncomingData.lastName : profileAPiData.lastName,
           emailId: userIncomingData.email ? userIncomingData.email : profileAPiData.email,
           phoneNumber: userIncomingData.phoneNumber ? userIncomingData.phoneNumber : profileAPiData.phone,
-          state: state,
-          district: district,
-          block: block,
-          zone: zone,
-          cluster: cluster,
-          taluk: taluk,
-          hub: hub,
-          school: school,
         }
+
+
+        if(userInfo.state){
+
+          state = await getEntityInfo(userInfo.state);
+
+          if(state){
+            metaInformation.state= state;
+          }
+          
+
+          if(userInfo.district){
+            let res = await getEntityInfo(userInfo.district);
+            district.push(res);
+            if(res && res.label){
+              metaInformation.district= district;
+            }
+          }
+          if(userInfo.hub){
+            let res = await getEntityInfo(userInfo.hub);
+            hub.push(res);
+            if(res && res.label){
+              metaInformation.hub= hub;
+            }
+          }
+          if(userInfo.block){
+            let res = await getEntityInfo(userInfo.block);
+            block.push(res);
+            if(res && res.label){
+              metaInformation.block= block;
+            }
+          }
+          if(userInfo.cluster){
+            let res = await getEntityInfo(userInfo.cluster);
+            cluster.push(res);
+            if(res && res.label){
+              metaInformation.cluster= cluster;
+            }
+          }
+          if(userInfo.taluk){
+            let res = await getEntityInfo(userInfo.taluk);
+            taluk.push(res);
+            if(res && res.label){
+              metaInformation.taluk= taluk;
+            }
+          }
+          if(userInfo.zone){
+            let res = await getEntityInfo(userInfo.zone);
+            zone.push(res);
+            if(res && res.label){
+              metaInformation.zone= zone;
+            }
+          }
+          if(userInfo.school){
+            let res = await getEntityInfo(userInfo.school);
+            school.push(res);
+            if(res && res.label){
+              metaInformation.school= school;
+            }
+          }
+          
+        }
+
+       
+
+
+
+        
 
         let unSetFields = {
           firstName: "",
@@ -206,7 +230,7 @@ module.exports = {
 
         let updateInfo = await db.collection('userProfile').findOneAndUpdate({
           _id: userInfo._id
-        }, { $set: { metaInformation } }, { upsert: true }, { $unset: { unSetFields } });
+        }, { $set: { status:"notVerified",metaInformation } }, { upsert: true }, { $unset: { unSetFields } });
 
         let updateInfoOnset = await db.collection('userProfile').findOneAndUpdate({
           _id: userInfo._id
@@ -222,7 +246,8 @@ module.exports = {
           cluster: "",
           hub: "",
           school: "",
-          taluk:""
+          taluk:"",
+          sentPushNotifications:""
         } });
  
       }));
