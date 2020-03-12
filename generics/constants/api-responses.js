@@ -43,5 +43,10 @@ module.exports = {
   "MARK_AS_READ_NOTIFICATION": "Notification Updated Successfully",
   "ENTITY_ID_NOT_FOUND" : "Entity id not found in params or body data",
   "MISSING_ENTITYID_ENTITYTYPE_ENTITYTYPEID" : "Missing entity type,entity type id and entity id",
-  "USER_EXTENSION_FETCHED" : "User profile fetched successfully."
+  "USER_EXTENSION_FETCHED" : "User profile fetched successfully.",
+  "FORM_FETCH":"User Profile  form fetched successfully ",
+  "STATE_LIST_NOT_FOUND":"State list not found",
+  "COULD_NOT_GET_FORM":"Could not get userProfileForm",
+  "PROFILE_SAVED":"Profile Saved successfully",
+  "PROFILE_UNDER_PENDING_VERIFICATION":"User profile is under Pending for verification"
 };

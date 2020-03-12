@@ -165,7 +165,7 @@ module.exports = class UserProfileHelper {
     * @returns {json} Response consists of user details data.
     */
 
-    static getForm(userId, appName = "", device = "") {
+    static getForm(loggedInUser, appName = "", device = "") {
         return new Promise(async (resolve, reject) => {
             try {
 
@@ -176,7 +176,7 @@ module.exports = class UserProfileHelper {
                 let userProfileScreenVisitedTrack = {}
                 userProfileScreenVisitedTrack[name] = true;
 
-                let userExt = await database.models.userExtension.findOne({ userId: userId },
+                let userExt = await database.models.userExtension.findOne({ userId: loggedInUser.userId },
                     { userProfileScreenVisitedTrack: 1 });
 
                 if (userExt) {
@@ -188,12 +188,13 @@ module.exports = class UserProfileHelper {
                         updateData = userProfileScreenVisitedTrack;
                     }
                     database.models.userExtension.findOneAndUpdate(
-                        { userId: userId }, { "$set": { userProfileScreenVisitedTrack: updateData } });
+                        { userId: loggedInUser.userId }, { "$set": { userProfileScreenVisitedTrack: updateData } });
                 }
 
 
                 if (userProfileForm) {
-                    let stateInfo = await database.models.entities.find({ entityType: constants.common.STATE_ENTITY_TYPE }, { entityTypeId: 1, _id: 1, metaInformation: 1, groups: 1, childHierarchyPath: 1 }).lean();
+                    let stateInfo = await database.models.entities.find({ entityType: constants.common.STATE_ENTITY_TYPE }, 
+                        { entityTypeId: 1, _id: 1, metaInformation: 1, groups: 1, childHierarchyPath: 1 }).lean();
                     let states = [];
                     let stateListWithSubEntities = [];
                     let stateInfoWithSub = {};
@@ -214,10 +215,11 @@ module.exports = class UserProfileHelper {
                         }));
 
                         stateListWithSubEntities.push(stateInfoWithSub);
-                        let getUserData = await database.models.userProfile.findOne({ userId: userId }, { metaInformation: 1, _id: 1 }).sort({ createdAt: -1 });
+                        let getUserData = await database.models.userProfile.findOne({ userId: loggedInUser.userId }, 
+                            { metaInformation: 1, _id: 1 }).sort({ createdAt: -1 });
 
                         if (!getUserData) {
-                            let profileInfo = await createUserProfile(userId);
+                            let profileInfo = await createUserProfile(loggedInUser);
                             getUserData = profileInfo;
                         }
 
@@ -238,12 +240,13 @@ module.exports = class UserProfileHelper {
                             stateListWithSubEntities: stateListWithSubEntities
                         }
 
-                        return resolve(UserForm);
+                        return resolve({ result:UserForm, message:constants.apiResponses.FORM_FETCH });
                     } else {
-                        throw "Could not get sate list";
+                        return reject({  message:constants.apiResponses.STATE_LIST_NOT_FOUND });
                     }
                 } else {
-                    throw "Could not get userProfileForm";
+                    return reject({  message:constants.apiResponses.COULD_NOT_GET_FORM });
+                   
                 }
             } catch (error) {
                 return reject(error);
@@ -262,13 +265,15 @@ module.exports = class UserProfileHelper {
     static save(requestedData, userId) {
         return new Promise(async (resolve, reject) => {
             try {
+
                 let userProfileData = await database.models.userProfile.findOne({
                     userId: userId,
-                    isDeleted: false
+                    deleted: false
                 }, {
                     status: 1,
                     _id: 1
                 }).sort({ createdAt: -1 }).lean();
+
                 if (userProfileData && userProfileData.status != constants.common.USER_PROFILE_PENDING_VERIFICATION_STATUS || !userProfileData) {
                     // console.log("userProfileData", userProfileData);
 
@@ -289,23 +294,22 @@ module.exports = class UserProfileHelper {
                     if (!userProfileData) {
                         // await
                     }
-                    requestedData['status'] = constants.common.USER_PROFILE_PENDING_VERIFICATION_STATUS;
                     requestedData['userId'] = userId;
-                    requestedData["verified"] = false;
-                    requestedData["updatedBy"] = "";
-                    requestedData["createdBy"] = "";
+                    requestedData["createdBy"] = userId;
                     requestedData["externalId"] = userExtensionDocument.externalId;
+                    requestedData['status'] = constants.common.USER_PROFILE_PENDING_VERIFICATION_STATUS;
+                    requestedData['submittedAt'] = new Date();
                    
                     let userProfileCreation = await database.models.userProfile.create(
                         requestedData
                     );
-                    return resolve(userProfileCreation);
+                    return resolve({ result: userProfileCreation,message:constants.apiResponses.PROFILE_SAVED });
 
                 } else {
 
                     return resolve({
                         success: false,
-                        message: "User profile is under Pending for verification"
+                        message: constants.apiResponses.PROFILE_UNDER_PENDING_VERIFICATION
                     });
                 }
 
@@ -490,34 +494,20 @@ function checkStateWithSubEntities(groups, entityTypeId) {
   * @returns {object}
   * */
 
-function createUserProfile(userId) {
+function createUserProfile(loggedInUser) {
     return new Promise(async (resolve, reject) => {
         try {
             let userProfile = {
-                "userId": userId,
+                "userId": loggedInUser.userId,
                 metaInformation: {
-                    "firstName": null,
-                    "lastName": null,
-                    "phoneNumber": null,
-                    "state": null,
-                    "district": null,
-                    "block": null,
-                    "zone": null,
-                    "cluster": null,
-                    "taluk": null,
-                    "hub": null,
-                    "school": null,
-                    "email":null
                 },
-                "status": "active",
+                "status": constants.common.USER_PROFILE_ACTIVE_STATUS,
                 "isDeleted": false,
                 "verified": false,
                 "updatedBy": false,
-                "updatedBy": null
+                
             }
-            let tokenInfo = await shikshlokamhelper.generateKeyCloakAccessToken(sunBirdUserName, sunBirdPassword);
-            let profileInfo = await shikshlokamhelper.userInfo(tokenInfo.token, userId);
-
+        
             let state = {};
             let cluster = [];
             let block = [];
@@ -527,10 +517,12 @@ function createUserProfile(userId) {
             let school = [];
             let hub = [];
 
-            let userExtensionDoc = await database.models.userExtension.findOne({ userId: userId }, { roles: 1 });
+            let userExtensionDoc = await database.models.userExtension.findOne({ userId: loggedInUser.userId }, 
+                { roles: 1 });
            if (userExtensionDoc && userExtensionDoc.roles) {
                 await Promise.all(userExtensionDoc.roles.map(async function (rolesInfo) {
-                    let entityDoc = await database.models.entities.findOne({ _id: rolesInfo.entities[0] }, { entityType: 1, _id: 1 });
+                    let entityDoc = await database.models.entities.findOne({ _id: rolesInfo.entities[0] },
+                         { entityType: 1, _id: 1 });
                     if (entityDoc) {
 
                         let label = "groups." + entityDoc.entityType
@@ -542,7 +534,8 @@ function createUserProfile(userId) {
                         }
                         query["groups." + entityDoc.entityType] = entityDoc._id;
 
-                        let entityDocs = await database.models.entities.find(query, { entityType: 1, metaInformation: 1 }).lean();
+                        let entityDocs = await database.models.entities.find(query, 
+                            { entityType: 1, metaInformation: 1 }).lean();
 
                         if (entityDocs) {
                             await Promise.all(entityDocs.map(async function (entityDocsInfo) {
@@ -554,23 +547,43 @@ function createUserProfile(userId) {
                                     }
 
                                     // obj[entityDocsInfo.metaInformation.name]=entityDocsInfo._id;
+
+                                   
+                                 
+                                    
+                                    if(obj && obj.label){
                                     if (entityDocsInfo.entityType == "state") {
                                         state = obj;
+                                        userProfile.metaInformation.state = state;
                                     } else if (entityDocsInfo.entityType == "hub") {
                                         hub.push(obj);
+                                        userProfile.metaInformation.hub = hub;
+                                   
                                     } else if (entityDocsInfo.entityType == "taluk") {
                                         taluk.push(obj);
+                                        userProfile.metaInformation.taluk = taluk;
+                                    
                                     } else if (entityDocsInfo.entityType == "district") {
                                         district.push(obj);
+                                        userProfile.metaInformation.district = district;
+                                    
                                     } else if (entityDocsInfo.entityType == "school") {
                                         school.push(obj);
+                                        userProfile.metaInformation.school = school;
+
                                     } else if (entityDocsInfo.entityType == "zone") {
                                         zone.push(obj);
+                                        userProfile.metaInformation.zone = zone;
+                                    
                                     } else if (entityDocsInfo.entityType == "block") {
                                         block.push(obj);
+                                        userProfile.metaInformation.block = block;
+                                       
                                     } else if (entityDocsInfo.entityType == "cluster") {
                                         cluster.push(obj);
+                                        userProfile.metaInformation.cluster = cluster;
                                     }
+                                }
                                 }
                             }));
                         }
@@ -578,18 +591,12 @@ function createUserProfile(userId) {
                 }));
             }
 
-            userProfile.metaInformation.firstName = profileInfo.result.response.firstName;
-            userProfile.metaInformation.lastName = profileInfo.result.response.lastName;
-            userProfile.metaInformation.email = profileInfo.result.response.email;
-            userProfile.metaInformation.phoneNumber = profileInfo.result.response.phone;
-            userProfile.metaInformation.state = state;
-            userProfile.metaInformation.cluster = cluster;
-            userProfile.metaInformation.block = block;
-            userProfile.metaInformation.district = district;
-            userProfile.metaInformation.taluk = taluk;
-            userProfile.metaInformation.zone = zone;
-            userProfile.metaInformation.hub = hub;
-            userProfile.metaInformation.school = school;
+            userProfile.metaInformation['firstName'] = loggedInUser.firstName;
+            userProfile.metaInformation['lastName'] = loggedInUser.lastName;
+            userProfile.metaInformation['email'] = loggedInUser.email;
+            userProfile.metaInformation['phoneNumber'] = loggedInUser.phone;
+            userProfile['createdBy'] = loggedInUser.userId;
+            userProfile['externalId']=loggedInUser.userName;
 
             let userProfileDoc = await database.models.userProfile.create(userProfile);
 

@@ -24,6 +24,7 @@ let profilePendingVerificationNotification = function () {
     nodeScheduler.scheduleJob(process.env.SCHEDULE_FOR_PROFILE_PENDING_UPDATE_NOTIFICATION, () => {
 
         logger.info("<-----  profile Pending Verification Notification cron started ---- >", new Date());
+        console.log("<-----  profile Pending Verification Notification cron started ---- >", new Date());
 
         return new Promise(async (resolve, reject) => {
 
@@ -32,7 +33,7 @@ let profilePendingVerificationNotification = function () {
                 let userProfileData = {
                     "is_read": false,
                     "action": "Update",
-                    "appName": process.env.ELASTICSEARCH_UNNATI_INDEX,
+                    // "appName": process.env.ELASTICSEARCH_UNNATI_INDEX,
                     "created_at": new Date(),
                     "text": "text",
                     "type": process.env.ELASTICSEARCH_USER_NOTIFICATIONS_TYPE,
@@ -40,7 +41,7 @@ let profilePendingVerificationNotification = function () {
                     "payload": {
                         "type":process.env.ELASTICSEARCH_USER_NOTIFICATIONS_TYPE
                     },
-                    "appType": process.env.NOTIFICATION_TO_ALL
+                    "appType": process.env.ELASTICSEARCH_ALL_INDEX
                 };
 
                 let response = [];
@@ -67,6 +68,7 @@ let profilePendingVerificationNotification = function () {
 
                         let pushPendingNotificationToKafka = await kafkaCommunication.pushNotificationsDataToKafka(userObj);
 
+                        console.log("pushPendingNotificationToKafka",pushPendingNotificationToKafka);
                         if (pushPendingNotificationToKafka.status && pushPendingNotificationToKafka.status != "success") {
                             throw new Error(`Failed to push user profile notification for user ${userProfileList.userId}`);
                         }
@@ -90,79 +92,8 @@ let profilePendingVerificationNotification = function () {
 }
 
 
-let verifiedProfileNotification = function () {
-    nodeScheduler.scheduleJob(process.env.SCHEDULE_FOR_PROFILE_VERIFIED_NOTIFICATION, () => {
 
-        logger.info("<-----  profile Verification Notification cron started ---- >", new Date());
-
-        return new Promise(async (resolve, reject) => {
-
-            try {
-                let userProfileLists = await userProfileHelper.verifiedUserProfile();
-
-
-                let userProfileData = {
-                    "is_read": false,
-                    "action": "Update",
-                    "appName":  process.env.ELASTICSEARCH_UNNATI_INDEX,
-                    "created_at": new Date(),
-                    "text": "text",
-                    "type": process.env.ELASTICSEARCH_USER_NOTIFICATIONS_TYPE,
-                    "internal": false,
-                    "payload": {
-                        "type": process.env.ELASTICSEARCH_USER_NOTIFICATIONS_TYPE
-                    },
-                    "appType": proccess.env.NOTIFICATION_TO_ALL
-                };
-
-                let response = [];
-                if (userProfileLists && userProfileLists.length > 0) {
-
-                    for (let pointerToUserProfileList = 0;
-                        pointerToUserProfileList < userProfileLists.length;
-                        pointerToUserProfileList++
-                    ) {
-
-                        let responseData = {
-                            success: false
-                        };
-
-                        let userProfileList =
-                            userProfileLists[pointerToUserProfileList];
-
-
-                        let userObj = { ...userProfileData };
-                        userObj["user_id"] = userProfileList.userId;
-                        userObj["verified"] = userProfileList.verified;
-                        userObj["title"] = "Thank you for verifing";
-
-                        let pushPendingNotificationToKafka = await kafkaCommunication.pushNotificationsDataToKafka(userObj);
-
-                        if (pushPendingNotificationToKafka.status && pushPendingNotificationToKafka.status != "success") {
-                            let updateNotificationSent = await userProfileHelper.updatePushNotificationSent(userProfileList.userId);
-
-
-                            throw new Error(`Failed to push user verified profile  notification for user ${userProfileList.userId}`);
-                        }
-
-                        responseData.success = true;
-                        responseData["message"] = `successfully pushed user verified profile information to kafka for user ${userProfileList.userId}`;
-
-
-
-                        response.push(responseData);
-                    }
-                }
-                return resolve(response);
-            } catch (error) {
-                return reject(error);
-            }
-        })
-
-    });
-}
 
 module.exports = {
-    profilePendingVerificationNotification,
-    verifiedProfileNotification
+    profilePendingVerificationNotification
 }

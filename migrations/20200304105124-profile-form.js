@@ -13,8 +13,8 @@ module.exports = {
         value:"",
         visible:true,
         editable:true,
-        regex:"/^[A-Za-z]+$/",
-        validation: { required:true },
+        validation: { required:true,
+          regex:"/^[A-Za-z]+$/" },
         input:"text"
       },{
         field:"lastName",
@@ -22,17 +22,18 @@ module.exports = {
         value:"",
         visible:true,
         editable:true,
-        regex:"/^[A-Za-z]+$/",
-        validation: { required:true },
+        validation: { required:true,
+          regex:"/^[A-Za-z]+$/" },
         input:"text"
       },{
-        field:"emailId",
-        label:"emailId",
+        field:"email",
+        label:"email",
         value:"",
         visible:true,
         editable:true,
-        regex:"^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$",
-        validation: { required:true },
+        validation: { required:true,
+          regex:"^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$"
+         },
         input:"text"
       },{
         field:"phoneNumber",
@@ -40,8 +41,9 @@ module.exports = {
         value:"",
         visible:true,
         editable:true,
-        regex:"^((\+)?(\d{2}[-]))?(\d{10}){1}?$",
-        validation: { required:true },
+        validation: { required:true,
+          regex:"^((\+)?(\d{2}[-]))?(\d{10}){1}?$"
+         },
         input:"text"
       },{
         field:"state",

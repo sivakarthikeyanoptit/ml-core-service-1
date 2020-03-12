@@ -250,11 +250,9 @@ module.exports = class UserProfile extends Abstract {
 
       try {
 
-        let userProfileForm = await userProfileHelper.getForm(req.userDetails.userId,req.headers['app-name'],req.headers['device-name']);
+        let userProfileForm = await userProfileHelper.getForm(req.userDetails,req.headers['appname'],req.headers['os']);
        
-        resolve({
-          result: userProfileForm
-        });
+        resolve(userProfileForm);
 
       } catch (error) {
 
@@ -291,9 +289,7 @@ save(req) {
 
       let userProfileSave = await userProfileHelper.save(req.body,req.userDetails.userId);
 
-      resolve({
-        result: userProfileSave
-      });
+      resolve( userProfileSave);
 
     } catch (error) {
 

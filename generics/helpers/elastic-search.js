@@ -46,6 +46,9 @@ gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_ALL_CONFIG_TYPE");
 const APPLICATION_CONFIG_INDEX = 
 gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_APPLICATION_CONFIG_INDEX")
 
+const ELASTICSEARCH_ALL_INDEX = 
+gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_ALL_INDEX");
+
 
 
 /**
@@ -109,6 +112,8 @@ var _getESIndexForNotificationAppType = function (appType = "") {
 
       if (appType === IMPROVEMENT_PROJECT_APPLICATION_APP_TYPE) {
         indexName = IMPROVEMENT_PROJECT_INDEX;
+      } else if(appType == ELASTICSEARCH_ALL_INDEX){
+        indexName = ELASTICSEARCH_ALL_INDEX;
       } 
       
       if (indexName == "") {

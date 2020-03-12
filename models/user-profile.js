@@ -28,13 +28,8 @@ module.exports = {
       },
       status: {
         type : String,
-        default : "active"
+        default : "notVerified"
       },
-      isDeleted: {
-        type : Boolean,
-        default : false
-      },
-     
       externalId: {
         type : String,
         default : null
@@ -42,19 +37,12 @@ module.exports = {
      
       verified: {
         type : Boolean,
-        default : false
       },
       verifiedAt:{
         type: Date,
-        default: null
-      },
+       },
       submittedAt:{
-        type: Date,
-        default: Date.now
-      },
-      sentPushNotifications : {
-        type : Boolean,
-        default : false
+        type: Date
       }
     }
 }

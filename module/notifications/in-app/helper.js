@@ -36,7 +36,7 @@ module.exports = class InAppNotificationsHelper {
       * @returns {Promise} returns a promise.
      */
 
-    static list(userId, pageSize, pageNo, appType) {
+    static list2(userId, pageSize, pageNo, appType) {
         return new Promise(async (resolve, reject) => {
             try {
 
@@ -73,6 +73,65 @@ module.exports = class InAppNotificationsHelper {
                 return resolve({
                     data: paginatedData,
                     count: getNotificationDocument.body._source.notificationCount
+                });
+
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+    static list(userId, pageSize, pageNo, appType) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                // TODO:: This is a dirty fix.
+                // Removing updateVersion flow for now as planned to
+                // get updateVersion from module instead of hitting to elastic search
+                // again and again
+
+                // await elasticSearchHelper.pushAppVersionToLoggedInUser(
+                //     userId, appName, appType
+                // );
+
+                
+                // if(appType )
+
+                let arryOfTypes = appType.split(',');
+
+                let getNotificationDocument=[];
+                let count = 0;
+
+                await Promise.all(arryOfTypes.map(async function(appTypeName){
+                     let notificationData = await elasticSearchHelper.getNotificationData(
+                        userId, appTypeName
+                    );
+                    if ( notificationData && notificationData.body.statusCode !== httpStatusCode["ok"].status) {
+
+                        getNotificationDocument.push(...notificationData.body._source.notifications);
+                        count = count + notificationData.body._source.notificationCount;
+                    }
+                }));
+
+
+                if(count==0){
+                    return resolve({
+                        data: [],
+                        count: 0
+                    })
+                }
+
+                let notificationInDescendingOrder = getNotificationDocument.reverse();
+
+                let skippedValue = pageSize * (pageNo - 1);
+                let limitingValue = pageSize;
+
+                let paginatedData = 
+                notificationInDescendingOrder.splice(skippedValue, limitingValue);
+
+                return resolve({
+                    data: paginatedData,
+                    count: count
                 });
 
             } catch (error) {
@@ -133,6 +192,8 @@ module.exports = class InAppNotificationsHelper {
                 await elasticSearchHelper.getNotificationData(
                     userId, apptype
                 );
+               
+               
 
                 if (getNotificationDocument.statusCode === httpStatusCode["ok"].status) {
                     
