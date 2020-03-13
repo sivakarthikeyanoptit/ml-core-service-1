@@ -7,7 +7,7 @@
 
  
   /**
-     * EntityTypes
+     * Forms
      * @class
  */
  module.exports = class Forms extends Abstract {

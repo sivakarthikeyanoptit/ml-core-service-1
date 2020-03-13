@@ -106,12 +106,12 @@ module.exports = class Entities extends Abstract {
 
 
     /**
-     * @api {post} /kendra/api/v1/entities/sublist/:entityId
+     * @api {post} /kendra/api/v1/entities/subEntityList/:entityId
      * List entities based on type
      * @apiVersion 1.0.0
      * @apiGroup User
      * @apiHeader {String} X-authenticated-user-token Authenticity token
-     * @apiSampleRequest /kendra/api/v1/entities/sublist/5dc92818e153ef2dc4b8cb4a
+     * @apiSampleRequest /kendra/api/v1/entities/subEntityList/5dc92818e153ef2dc4b8cb4a
      * @apiUse successBody
      * @apiUse errorBody
      * @apiParamExample {json} Response:
@@ -137,7 +137,7 @@ module.exports = class Entities extends Abstract {
     /**
       * Get the immediate entities .
       * @method
-      * @name subList
+      * @name subEntityList
       * @param  {Request} req request body.
       * @returns {JSON} Returns list of immediate entities
      */
