@@ -14,6 +14,7 @@ module.exports = {
   "USER_PROFILE_PENDING_VERIFICATION_STATUS":"pendingVerification",
   "USER_PROFILE_ACTIVE_STATUS":"notVerified",
   "USER_PROFILE_VERIFIED_STATUS":"verified",
+  "USER_PROFILE_PENDING_STATUS" : "pendingVerification",
   "USER_PROFILE_FORM_NAME":"userProfileForm",
   "STATE_ENTITY_TYPE":"state",
   "ALL_APP_VERSION" : "allAppVersion",
