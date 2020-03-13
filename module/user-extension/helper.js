@@ -282,7 +282,7 @@ module.exports = class UserExtensionHelper {
                 // In future can be removed if required for all state.
 
                 let goaStateExists = false;
-                if(relatedEntities.length > 0) {
+                if( relatedEntities.length > 0 ) {
                     let checkGoaStateExistsOrNot = relatedEntities.some(
                         entity=>entity.metaInformation.name === constants.apiResponses.GOA_STATE
                     )
@@ -342,15 +342,35 @@ module.exports = class UserExtensionHelper {
                     }
                 }
 
+                let showPopupForm = false;
+                let userProfile = await database.models.userProfile.findOne(
+                    {
+                        userId : filterQueryObject.userId,
+                        status : { 
+                            $in : [
+                                constants.common.USER_PROFILE_VERIFIED_STATUS,
+                                constants.common.USER_PROFILE_PENDING_STATUS
+                            ]
+                        }
+                    },{ _id : 1,status:1 }).lean();
+
+                if( userProfile == null ) {
+                    showPopupForm = true
+                }
+
                 return resolve(
                     _.merge(_.omit(
                         userExtensionData[0], 
                         ["roles","entityDocuments","roleDocuments"]
                         ), 
                     { roles: _.isEmpty(roleMap) ? [] : Object.values(roleMap) },
-                    { relatedEntities : relatedEntities },{
+                    { relatedEntities : relatedEntities },
+                    {
                         allowProfileUpdateForm : goaStateExists
-                    })
+                    },{
+                        showPopupForm : goaStateExists && showPopupForm ? true : false
+                    }
+                    )
                 );
             } else {
                 return resolve({});
