@@ -1,68 +1,61 @@
 module.exports = {
   async up(db) {
-    global.migrationMsg = "using forms collection it create record"
+    global.migrationMsg = "create user profile form"
     // return await db.collection('albums').updateOne({artist: 'The Beatles'}, {$set: {blacklisted: true}});
 
-    let userProfileForm = 
-    await db.collection('forms').findOne({ name:"userProfileForm" });
-    if(!userProfileForm){
+    let userProfileForm =
+      await db.collection('forms').findOne({ name: "userProfileForm" });
+    if (!userProfileForm) {
 
-     let inputFields =  [ {
-        field:"firstName",
-        label:"firstName",
-        value:"",
-        visible:true,
-        editable:true,
-        validation: { required:true,
-          regex:"/^[A-Za-z]+$/" },
-        input:"text"
-      },{
-        field:"lastName",
-        label:"lastName",
-        value:"",
-        visible:true,
-        editable:true,
-        validation: { required:true,
-          regex:"/^[A-Za-z]+$/" },
-        input:"text"
-      },{
-        field:"email",
-        label:"email",
-        value:"",
-        visible:true,
-        editable:true,
-        validation: { required:true,
-          regex:"^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$"
-         },
-        input:"text"
-      },{
-        field:"phoneNumber",
-        label:"phoneNumber",
-        value:"",
-        visible:true,
-        editable:true,
-        validation: { required:true,
-          regex:"^((\+)?(\d{2}[-]))?(\d{10}){1}?$"
-         },
-        input:"text"
-      },{
-        field:"state",
-        label:"state",
-        value:"",
-        visible:true,
-        editable:true,
-        validation: { required:true },
-        input:"select",
-        options:[{
-          
-        }]
-      }]
-      let userProfileForm = {
-        name:"userProfileForm",
-        value:inputFields
+      let allFields = [];
+      let inputFields = ["firstName", "lastName", "email", "phoneNumber", "state"];
+
+      await Promise.all(inputFields.map(async function (fields) {
+
+        let inputObj = {};
+        inputObj.label = fields;
+        inputObj.field = fields;
+        inputObj.value = "";
+        inputObj.visible = true;
+        inputObj.editable = true;
+
+        if (fields != "state" && fields != "email" && fields != "phoneNumber") {
+
+          inputObj.input = "text";
+          inputObj['validation'] = {
+            required: true,
+            regex: "/^[A-Za-z]+$/"
+
+          }
+
+        } else if (fields == "state") {
+          inputObj.input = "select";
+          inputObj['validation'] = {
+            required: true,
+            regex: ""
+          }
+        } else if (fields == "email") {
+          inputObj.input = "text";
+          inputObj['validation'] = {
+            required: true,
+            regex: "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$"
+          }
+        } if (fields == "phoneNumber") {
+          inputObj.input = "text";
+          inputObj['validation'] = {
+            required: true,
+            regex: "^((\+)?(\d{2}[-]))?(\d{10}){1}?$"
+          }
+        }
+        allFields.push(inputObj);
+      }));
+
+      let profileForm = {
+        name: "userProfileForm",
+        value: allFields
       }
 
-      await db.collection('forms').insertOne(userProfileForm);
+      await db.collection('forms').insertOne(profileForm);
     }
 
   },

@@ -30,7 +30,6 @@ var connect = function (config) {
   });
 
   client.on('error', function (error) {
-    console.log("error",error);
     logger.error("Kafka connection error!");
   });
 

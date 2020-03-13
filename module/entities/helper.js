@@ -44,10 +44,10 @@ module.exports = class EntitiesHelper {
               .lean();
           } else {
               entitiesDocuments = await database.models.entities
-              .find(queryObject, projectionObject);
-            //   .limit(limitingValue)
-            //   .skip(skippingValue)
-            //   .lean();
+              .find(queryObject, projectionObject)
+              .limit(limitingValue)
+              .skip(skippingValue)
+              .lean();
           }
           return resolve(entitiesDocuments);
       } catch (error) {
@@ -55,70 +55,7 @@ module.exports = class EntitiesHelper {
       }
   });
 }
-//     /**
-//    * List entity documents.
-//    * @method
-//    * @name entityDocuments
-//    * @param {Object} [findQuery = "all"] - filter query object if not provide 
-//    * it will load all the document.
-//    * @param {Array} [fields = "all"] - All the projected field. If not provided
-//    * returns all the field
-//    * @param {Number} [limitingValue = ""] - total data to limit.
-//    * @param {Number} [skippingValue = ""] - total data to skip.
-//    * @returns {Array} - returns an array of entities data.
-//    */
 
-    // static entityDocuments(
-    //     findQuery = "all",
-    //     fields = "all",
-    //     limitingValue = "",
-    //     skippingValue = "",
-    //     sortedData = "",
-    // ) {
-    //     return new Promise(async (resolve, reject) => {
-    //         try {
-
-    //             let queryObject = {};
-
-    //             if (findQuery != "all") {
-    //                 queryObject = findQuery;
-    //             }
-
-    //             let projectionObject = {};
-
-    //             if (fields != "all") {
-    //                 fields.forEach(element => {
-    //                     projectionObject[element] = 1;
-    //                 });
-    //             }
-
-    //             let entitiesDocuments;
-
-    //             console.log("queryObject",queryObject);
-            
-    //             if (sortedData !== "") {
-    //                 entitiesDocuments = await database.models.entities
-    //                     .find(queryObject, projectionObject)
-    //                     .sort(sortedData)
-    //                     .limit(limitingValue)
-    //                     .skip(skippingValue)
-    //                     .lean();
-    //             } else {
-
-    //                 entitiesDocuments = await database.models.entities
-    //                     .find(queryObject, projectionObject)
-    //                     .limit(limitingValue)
-    //                     .skip(skippingValue)
-    //                     .lean();
-    //             }
-
-    //             console.log("entitiesDocuments",entitiesDocuments);
-    //             return resolve(entitiesDocuments);
-    //         } catch (error) {
-    //             return reject(error);
-    //         }
-    //     });
-    // }
 
      /**
    * Search entity.

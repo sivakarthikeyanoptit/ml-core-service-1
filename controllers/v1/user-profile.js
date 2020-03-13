@@ -284,9 +284,7 @@ save(req) {
   return new Promise(async (resolve, reject) => {
 
     try {
-
-      // console.log("req.body",req.userDetails.userId);
-
+     
       let userProfileSave = await userProfileHelper.save(req.body,req.userDetails.userId);
 
       resolve( userProfileSave);

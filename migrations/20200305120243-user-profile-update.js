@@ -34,13 +34,8 @@ module.exports = {
           request.post(keyCloakUrl, options, callback);
 
           function callback(err, data) {
-            if (err) {
-
-            } else {
-
-              // console.log("data.body", data.body);
+            if (!err) {
               let body = JSON.parse(data.body);
-
               return resolve({
                 token: body.access_token
               })
@@ -122,18 +117,8 @@ module.exports = {
         };
 
         let userInfoApiData = await getUserProfileInfo(options);
-        let state = {};
-        let cluster = [];
-        let block = [];
-        let district = [];
-        let taluk = [];
-        let zone = [];
-        let school = [];
-        let hub = [];
-
-
+        let entitiesList = ["state","cluster","block","district","taluk","zone","hub","school"];
         let userIncomingData = userInfo;
-
         let profileAPiData = {};
         if (userInfoApiData.result && userInfoApiData.result.response) {
           profileAPiData = userInfoApiData.result.response;
@@ -146,91 +131,23 @@ module.exports = {
           phoneNumber: userIncomingData.phoneNumber ? userIncomingData.phoneNumber : profileAPiData.phone,
         }
 
-
         if(userInfo.state){
-
-          state = await getEntityInfo(userInfo.state);
-
-          if(state){
-            metaInformation.state= state;
-          }
-          
-
-          if(userInfo.district){
-            let res = await getEntityInfo(userInfo.district);
-            district.push(res);
-            if(res && res.label){
-              metaInformation.district= district;
+          await Promise.all(entitiesList.map(async function(entities){
+            let entitiesInfo = await getEntityInfo(userInfo[entities]);
+            if(entitiesInfo && entitiesInfo.label){
+              if(entities=="state"){
+                metaInformation[entities]= entitiesInfo;
+              }else{
+                metaInformation[entities] = [];
+                metaInformation[entities].push(entitiesInfo);
+              }
             }
-          }
-          if(userInfo.hub){
-            let res = await getEntityInfo(userInfo.hub);
-            hub.push(res);
-            if(res && res.label){
-              metaInformation.hub= hub;
-            }
-          }
-          if(userInfo.block){
-            let res = await getEntityInfo(userInfo.block);
-            block.push(res);
-            if(res && res.label){
-              metaInformation.block= block;
-            }
-          }
-          if(userInfo.cluster){
-            let res = await getEntityInfo(userInfo.cluster);
-            cluster.push(res);
-            if(res && res.label){
-              metaInformation.cluster= cluster;
-            }
-          }
-          if(userInfo.taluk){
-            let res = await getEntityInfo(userInfo.taluk);
-            taluk.push(res);
-            if(res && res.label){
-              metaInformation.taluk= taluk;
-            }
-          }
-          if(userInfo.zone){
-            let res = await getEntityInfo(userInfo.zone);
-            zone.push(res);
-            if(res && res.label){
-              metaInformation.zone= zone;
-            }
-          }
-          if(userInfo.school){
-            let res = await getEntityInfo(userInfo.school);
-            school.push(res);
-            if(res && res.label){
-              metaInformation.school= school;
-            }
-          }
-          
-        }
-
-       
-
-
-
-        
-
-        let unSetFields = {
-          firstName: "",
-          lastName: "",
-          emailId: "",
-          phoneNumber: "",
-          state: "",
-          district: "",
-          block: "",
-          zone: "",
-          cluster: "",
-          hub: "",
-          school: ""
+          }));
         }
 
         let updateInfo = await db.collection('userProfile').findOneAndUpdate({
           _id: userInfo._id
-        }, { $set: { status:"notVerified",metaInformation } }, { upsert: true }, { $unset: { unSetFields } });
+        }, { $set: { status:"notVerified",metaInformation } }, { upsert: true });
 
         let updateInfoOnset = await db.collection('userProfile').findOneAndUpdate({
           _id: userInfo._id

@@ -24,12 +24,11 @@ let profilePendingVerificationNotification = function () {
     nodeScheduler.scheduleJob(process.env.SCHEDULE_FOR_PROFILE_PENDING_UPDATE_NOTIFICATION, () => {
 
         logger.info("<-----  profile Pending Verification Notification cron started ---- >", new Date());
-        console.log("<-----  profile Pending Verification Notification cron started ---- >", new Date());
-
+    
         return new Promise(async (resolve, reject) => {
 
             try {
-                let userProfileLists = await userProfileHelper.pendingProfileUsers();
+                let userProfileLists = await userProfileHelper.notVerifiedUserProfile();
                 let userProfileData = {
                     "is_read": false,
                     "action": "Update",
@@ -63,23 +62,19 @@ let profilePendingVerificationNotification = function () {
                         let userObj = { ...userProfileData };
                         userObj["user_id"] = userProfileList.userId;
                         userObj["verified"] = userProfileList.verified;
-                        userObj["title"] =
-                            "Please update your details.Help us make your experience better.";
+                        userObj["title"] =constants.common.PROFILE_UPDATE_NOTIFICATION_MESSAGE;
+                            
 
                         let pushPendingNotificationToKafka = await kafkaCommunication.pushNotificationsDataToKafka(userObj);
-
-                        console.log("pushPendingNotificationToKafka",pushPendingNotificationToKafka);
                         if (pushPendingNotificationToKafka.status && pushPendingNotificationToKafka.status != "success") {
                             throw new Error(`Failed to push user profile notification for user ${userProfileList.userId}`);
                         }
 
                         responseData.success = true;
                         responseData["message"] = `successfully pushed user profile information to kafka for user ${userProfileList.userId}`;
-
                         response.push(responseData);
                     }
                 }
-
                 return resolve(response);
 
             } catch (error) {
@@ -94,6 +89,4 @@ let profilePendingVerificationNotification = function () {
 
 
 
-module.exports = {
-    profilePendingVerificationNotification
-}
+module.exports = profilePendingVerificationNotification;

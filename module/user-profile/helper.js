@@ -9,15 +9,6 @@ let userManagementService =
     require(ROOT_PATH + "/generics/services/user-management");
 let entitiesHelper = require(ROOT_PATH + "/module/entities/helper");
 
-
-let shikshlokamhelper =
-    require(ROOT_PATH + "/generics/helpers/shikshalokam");
-
-const sunBirdUserName = gen.utils.checkIfEnvDataExistsOrNot("SUNBIRD_PUBLISHER_USERNAME");
-const sunBirdPassword = gen.utils.checkIfEnvDataExistsOrNot("SUNBIRD_PUBLISHER_PASSWORD");
-
-
-
 module.exports = class UserProfileHelper {
 
 
@@ -172,6 +163,10 @@ module.exports = class UserProfileHelper {
                 let userProfileForm =
                     await database.models.forms.findOne({ name: constants.common.USER_PROFILE_FORM_NAME }).lean();
 
+                if(!userProfileForm){
+                    return reject({  message:constants.apiResponses.COULD_NOT_GET_FORM });
+                }
+
                 let name = appName + "." + device;
                 let userProfileScreenVisitedTrack = {}
                 userProfileScreenVisitedTrack[name] = true;
@@ -199,11 +194,10 @@ module.exports = class UserProfileHelper {
                     let stateListWithSubEntities = [];
                     let stateInfoWithSub = {};
 
-                    // console.log("stateInfo",stateInfo);
                     if (stateInfo) {
                         await Promise.all(stateInfo.map(async function (state) {
                             if (state.groups) {
-                                let found = await checkStateWithSubEntities(state.groups, state.entityTypeId);
+                                let found = await _checkStateWithSubEntities(state.groups, state.entityTypeId);
                                 if (found && state.groups) {
                                     stateInfoWithSub[state._id] = state.childHierarchyPath;
                                 }
@@ -244,9 +238,6 @@ module.exports = class UserProfileHelper {
                     } else {
                         return reject({  message:constants.apiResponses.STATE_LIST_NOT_FOUND });
                     }
-                } else {
-                    return reject({  message:constants.apiResponses.COULD_NOT_GET_FORM });
-                   
                 }
             } catch (error) {
                 return reject(error);
@@ -275,8 +266,6 @@ module.exports = class UserProfileHelper {
                 }).sort({ createdAt: -1 }).lean();
 
                 if (userProfileData && userProfileData.status != constants.common.USER_PROFILE_PENDING_VERIFICATION_STATUS || !userProfileData) {
-                    // console.log("userProfileData", userProfileData);
-
                     let userExtensionDocument =
                         await database.models.userExtension.findOne(
                             {
@@ -291,9 +280,7 @@ module.exports = class UserProfileHelper {
                             message: "User Extenstion not found for userId " + userId
                         };
                     }
-                    if (!userProfileData) {
-                        // await
-                    }
+                    
                     requestedData['userId'] = userId;
                     requestedData["createdBy"] = userId;
                     requestedData["externalId"] = userExtensionDocument.externalId;
@@ -306,13 +293,11 @@ module.exports = class UserProfileHelper {
                     return resolve({ result: userProfileCreation,message:constants.apiResponses.PROFILE_SAVED });
 
                 } else {
-
                     return resolve({
                         success: false,
                         message: constants.apiResponses.PROFILE_UNDER_PENDING_VERIFICATION
                     });
                 }
-
             } catch (error) {
                 return reject(error);
             }
@@ -323,26 +308,22 @@ module.exports = class UserProfileHelper {
     /**
     * pending Profile Update users List.
     * @method
-    * @name pendingProfileUsers
+    * @name  notVerifiedUserProfile 
     * @returns {json} Response consists of user details data.
     */
 
-    static pendingProfileUsers() {
+    static notVerifiedUserProfile() {
         return new Promise(async (resolve, reject) => {
             try {
 
                 let userProfileDocuments =
                     await database.models.userProfile.find({
-                        status: constants.common.USER_PROFILE_ACTIVE_STATUS,
+                        status: constants.common.USER_PROFILE_NOT_VERIFIED_STATUS,
                         isDeleted: false
                     }).lean();
 
-                console.log("userProfileDocuments ", userProfileDocuments);
-                // if(userProfileDocuments  && userProfileDocuments.length > 0){
                 return resolve(userProfileDocuments);
-                // }else{
-                //     throw "No pednig for update profile users"
-                // }
+              
             } catch (error) {
                 return reject(error);
             }
@@ -451,12 +432,12 @@ function _immediateEntities(entities) {
 /**
   * check state has subEntities
   * @method
-  * @name checkStateWithSubEntities
+  * @name _checkStateWithSubEntities
   * @param { string } stateId - Array of entities.
   * @returns {boolean}
   * */
 
-function checkStateWithSubEntities(groups, entityTypeId) {
+function _checkStateWithSubEntities(groups, entityTypeId) {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -501,7 +482,7 @@ function createUserProfile(loggedInUser) {
                 "userId": loggedInUser.userId,
                 metaInformation: {
                 },
-                "status": constants.common.USER_PROFILE_ACTIVE_STATUS,
+                "status": constants.common.USER_PROFILE_NOT_VERIFIED_STATUS,
                 "isDeleted": false,
                 "verified": false,
                 "updatedBy": false,

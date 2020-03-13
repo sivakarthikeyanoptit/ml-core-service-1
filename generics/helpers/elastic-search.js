@@ -1022,12 +1022,10 @@ var _typeExistsOrNot = function (index, type) {
         type: type
       });
 
-      console.log("result",result);
       return resolve(result);
 
     } catch (error) {
 
-      console.log("err",error);
       return reject(error);
     }
   })
@@ -1309,14 +1307,11 @@ var pushAppConfigData = function (confgData = {}) {
 
       } else if (configDocument.statusCode == httpStatusCode["ok"].status) {
 
-        // console.log("configDocument",configDocument.body['_source']['config'].version); 
-
+       
         let currentV = configDocument.body['_source']['config'].version;
 
-        // console.log("currentV",currentV)
         let versionChange = currentV.split(".");
 
-        // console.log("versionChange",versionChange);
         if( confgData.updateType && confgData.updateType=='major'){
 
           version = ( parseInt(versionChange[0]) + 1 ) + "."+ parseInt(versionChange[1]) + "." + parseInt(versionChange[2]);

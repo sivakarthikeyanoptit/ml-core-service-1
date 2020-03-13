@@ -12,7 +12,7 @@ module.exports = {
   "OK" : "OK",
   "BODH_DIAL_CODE_LIVE_STATUS" : "Live",
   "USER_PROFILE_PENDING_VERIFICATION_STATUS":"pendingVerification",
-  "USER_PROFILE_ACTIVE_STATUS":"notVerified",
+  "USER_PROFILE_NOT_VERIFIED_STATUS":"notVerified",
   "USER_PROFILE_VERIFIED_STATUS":"verified",
   "USER_PROFILE_PENDING_STATUS" : "pendingVerification",
   "USER_PROFILE_FORM_NAME":"userProfileForm",
@@ -22,5 +22,6 @@ module.exports = {
   "IN_ACTIVE" : "inactive",
   "BODH_DIAL_CODE_LIVE_STATUS" : "Live",
   "GOA_STATE" : "Goa",
-  "UNNATI_APP_NAME" : "unnati"
+  "UNNATI_APP_NAME" : "unnati",
+  "PROFILE_UPDATE_NOTIFICATION_MESSAGE":"Please update your details.Help us make your experience better."
 };
