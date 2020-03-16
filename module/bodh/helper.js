@@ -15,6 +15,8 @@ const elasticSearchHelper = require(GENERIC_HELPERS_PATH + "/elastic-search");
 // Constants
 const bodhContentIndex = gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_BODH_CONTENT_INDEX");
 const bodhContentIndexType = gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_BODH_CONTENT_INDEX_TYPE");
+const qrCodeHelpers = require(MODULES_BASE_PATH+"/qr-codes/helper");
+let sunbirdService = require(ROOT_PATH+"/generics/services/sunbird");
 
 /**
     * BodhHelper
@@ -97,7 +99,7 @@ module.exports = class BodhHelper {
                         if(!addKeywordOperation.data) {
                             keywordsUpdateResult.push({
                                 word : keywordsData[pointerToKeywordsData],
-                                status : messageConstants.common.FAILED
+                                status : constants.common.FAILED
                             })
                         } else {
                             keywordsUpdateResult.push({
@@ -130,10 +132,11 @@ module.exports = class BodhHelper {
       * @method
       * @name parseContentForAutocomplete
       * @param {Array} content Contains array of content.
+      * @param {Boolean} isACourse Whether or not content is a course.
       * @returns {Promise} returns a promise.
      */
 
-    static parseContentForAutocomplete(content = []) {
+    static parseContentForAutocomplete(content = [], isACourse = false) {
         return new Promise(async (resolve, reject) => {
             try {
 
@@ -142,14 +145,6 @@ module.exports = class BodhHelper {
                 }
 
                 let contentUpdateResult = new Array
-
-                let autocompleteContextKeys =  await this.getAutocompleteContextKeys();
-
-                if(autocompleteContextKeys.success && autocompleteContextKeys.data) {
-                    autocompleteContextKeys = autocompleteContextKeys.data
-                } else {
-                    autocompleteContextKeys = [];
-                }
 
                 for (let pointerToContentData = 0;
                     pointerToContentData < content.length;
@@ -162,16 +157,10 @@ module.exports = class BodhHelper {
                                 eachContent.name.trim().toLowerCase(),
                                 eachContent.description.trim().toLowerCase()
                             ],
-                            contexts : {}
-                        }
-
-                        autocompleteContextKeys.forEach(contextKey => {
-                            if(eachContent[contextKey]) {
-                                suggestContent.contexts[contextKey] = eachContent[contextKey];
-                            } else {
-                                suggestContent.contexts[contextKey] = [];
+                            contexts : {
+                                isACourse : isACourse
                             }
-                        });
+                        }
 
                         const addCourseToAutocomplete = await elasticSearchHelper.createOrUpdateDocumentInIndex(
                             bodhContentIndex,
@@ -190,12 +179,12 @@ module.exports = class BodhHelper {
                         if(!addCourseToAutocomplete.data) {
                             contentUpdateResult.push({
                                 IL_UNIQUE_ID : eachContent.IL_UNIQUE_ID,
-                                status : messageConstants.common.FAILED
+                                status : constants.common.FAILED
                             })
                         } else {
                             contentUpdateResult.push({
                                 IL_UNIQUE_ID : eachContent.IL_UNIQUE_ID,
-                                status : messageConstants.common.SUCCESS
+                                status : constants.common.SUCCESS
                             })
                         }
                         
@@ -323,26 +312,12 @@ module.exports = class BodhHelper {
 
                 if(queryString == "") throw new Error("Missing query string.");
 
-                let filterConditons =  await this.getAutocompleteContextKeys();
-
-                if(filterConditons.success && filterConditons.data) {
-                    filterConditons = filterConditons.data
-                } else {
-                    filterConditons = [];
+                let searchContext = {
+                    isACourse : (queryFilters["isACourse"]) ? queryFilters["isACourse"] : false
                 }
 
-                let searchContext = {}
-
-                filterConditons.forEach(filterKey => {
-                    if(queryFilters[filterKey]) {
-                        searchContext[filterKey] = queryFilters[filterKey];
-                    } else {
-                        searchContext[filterKey] = [];
-                    }
-                })
-
                 let queryObject = {
-                    _source: "suggest",
+                    _source: "rawContent",
                     suggest: {
                         nameSuggestion: {
                             prefix: queryString.trim().toLowerCase(),
@@ -359,11 +334,91 @@ module.exports = class BodhHelper {
 
                 const searchResponse = await elasticSearchHelper.searchDocumentFromIndex(bodhContentIndex, bodhContentIndexType, queryObject);
 
-                let suggestions = new Array
+                let suggestions = new Array;
 
                 if(searchResponse.nameSuggestion[0].options.length > 0) {
-                    searchResponse.nameSuggestion[0].options.forEach(content => {
-                        suggestions.push(content.text)
+
+                    let allowedFilterConditons =  await this.getAutocompleteContextKeys();
+
+                    if(allowedFilterConditons.success && allowedFilterConditons.data) {
+                        allowedFilterConditons = allowedFilterConditons.data;
+                    } else {
+                        allowedFilterConditons = [];
+                    }
+
+                    let filters = {};
+                    let filterKeys = new Array;
+
+                    allowedFilterConditons.forEach(filterKey => {
+                        if(queryFilters[filterKey]) {
+                            if (typeof queryFilters[filterKey] === 'string') {
+                                filterKeys.push(filterKey);
+                                filters[filterKey] = queryFilters[filterKey];
+                            } else if (Array.isArray(queryFilters[filterKey]) && queryFilters[filterKey].length > 0) {
+                                filterKeys.push(filterKey);
+                                filters[filterKey] = queryFilters[filterKey];
+                            }
+                        }
+                    })
+
+                    let searchResults = _.map(searchResponse.nameSuggestion[0].options, '_source.rawContent');
+
+                    // searchResults = _.filter(searchResults, filters);
+
+                    searchResults.forEach(content => {
+                        let filterTestPass = true;
+                        for (let index = 0; index < filterKeys.length; index++) {
+                            const filterKey = filterKeys[index];
+
+                            // If content filter value is a string
+                            if(typeof filters[filterKey] === 'string') {
+
+                                // If content value for filter key is an array
+                                if(Array.isArray(content[filterKey])) {
+                                    if (!content[filterKey].includes(filters[filterKey])) {
+                                        filterTestPass = false;
+                                        break;
+                                    }
+                                } else { // If content value for filter key is a string
+                                    if(content[filterKey] != filters[filterKey]) {
+                                        filterTestPass = false;
+                                        break;
+                                    }
+                                }
+
+                            } else if(Array.isArray(filters[filterKey])) { // If content filter value is an array
+                                
+                                let allFilterValues = filters[filterKey];
+                                let atLeastOneFilterValueMatch = false;
+
+                                // Loop all values for filter key
+                                for (let pointerToFilterValues = 0; pointerToFilterValues < allFilterValues.length; pointerToFilterValues++) {
+                                    const filterValue = allFilterValues[pointerToFilterValues];
+                                    
+                                    // If content value for filter key is an array
+                                    if(typeof content[filterKey] === 'string') {
+                                        if(content[filterKey] == filterValue) {
+                                            atLeastOneFilterValueMatch = true;
+                                            break;
+                                        }
+                                    } else if(Array.isArray(content[filterKey])) { // If content value for filter key is a string
+                                        if (content[filterKey].includes(filters[filterKey])) {
+                                            atLeastOneFilterValueMatch = true;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if(!atLeastOneFilterValueMatch) {
+                                    filterTestPass = false;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if(filterTestPass) {
+                            suggestions.push(content.name);
+                        }
                     })
                 }
 
@@ -382,8 +437,6 @@ module.exports = class BodhHelper {
             }
         })
     }
-
-
 
      /**
       * Get context keys for auto complete index.
@@ -415,6 +468,151 @@ module.exports = class BodhHelper {
                     message : error.message,
                     data : false
                 });
+            }
+        })
+    }
+
+    /**
+      * Generate qr code from the content data
+      * @method
+      * @name generateQrCode
+      * @param contentData - Bodh content information
+      * @param userId - Logged in user id.
+      * @param userToken - Logged in user token.
+      * @returns {Arary} returns a array of qr code links.
+     */
+
+    static generateQrCode( contentData,userId,userToken ) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let codes = await qrCodeHelpers.generateCodes(
+                    contentData.length,
+                    userToken
+                );
+
+                await new Promise((resolve)=>setTimeout(() => {
+                    resolve();
+                }, 3000)); 
+
+                let result = [];
+
+                for( let code = 0 ; code < codes.length ; code ++ ) {
+                    
+                    await qrCodeHelpers.publishCode(
+                        codes[code],
+                        userToken
+                    );
+
+                    await this.linkContent(
+                        codes[code],
+                        contentData[code].identifier,
+                        userToken
+                    );
+                    
+                    let generateQrCode = await qrCodeHelpers.generate(
+                        {
+                            code : codes[code],
+                            head : contentData[code].name,
+                            tail : contentData[code].identifier,
+                            metaInformation : { ... contentData[code] },
+                            appName : "bodh"
+                        },userId);
+                        
+                    await this.publishContent(
+                        contentData[code].identifier,
+                        contentData[code].lastPublishedBy
+                    );
+                        
+                    result.push(generateQrCode);
+                }
+                return resolve({
+                    message : constants.apiResponses.QR_CODE_GENERATED,
+                    result : result
+                });
+                
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+    /**
+      * Link content based on dial code and content id
+      * @method
+      * @name linkContent
+      * @param dialCode - dial code
+      * @param identifier - content id
+      * @param token - Logged in user token
+      * @returns {Promise}
+     */
+
+    static linkContent( dialCode,identifier,token ) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let linkContentData = await sunbirdService.linkContent(
+                    token,
+                    {
+                        "request" : {
+                            "content" : {
+                                "dialcode" : [ dialCode ],
+                                "identifier" : [ identifier ]
+                            }
+                        }
+                    }
+                );
+
+                if( linkContentData.responseCode !== constants.common.OK ){
+                    throw {
+                        message : 
+                        constants.apiResponses.COULD_NOT_LINK_BODH_CONTENT
+                    }
+                }
+
+                return resolve(linkContentData.responseCode);
+                
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+    /**
+      * Publish content based oncontent id
+      * @method
+      * @name publishContent
+      * @param contentId - content id
+      * @param lastPublishedBy
+      * @returns {Promise}
+     */
+
+    static publishContent( contentId, lastPublishedBy ) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let publishContentData = await sunbirdService.publishContent(
+                    {
+                        "request" : {
+                            "content" : {
+                                "lastPublishedBy" : lastPublishedBy
+                            }
+                        }
+                    },
+                    contentId
+                );
+
+                if( publishContentData.responseCode !== constants.common.OK ){
+                    throw {
+                        message : 
+                        constants.apiResponses.COULD_NOT_PUBLISH_CONTENT_DATA
+                    }
+                }
+
+                return resolve(publishContentData.responseCode);
+                
+            } catch (error) {
+                return reject(error);
             }
         })
     }
