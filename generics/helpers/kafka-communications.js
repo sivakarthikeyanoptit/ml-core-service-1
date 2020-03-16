@@ -157,7 +157,7 @@ let _pushMessageToKafka = function (payload) {
 
   }).catch((err) => {
     return {
-      status: messageConstants.common.FAILED,
+      status: constants.common.FAILED,
       message: err
     }
   })
