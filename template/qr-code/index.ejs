@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Qr code pdf</title>
+
+    <style>
+        .container {
+            display: flex;
+            justify-content: center;
+        }
+
+        .head {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .tail {
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+            <% for(let i = 0 ; i < data.length ; i++){ %>
+                <div> 
+                    <div class="head"><%= data[i].head %></div>
+                    <img src="<%= data[i].qrCodeImage %>">
+                    <div class="tail">
+                        <small>Unique QR Code number : <%= data[i].code %></small>
+                    </div> 
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+
+</body>
+
+</html>
