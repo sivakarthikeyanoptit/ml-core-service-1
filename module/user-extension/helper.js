@@ -284,10 +284,10 @@ module.exports = class UserExtensionHelper {
                 let goaStateExists = false;
                 if( relatedEntities.length > 0 ) {
                     let checkGoaStateExistsOrNot = relatedEntities.some(
-                        entity=>entity.metaInformation.name === constants.apiResponses.GOA_STATE
+                        entity=>entity.metaInformation.name === constants.common.GOA_STATE
                     )
 
-                    if( checkGoaStateExistsOrNot && appName === constants.apiResponses.UNNATI_APP_NAME ){
+                    if( checkGoaStateExistsOrNot && appName === constants.common.UNNATI_APP_NAME ){
                         goaStateExists = true;
                     } 
                     
