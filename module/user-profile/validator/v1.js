@@ -2,8 +2,8 @@ module.exports = (req) => {
 
     let userProfileValidator = {
 
-        verify: function () {
-            req.checkParams('_id').exists().withMessage("required user id");
+        save: function () {
+            req.checkBody('metaInformation').exists().withMessage("Required meta information");
         }
 
     }

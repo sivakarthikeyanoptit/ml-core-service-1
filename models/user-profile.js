@@ -8,8 +8,7 @@
 module.exports = {
     name: "userProfile",
     schema: {
-      metaInformation:{
-      },
+      metaInformation:{},
       createdBy: {
         type : String,
         default : null
@@ -30,11 +29,6 @@ module.exports = {
         type : String,
         default : "notVerified"
       },
-      externalId: {
-        type : String,
-        default : null
-      },
-     
       verified: {
         type : Boolean,
       },

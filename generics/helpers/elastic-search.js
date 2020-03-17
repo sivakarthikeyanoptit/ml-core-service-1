@@ -60,7 +60,7 @@ gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_ALL_INDEX");
   * @returns {Promise} returns a promise.
 */
 
-var pushNotificationData = function (userId = "", notificatonData = {}) {
+var pushNotificationData = function (userId = "", notificaton = {}) {
 
   return new Promise(async function (resolve, reject) {
     try {
@@ -69,25 +69,17 @@ var pushNotificationData = function (userId = "", notificatonData = {}) {
         throw "Invalid user id."
       }
 
-      let userNotificationDocument = 
-      await getNotificationData(userId, notificatonData.appType);
+      if( Array.isArray(notificaton.appType) && notificaton.appType.length > 0 ) {
 
-      if (userNotificationDocument.statusCode == httpStatusCode["not_found"].status) {
-
-        await _createInAppNotification(userId, notificatonData);
-
-      } else if (userNotificationDocument.statusCode == httpStatusCode["ok"].status) {
-
-        await _updateInAppNotification(userId, notificatonData, userNotificationDocument);
+        for(let appType = 0; appType < notificaton.appType.length;appType++) {
+          let clonedNotificationData = {...notificaton};
+          clonedNotificationData.appType = notificaton.appType[appType];
+          await _pushNotificationData( userId,clonedNotificationData );
+        }
 
       } else {
-        throw "Something went wrong!";
+        await _pushNotificationData( userId, notificaton );
       }
-
-      return resolve({
-        success: true,
-        message: "Notification successfully pushed to elastic search."
-      });
 
     } catch (error) {
       return reject(error);
@@ -1385,6 +1377,42 @@ var getIndexTypeMapping = function (indexName = "", typeName = "") {
 
       return resolve(checkIndexTypeMappingExistsOrNot);
 
+    } catch (error) {
+      return reject(error);
+    }
+  })
+};
+
+/**
+  * Helper function for pushing notification data.
+  * @function
+  * @name _pushNotificationData - helper function for pushing notification data.
+  * @returns {Promise} returns a promise.
+*/
+
+var _pushNotificationData = function ( userId, notification) {
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      let notificationData = 
+      await getNotificationData(userId, notification.appType);
+
+      if (notificationData.statusCode == httpStatusCode["not_found"].status) {
+
+        await _createInAppNotification(userId, notification);
+
+      } else if (notificationData.statusCode == httpStatusCode["ok"].status) {
+
+        await _updateInAppNotification(userId, notification, notificationData);
+
+      } else {
+        throw "Something went wrong!";
+      }
+
+      return resolve({
+        success: true,
+        message: "Notification successfully pushed to elastic search."
+      });
     } catch (error) {
       return reject(error);
     }

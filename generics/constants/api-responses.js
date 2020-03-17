@@ -47,6 +47,6 @@ module.exports = {
   "FORM_FETCH":"User Profile  form fetched successfully ",
   "STATE_LIST_NOT_FOUND":"State list not found",
   "COULD_NOT_GET_FORM":"Could not get userProfileForm",
-  "PROFILE_SAVED":"Profile Saved successfully",
+  "USER_PROFILE_SAVED" : "User profile Saved successfully",
   "PROFILE_UNDER_PENDING_VERIFICATION":"User profile is under Pending for verification"
 };

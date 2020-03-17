@@ -41,39 +41,21 @@ module.exports = class InAppNotificationsHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                // TODO:: This is a dirty fix.
-                // Removing updateVersion flow for now as planned to
-                // get updateVersion from module instead of hitting to elastic search
-                // again and again
+                let getNotificationDocument = 
+                await elasticSearchHelper.getNotificationData(
+                    userId, 
+                    appType
+                );
 
-                // await elasticSearchHelper.pushAppVersionToLoggedInUser(
-                //     userId, appName, appType
-                // );
-
-                let appTypes = appType.split(',');
-
-                let getNotificationDocument=[];
-                
-
-                await Promise.all(appTypes.map(async function(appTypeName){
-                     let notificationData = await elasticSearchHelper.getNotificationData(
-                        userId, appTypeName
-                    );
-                    if ( notificationData && notificationData.statusCode == httpStatusCode["ok"].status) {
-
-                        getNotificationDocument.push(...notificationData.body._source.notifications);
-                    }
-                }));
-
-
-                if(!getNotificationDocument){
+                if (getNotificationDocument.statusCode !== httpStatusCode["ok"].status) {
                     return resolve({
                         data: [],
                         count: 0
                     })
                 }
 
-                let notificationInDescendingOrder = getNotificationDocument.reverse();
+                let notificationInDescendingOrder = 
+                getNotificationDocument.body._source.notifications.reverse();
 
                 let skippedValue = pageSize * (pageNo - 1);
                 let limitingValue = pageSize;
@@ -83,7 +65,7 @@ module.exports = class InAppNotificationsHelper {
 
                 return resolve({
                     data: paginatedData,
-                    count: getNotificationDocument.length
+                    count: getNotificationDocument.body._source.notificationCount
                 });
 
             } catch (error) {

@@ -24,217 +24,6 @@ module.exports = class UserProfile extends Abstract {
   }
 
   /**
-    * @api {post} /kendra/api/v1/user-profile/create 
-    * Create user profile.
-    * @apiVersion 1.0.0
-    * @apiGroup user profile
-    * @apiHeader {String} X-authenticated-user-token Authenticity token
-    * @apiSampleRequest /kendra/api/v1/user-profile/create
-    * @apiUse successBody
-    * @apiUse errorBody
-    * @apiParamExample {json} Response:
-    * {
-    * "firstName" : "Abc",
-    * "lastName" : null,
-       "emailId" : null,
-       "phoneNumber" : null,
-       "state" : "abc",
-       "district" : null,
-       "block" : null,
-       "zone" : null,
-       "cluster" : null,
-       "taluk" : null,
-       "hub" : null,
-       "school" : null,
-       "status" : "active",
-       "isDeleted" : false,
-       "verified" : false,
-       "updatedBy" : null,
-       "updatedAt" : null,
-       "userId" : "abc",
-       "externalId" : null,
-       "createdBy" : "abc"
-     }
- */
-
-  /**
-   * Create user profile.
-   * @method
-   * @name create
-   * @param  {Request}  req  request body.
-   * @returns {json} Created user profile information.
-  */
-
-  create(req) {
-    return new Promise(async (resolve, reject) => {
-
-      try {
-        let createUserProfile = await userProfileHelper.create(
-          req.body,
-          req.userDetails.userToken
-        );
-
-        return resolve(createUserProfile);
-
-      } catch (error) {
-
-        return reject({
-          status:
-            error.status ||
-            httpStatusCode["internal_server_error"].status,
-
-          message:
-            error.message ||
-            httpStatusCode["internal_server_error"].message
-        });
-      }
-    });
-  }
-
-  /**
-    * @api {post} /kendra/api/v1/user-profile/update 
-    * Updated user profile information.
-    * @apiVersion 1.0.0
-    * @apiGroup user profile
-    * @apiHeader {String} X-authenticated-user-token Authenticity token
-    * @apiSampleRequest /kendra/api/v1/user-profile/update
-    * @apiUse successBody
-    * @apiUse errorBody
-    * @apiParamExample {json} Response:
-    * {
-    * "firstName" : "Abc"
-     }
- */
-
-  /**
- * Update user profile information.
- * @method
- * @name update
- * @param  {Request}  req  request body.
- * @returns {json} Updated user profile information.
-*/
-
-  update(req) {
-    return new Promise(async (resolve, reject) => {
-
-      try {
-
-        let updateUserProfile = await userProfileHelper.update(
-          req.body,
-          req.userDetails.userToken
-        );
-
-        return resolve(updateUserProfile);
-
-      } catch (error) {
-
-        return reject({
-          status:
-            error.status ||
-            httpStatusCode["internal_server_error"].status,
-
-          message:
-            error.message ||
-            httpStatusCode["internal_server_error"].message
-        });
-      }
-    });
-  }
-
-  /**
-   * Verify user profile information based on userId.
-   * @method
-   * @name verify
-   * @param  {Request} req request body.
-   * @returns {json} Verify user profile information.
-  */
-
-  /**
-    * @api {post} /kendra/api/v1/user-profile/verify/:userId 
-    * Verify user profile information.
-    * @apiVersion 1.0.0
-    * @apiGroup user profile
-    * @apiHeader {String} X-authenticated-user-token Authenticity token
-    * @apiSampleRequest /kendra/api/v1/user-profile/verify/abc
-    * @apiUse successBody
-    * @apiUse errorBody
- */
-
-  verify(req) {
-    return new Promise(async (resolve, reject) => {
-
-      try {
-
-        let verifyUserProfile = await userProfileHelper.verify(
-          req.params._id,
-          req.userDetails.userToken
-        );
-
-        return resolve(verifyUserProfile);
-
-      } catch (error) {
-
-        return reject({
-          status:
-            error.status ||
-            httpStatusCode["internal_server_error"].status,
-
-          message:
-            error.message ||
-            httpStatusCode["internal_server_error"].message
-        });
-      }
-    });
-  }
-
-  /**
-  * User profile information details.
-  * @method
-  * @name details
-  * @param  {Request} req request body.
-  * @returns {json} details user profile information.
- */
-
-  /**
-    * @api {post} /kendra/api/v1/user-profile/details
-    * details user profile information.
-    * @apiVersion 1.0.0
-    * @apiGroup user profile
-    * @apiHeader {String} X-authenticated-user-token Authenticity token
-    * @apiSampleRequest /kendra/api/v1/user-profile/details
-    * @apiUse successBody
-    * @apiUse errorBody
- */
-
-  details(req) {
-    return new Promise(async (resolve, reject) => {
-
-      try {
-
-        let userProfileDocument = await userProfileHelper.details(
-          req.params._id ? req.params._id : req.userDetails.userId,
-          req.userDetails.userToken,
-          req.pageSize,
-          req.pageNo
-        );
-
-        return resolve(userProfileDocument);
-
-      } catch (error) {
-
-        return reject({
-          status:
-            error.status ||
-            httpStatusCode["internal_server_error"].status,
-
-          message:
-            error.message ||
-            httpStatusCode["internal_server_error"].message
-        });
-      }
-    });
-  }
-  /**
     * @api {get} /kendra/api/v1/user-profile/getForm
     * getForm return user profile form
     * @apiVersion 1.0.0
@@ -243,14 +32,101 @@ module.exports = class UserProfile extends Abstract {
     * @apiSampleRequest /kendra/api/v1/user-profile/getForm
     * @apiUse successBody
     * @apiUse errorBody
- */
+    * @apiParamExample {json} Response:
+    * {
+    "message": "User Profile  form fetched successfully ",
+    "status": 200,
+    "result": {
+        "form": [
+            {
+                "label": "firstName",
+                "field": "firstName",
+                "value": "",
+                "visible": true,
+                "editable": true,
+                "validation": {
+                    "required": true,
+                    "regex": "/^[A-Za-z]+$/"
+                },
+                "input": "text"
+            },
+            {
+                "label": "lastName",
+                "field": "lastName",
+                "value": "",
+                "visible": true,
+                "editable": true,
+                "validation": {
+                    "required": true,
+                    "regex": "/^[A-Za-z]+$/"
+                },
+                "input": "text"
+            },
+            {
+                "label": "email",
+                "field": "email",
+                "value": "",
+                "visible": true,
+                "editable": true,
+                "validation": {
+                    "required": true,
+                    "regex": "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$"
+                },
+                "input": "text"
+            },
+            {
+                "label": "phoneNumber",
+                "field": "phoneNumber",
+                "value": "",
+                "visible": true,
+                "editable": true,
+                "validation": {
+                    "required": true,
+                    "regex": "^((+)?(d{2}[-]))?(d{10}){1}?$"
+                },
+                "input": "text"
+            },
+            {
+                "label": "state",
+                "field": "state",
+                "value": "",
+                "visible": true,
+                "editable": true,
+                "validation": {
+                    "required": true,
+                    "regex": ""
+                },
+                "input": "select",
+                "options": [
+                    {
+                        "label": "",
+                        "value": ""
+                    }
+                ]
+            }
+        ],
+        "statesWithSubEntities": {
+            "5da829874c67d63cca1bd9d0": [
+                "district",
+                "block",
+                "cluster",
+                "school"
+            ]
+        }
+    }
+  }
+    */
 
   getForm(req) {
     return new Promise(async (resolve, reject) => {
 
       try {
 
-        let userProfileForm = await userProfileHelper.getForm(req.userDetails,req.headers['appname'],req.headers['os']);
+        let userProfileForm = await userProfileHelper.getForm(
+          req.userDetails,
+          req.headers['appname'],
+          req.headers['os']
+        );
        
         resolve(userProfileForm);
 
@@ -278,14 +154,62 @@ module.exports = class UserProfile extends Abstract {
     * @apiSampleRequest /kendra/api/v1/user-profile/save
     * @apiUse successBody
     * @apiUse errorBody
+    * @apiParamExample {json} Request:
+    * {
+    * "metaInformation":{
+    * "firstName": "",
+    * "lastName": "",
+    * "email": "",
+    * "phoneNumber": "",
+    * "district":[{
+    * "label":"name",
+    * "value":"id"
+    * }]
+    * }
+    * @apiParamExample {json} Response:
+    * {
+    "message": "User profile Saved successfully",
+    "status": 200,
+    "result": {
+        "createdBy" : "loggedIn user id",
+        "updatedBy" : null,
+        "status" : "pendingVerification",
+        "_id" : "",
+        "deleted" : false,
+        "metaInformation" : {
+            "firstName" : "A",
+            "lastName" : "B",
+            "email" : "a@b.com",
+            "phoneNumber" : "9591553529",
+            "district" : [
+                {
+                    "label": "name",
+                    "value": "id"
+                }
+            ]
+        },
+        "userId": "",
+        "externalId": "",
+        "submittedAt": "2020-03-17T05:45:54.456Z",
+        "updatedAt": "2020-03-17T05:46:01.672Z",
+        "createdAt": "2020-03-17T05:46:01.672Z",
+        "__v": 0
+    }
+  }
+}
  */
 
-save(req) {
+ save(req) {
   return new Promise(async (resolve, reject) => {
 
     try {
      
-      let userProfileSave = await userProfileHelper.save(req.body,req.userDetails.userId);
+      let userProfileSave = 
+      await userProfileHelper.save(
+        req.body,
+        req.userDetails.userId,
+        req.userDetails.userName ? req.userDetails.userName : ""
+      );
 
       resolve( userProfileSave);
 
@@ -302,7 +226,7 @@ save(req) {
       });
     }
   });
-}
+ }
 
 };
 

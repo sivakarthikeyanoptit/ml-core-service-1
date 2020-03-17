@@ -28,54 +28,64 @@ let profilePendingVerificationNotification = function () {
         return new Promise(async (resolve, reject) => {
 
             try {
-                let userProfileLists = await userProfileHelper.notVerifiedUserProfile();
-                let userProfileData = {
-                    "is_read": false,
-                    "action": "Update",
-                    // "appName": process.env.ELASTICSEARCH_UNNATI_INDEX,
-                    "created_at": new Date(),
-                    "text": "text",
-                    "type": process.env.ELASTICSEARCH_USER_NOTIFICATIONS_TYPE,
-                    "internal": false,
-                    "payload": {
-                        "type":process.env.ELASTICSEARCH_USER_NOTIFICATIONS_TYPE
-                    },
-                    "appType": process.env.ELASTICSEARCH_ALL_INDEX
-                };
+                
+                let userProfiles = 
+                await userProfileHelper.userProfileNotVerified();
 
-                let response = [];
-                if (userProfileLists && userProfileLists.length > 0) {
+                let result = [];
+                if ( userProfiles && userProfiles.length > 0 ) {
 
-                    for (let pointerToUserProfileList = 0;
-                        pointerToUserProfileList < userProfileLists.length;
-                        pointerToUserProfileList++
+                    let userProfileData = {
+                        "is_read" : false,
+                        "action" : "Update",
+                        "created_at" : new Date(),
+                        "text" : "text",
+                        "type" : process.env.ELASTICSEARCH_USER_NOTIFICATIONS_TYPE,
+                        "internal" : false,
+                        "payload" : {
+                            "type" : 
+                            process.env.ELASTICSEARCH_USER_NOTIFICATIONS_TYPE
+                        },
+                        "appType" : 
+                        [
+                            process.env.ASSESSMENT_APPLICATION_APP_TYPE,
+                            process.env.IMPROVEMENT_PROJECT_APPLICATION_APP_TYPE
+                        ]
+                    };
+
+                    for (let userProfile = 0;
+                        userProfile < userProfiles.length;
+                        userProfile++
                     ) {
 
-                        let responseData = {
+                        let response = {
                             success: false
                         };
 
-                        let userProfileList =
-                            userProfileLists[pointerToUserProfileList];
+                        let currentUser = userProfiles[userProfile]
 
+                        let cloneUserProfileData = { ...userProfileData };
 
-                        let userObj = { ...userProfileData };
-                        userObj["user_id"] = userProfileList.userId;
-                        userObj["verified"] = userProfileList.verified;
-                        userObj["title"] =constants.common.PROFILE_UPDATE_NOTIFICATION_MESSAGE;
+                        cloneUserProfileData["user_id"] = currentUser.userId;
+                        cloneUserProfileData["verified"] = currentUser.verified;
+                        cloneUserProfileData["title"] = 
+                        constants.common.PROFILE_UPDATE_NOTIFICATION_MESSAGE;
                             
-
-                        let pushPendingNotificationToKafka = await kafkaCommunication.pushNotificationsDataToKafka(userObj);
-                        if (pushPendingNotificationToKafka.status && pushPendingNotificationToKafka.status != "success") {
-                            throw new Error(`Failed to push user profile notification for user ${userProfileList.userId}`);
+                        let pushUserNotificationToKafka = 
+                        await kafkaCommunication.pushNotificationsDataToKafka(
+                            cloneUserProfileData
+                        );
+                       
+                        if (pushUserNotificationToKafka.status && pushUserNotificationToKafka.status != "success") {
+                            throw new Error(`Failed to push user profile notification for user ${currentUser.userId}`);
                         }
 
-                        responseData.success = true;
-                        responseData["message"] = `successfully pushed user profile information to kafka for user ${userProfileList.userId}`;
-                        response.push(responseData);
+                        response.success = true;
+                        response["message"] = `successfully pushed user profile information to kafka for user ${currentUser.userId}`;
+                        result.push(response);
                     }
                 }
-                return resolve(response);
+                return resolve(result);
 
             } catch (error) {
                 return reject(error);

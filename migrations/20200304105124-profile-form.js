@@ -1,58 +1,52 @@
 module.exports = {
   async up(db) {
-    global.migrationMsg = "create user profile form"
-    // return await db.collection('albums').updateOne({artist: 'The Beatles'}, {$set: {blacklisted: true}});
+    global.migrationMsg = "create user profile form";
 
     let userProfileForm =
       await db.collection('forms').findOne({ name: "userProfileForm" });
     if (!userProfileForm) {
 
-      let allFields = [];
+      let forms = [];
       let inputFields = ["firstName", "lastName", "email", "phoneNumber", "state"];
 
-      await Promise.all(inputFields.map(async function (fields) {
+      await Promise.all(inputFields.map(async function (inputField) {
 
-        let inputObj = {};
-        inputObj.label = fields;
-        inputObj.field = fields;
-        inputObj.value = "";
-        inputObj.visible = true;
-        inputObj.editable = true;
+        let form = {
+          label : inputField,
+          field : inputField,
+          value : "",
+          visible : true,
+          editable : true,
+          validation : {
+            required : true,
+            regex : "/^[A-Za-z]+$/"
+          },
+          input : "text"
+        };
 
-        if (fields != "state" && fields != "email" && fields != "phoneNumber") {
+        switch(inputField) {
+          case 'state':
+            form.input = "select";
+            form.validation.regex = "";
+            break;
 
-          inputObj.input = "text";
-          inputObj['validation'] = {
-            required: true,
-            regex: "/^[A-Za-z]+$/"
+          case 'email':
+            form.validation.regex = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+            break;
 
-          }
-
-        } else if (fields == "state") {
-          inputObj.input = "select";
-          inputObj['validation'] = {
-            required: true,
-            regex: ""
-          }
-        } else if (fields == "email") {
-          inputObj.input = "text";
-          inputObj['validation'] = {
-            required: true,
-            regex: "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$"
-          }
-        } if (fields == "phoneNumber") {
-          inputObj.input = "text";
-          inputObj['validation'] = {
-            required: true,
-            regex: "^((\+)?(\d{2}[-]))?(\d{10}){1}?$"
-          }
+          case 'phoneNumber':
+            form.input = "text";
+            form.validation.regex = "^((\+)?(\d{2}[-]))?(\d{10}){1}?$";
+            break;
+            
         }
-        allFields.push(inputObj);
+
+        forms.push(form);
       }));
 
       let profileForm = {
-        name: "userProfileForm",
-        value: allFields
+        name : "userProfileForm",
+        value : forms
       }
 
       await db.collection('forms').insertOne(profileForm);
