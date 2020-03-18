@@ -156,7 +156,7 @@ module.exports = class UserProfile extends Abstract {
     * @apiUse errorBody
     * @apiParamExample {json} Request:
     * {
-    * "metaInformation":{
+    * "data":{
     * "firstName": "",
     * "lastName": "",
     * "email": "",
@@ -171,12 +171,7 @@ module.exports = class UserProfile extends Abstract {
     "message": "User profile Saved successfully",
     "status": 200,
     "result": {
-        "createdBy" : "loggedIn user id",
-        "updatedBy" : null,
-        "status" : "pendingVerification",
-        "_id" : "",
-        "deleted" : false,
-        "metaInformation" : {
+        "data" : {
             "firstName" : "A",
             "lastName" : "B",
             "email" : "a@b.com",
@@ -187,13 +182,7 @@ module.exports = class UserProfile extends Abstract {
                     "value": "id"
                 }
             ]
-        },
-        "userId": "",
-        "externalId": "",
-        "submittedAt": "2020-03-17T05:45:54.456Z",
-        "updatedAt": "2020-03-17T05:46:01.672Z",
-        "createdAt": "2020-03-17T05:46:01.672Z",
-        "__v": 0
+        }
     }
   }
 }
@@ -206,7 +195,7 @@ module.exports = class UserProfile extends Abstract {
      
       let userProfileSave = 
       await userProfileHelper.save(
-        req.body,
+        req.body.data,
         req.userDetails.userId,
         req.userDetails.userName ? req.userDetails.userName : ""
       );

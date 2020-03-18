@@ -9,6 +9,35 @@ let entitiesHelper = require(ROOT_PATH + "/module/entities/helper");
 
 module.exports = class UserProfileHelper {
 
+     /**
+      * List of user profile.
+      * @method
+      * @name list
+      * @param {Object} [queryParameter = "all"] - Filtered query data.
+      * @param {Object} [projection = {}] - Projected data.   
+      * @returns {Object} returns a entity types list from the filtered data.
+     */
+
+    static list(queryParameter = "all", projection = {}) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                if( queryParameter === "all" ) {
+                    queryParameter = {};
+                };
+
+                let userProfileData = 
+                await database.models.userProfile.find(queryParameter, projection).lean();
+
+                return resolve(userProfileData);
+
+            } catch (error) {
+                return reject(error);
+            }
+        })
+
+    }
+
     /**
     * Get user profile form data.
     * @method
@@ -103,7 +132,9 @@ module.exports = class UserProfileHelper {
                 }));
                     
                 let userData = await database.models.userProfile.findOne(
-                    { userId: loggedInUser.userId }, { 
+                    { 
+                        userId: loggedInUser.userId 
+                    }, { 
                         metaInformation: 1,
                         _id: 1 
                     }).sort({ 
@@ -321,41 +352,70 @@ module.exports = class UserProfileHelper {
    * @return {json} Response consists of saved user profile data.
    */
 
-    static save(bodyData, userId,externalId) {
+    static save( metaInformationData, userId,externalId ) {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let userProfileData = await database.models.userProfile.findOne({
+                let userProfileData = await this.list({
                     userId: userId,
                     status : 
                     constants.common.USER_PROFILE_PENDING_VERIFICATION_STATUS
-                }, {
+                },{
                     status: 1,
                     _id: 1
-                }).sort({ createdAt: -1 }).lean();
+                });
 
-                if( userProfileData ) {
+                if( userProfileData && userProfileData[0] ) {
                     return resolve({
                         message : 
                         constants.apiResponses.PROFILE_UNDER_PENDING_VERIFICATION
                     });
                 }
-                
-                bodyData['userId'] = userId;
-                bodyData['externalId'] = externalId;
-                bodyData["createdBy"] = userId;
-                bodyData['status'] = 
-                constants.common.USER_PROFILE_PENDING_VERIFICATION_STATUS;
 
-                bodyData['submittedAt'] = new Date();
-                
-                let saveUserProfileInformation = 
-                await database.models.userProfile.create(
-                    bodyData
-                );
+
+                let updateUserProfileData = {
+                    updatedBy : userId,
+                    status : 
+                    constants.common.USER_PROFILE_PENDING_VERIFICATION_STATUS,
+                    submittedAt : new Date(),
+                    metaInformation : metaInformationData
+                }
+
+                userProfileData = await this.list({
+                    userId: userId,
+                    status : constants.common.USER_PROFILE_NOT_VERIFIED_STATUS
+                },{
+                    status: 1,
+                    _id: 1
+                });
+
+                let saveUserProfileInformation;
+
+                if( userProfileData && userProfileData[0] ) {
+
+                    saveUserProfileInformation = 
+                    await database.models.userProfile.findOneAndUpdate(
+                        {
+                            _id: userProfileData[0]._id
+                        },{
+                            $set : updateUserProfileData
+                        },{ new : true }
+                    ).lean();
+
+                } else {
+                    
+                    updateUserProfileData["userId"] = userId;
+                    updateUserProfileData["createdBy"] = userId;
+                    updateUserProfileData["externalId"] = externalId;
+
+                    saveUserProfileInformation = 
+                    await database.models.userProfile.create(
+                        updateUserProfileData
+                    );
+                }
                 
                 return resolve({ 
-                    result : saveUserProfileInformation,
+                    result : saveUserProfileInformation.metaInformation,
                     message : constants.apiResponses.USER_PROFILE_SAVED 
                 });
 

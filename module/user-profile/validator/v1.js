@@ -3,7 +3,7 @@ module.exports = (req) => {
     let userProfileValidator = {
 
         save: function () {
-            req.checkBody('metaInformation').exists().withMessage("Required meta information");
+            req.checkBody('data').exists().withMessage("Required meta information data");
         }
 
     }

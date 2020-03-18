@@ -21,41 +21,49 @@ module.exports = class EntitiesHelper {
     limitingValue = "", 
     skippingValue = "",
     sortedData = ""
-) {
-  return new Promise(async (resolve, reject) => {
-      try {
-          let queryObject = {};
-          if (findQuery != "all") {
-              queryObject = findQuery;
-          }
-          let projectionObject = {};
-          if (fields != "all") {
-              fields.forEach(element => {
-                  projectionObject[element] = 1;
-              });
-          }
-          let entitiesDocuments;
-          if( sortedData !== "" ) {
-          entitiesDocuments = await database.models.entities
-              .find(queryObject, projectionObject)
-              .sort(sortedData)
-              .limit(limitingValue)
-              .skip(skippingValue)
-              .lean();
-          } else {
-              entitiesDocuments = await database.models.entities
-              .find(queryObject, projectionObject)
-              .limit(limitingValue)
-              .skip(skippingValue)
-              .lean();
-          }
-          return resolve(entitiesDocuments);
-      } catch (error) {
-          return reject(error);
-      }
-  });
-}
-
+    ) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                
+                let queryObject = {};
+                
+                if (findQuery != "all") {
+                    queryObject = findQuery;
+                }
+                
+                let projectionObject = {};
+                
+                if (fields != "all") {
+                    
+                    fields.forEach(element => {
+                        projectionObject[element] = 1;
+                    });
+                }
+                
+                let entitiesDocuments;
+                
+                if( sortedData !== "" ) {
+                    
+                    entitiesDocuments = await database.models.entities
+                    .find(queryObject, projectionObject)
+                    .sort(sortedData)
+                    .limit(limitingValue)
+                    .skip(skippingValue)
+                    .lean();
+                } else {
+                    
+                    entitiesDocuments = await database.models.entities
+                    .find(queryObject, projectionObject)
+                    .limit(limitingValue)
+                    .skip(skippingValue)
+                    .lean();
+                }
+                return resolve(entitiesDocuments);
+            } catch (error) {
+                return reject(error);
+            }
+        });
+    }
 
      /**
    * Search entity.
@@ -304,6 +312,15 @@ module.exports = class EntitiesHelper {
     
                         result.push(entitiesDocument);
                     }));
+                }
+
+                if( result.data.length > 0 ) {
+                    result.data = result.data.map(data=>{
+                        let cloneData = {...data};
+                        cloneData["label"] = cloneData.name;
+                        cloneData["value"] = cloneData._id;
+                        return cloneData;
+                    })
                 }
     
                 resolve({
