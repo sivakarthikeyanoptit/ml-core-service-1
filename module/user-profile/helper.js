@@ -54,7 +54,7 @@ module.exports = class UserProfileHelper {
                         name: constants.common.USER_PROFILE_FORM_NAME 
                     }).lean();
 
-                if( !formData ){
+                if( !formData ) {
                     return reject({  
                         message :
                         constants.apiResponses.COULD_NOT_GET_FORM 
@@ -131,17 +131,19 @@ module.exports = class UserProfileHelper {
                     });
                 }));
                     
-                let userData = await database.models.userProfile.findOne(
+                let userData = await database.models.userProfile.find(
                     { 
-                        userId: loggedInUser.userId 
+                        userId : loggedInUser.userId,
+                        deleted : false
                     }, { 
                         metaInformation: 1,
-                        _id: 1 
+                        _id: 1,
+                        status : 1 
                     }).sort({ 
                         createdAt: -1
                 }).lean();
                 
-                if ( !userData ) {
+                if ( userData.length < 1 ) {
                     let userProfileCreated = await this.create(
                         loggedInUser
                     );
@@ -149,10 +151,32 @@ module.exports = class UserProfileHelper {
                     userData = userProfileCreated;
                 }
 
-                let entityKeyData = _.omit(
-                    userData.metaInformation,
-                    ["firstName","lastName","email","phoneNumber","state"]
-                );
+                let canSubmit = true;
+
+                if( Array.isArray(userData) && userData.length > 0 ) {
+                    
+                    let verifiedUserProfile = userData.find(
+                        user=>user.status === 
+                        constants.common.USER_PROFILE_VERIFIED_STATUS
+                    );
+
+                    let pendingUserProfile = userData.find(
+                        user=>user.status === 
+                        constants.common.USER_PROFILE_PENDING_STATUS
+                    );
+
+                    if( verifiedUserProfile ) {
+                        userData = verifiedUserProfile;
+
+                        if( pendingUserProfile ) {
+                            canSubmit = false;
+                        }
+
+                    } else {
+                        userData = userData[0];
+                        canSubmit = false;
+                    }
+                }
 
                 if( ! _.isEmpty(userData.metaInformation.state)) {
                     
@@ -168,6 +192,8 @@ module.exports = class UserProfileHelper {
                             let form = { ...formData.value[0] };
                             form.label = 
                             entitySequence.charAt(0).toUpperCase() + entitySequence.slice(1);
+
+                            form.editable = canSubmit ? canSubmit : false;
                             form.field = entitySequence;
                             form.input = "multiselect";
                             form.value = entityData;
@@ -189,7 +215,8 @@ module.exports = class UserProfileHelper {
                             }
                         });
                     }
-                    
+
+                    form.editable = canSubmit ? canSubmit : false;
                     form.value = 
                     userData.metaInformation[form.field] ? 
                     userData.metaInformation[form.field] : "";
@@ -198,7 +225,8 @@ module.exports = class UserProfileHelper {
                 return resolve({ 
                     result : {
                         form: formData.value,
-                        statesWithSubEntities: childHierarchyForState
+                        statesWithSubEntities: childHierarchyForState,
+                        canSubmit : canSubmit
                     }, 
                     message : constants.apiResponses.FORM_FETCH 
                 });

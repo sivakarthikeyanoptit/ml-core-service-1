@@ -242,7 +242,8 @@ module.exports = class EntitiesHelper {
                             getImmediateEntityTypes[0].immediateChildrenEntityType.length > 0 &&
                             getImmediateEntityTypes[0].immediateChildrenEntityType.includes(entityGroup)
                         ) {
-                            immediateEntitiesIds = entitiesDocument[0].groups[entityGroup];
+                            immediateEntitiesIds = 
+                            entitiesDocument[0].groups[entityGroup];
                         }
                     })
     
@@ -309,12 +310,16 @@ module.exports = class EntitiesHelper {
                         let entitiesDocument = await this.subEntities(
                             obj
                         );
-    
-                        result.push(entitiesDocument);
+
+                        if( Array.isArray(entitiesDocument) && 
+                        entitiesDocument.length > 0
+                        ) {
+                            result.push(entitiesDocument);
+                        }
                     }));
                 }
 
-                if( result.data.length > 0 ) {
+                if( result.data && result.data.length > 0 ) {
                     result.data = result.data.map(data=>{
                         let cloneData = {...data};
                         cloneData["label"] = cloneData.name;
@@ -397,11 +402,16 @@ module.exports = class EntitiesHelper {
                 let entitiesDocument = 
                 await this.entityDocuments(
                     { 
-                        _id: entityId, 
+                        _id: entityId,
+                        "groups" : { $exists : true }, 
                         [entityTraversal] : { $exists: true } 
                     },
                     [ entityTraversal ]
                 );
+
+                if( !entitiesDocument[0] ) {
+                    return resolve([]);
+                }
 
                 let result = [];
                 
