@@ -235,15 +235,12 @@ module.exports = class UserProfileHelper {
 
                         for(let entity = 0 ; entity < entities.length ; entity++ ) {
 
-                            let clonedUserProfile = 
-                            JSON.parse(JSON.stringify(userProfileData));
-
                             let updateMetaInformation = _metaInformationData(
-                                _.omit(clonedUserProfile,"metaInformation.state"),
+                                userProfileData,
                                 entities[entity]
                             );
 
-                            if( !updateMetaInformation.metaInformation.state ) {
+                            if( updateMetaInformation.entityType !== "state" ) {
                             
                                 let relatedEntities = 
                                 await entitiesHelper.relatedEntities(
@@ -255,22 +252,31 @@ module.exports = class UserProfileHelper {
         
                                 if( relatedEntities.length > 0 ) {
 
-                                    let stateExists= relatedEntities.find(
-                                        state=>state.metaInformation.externalId ===
-                                        userProfileData.metaInformation.state.externalId
-                                    );
+                                    let updateMetaData = true;
 
-                                    if( stateExists ) {
-                                        relatedEntities.forEach(entity => {
-                                            userProfileData = _metaInformationData(
+                                    if( userProfileData.metaInformation.state ) {
+                                        
+                                        let stateExists= relatedEntities.find(
+                                            state=>state.metaInformation.externalId ===
+                                            userProfileData.metaInformation.state.externalId
+                                        );
+
+                                        if( !stateExists ) {
+                                            delete userProfileData.metaInformation[updateMetaInformation.entityType];
+                                            updateMetaData = false;
+                                        } 
+                                    }
+
+                                    if( updateMetaData ) {
+                                          relatedEntities.forEach(entity => { 
+                                            _metaInformationData(
                                                 userProfileData,
                                                 entity
-                                            )
+                                            );
                                         })
                                     }
                                 }
                             } else {
-                                userProfileData = updateMetaInformation;
                                 break;
                             }
                             
@@ -446,7 +452,7 @@ function _metaInformationData(userProfileData,entities) {
 
     if( entityType === "state" ) {
                         
-        userProfileData.metaInformation["state"] = 
+        userProfileData.metaInformation[entityType] = 
         _entitiesLabelValueData(
             entities
         );
@@ -464,7 +470,9 @@ function _metaInformationData(userProfileData,entities) {
         );
     }
 
-    return userProfileData;
+    return {
+        entityType : entityType
+    };
 }
 
 
