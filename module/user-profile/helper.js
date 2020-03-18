@@ -25,7 +25,7 @@ module.exports = class UserProfileHelper {
                         name: constants.common.USER_PROFILE_FORM_NAME 
                     }).lean();
 
-                if(!formData){
+                if( !formData ){
                     return reject({  
                         message :
                         constants.apiResponses.COULD_NOT_GET_FORM 
@@ -118,8 +118,31 @@ module.exports = class UserProfileHelper {
                     userData = userProfileCreated;
                 }
 
+                let entityKeyData = _.omit(
+                    userData.metaInformation,
+                    ["firstName","lastName","email","phoneNumber","state"]
+                );
+
+                if( ! _.isEmpty(entityKeyData) ) {
+
+                    Object.keys(entityKeyData).forEach(eachEntityKey=>{
+                        
+                        let form = { ...formData.value[0] };
+
+                        form.label = 
+                        eachEntityKey.charAt(0).toUpperCase() + eachEntityKey.slice(1);
+                        form.field = eachEntityKey;
+                        form.input = "multiselect";
+                        form.value = entityKeyData[eachEntityKey];
+                        form.validation = {};
+                        formData.value.push(form);
+                    })
+                }
+
                 formData.value.forEach(form=>{
+                    
                     if( form.field == "state" ) {
+                        
                         form["options"] = states.map(state=>{
                             return {
                                 label : state.metaInformation.name,
@@ -169,9 +192,7 @@ module.exports = class UserProfileHelper {
                 },
                 "externalId" : userDetails.userName,
                 "status" : constants.common.USER_PROFILE_NOT_VERIFIED_STATUS,
-                "isDeleted" : false,
-                "verified" : false,
-                "updatedBy" : false   
+                "updatedBy" : userDetails.userId   
             }
 
             let userExtensionDocument = 
@@ -198,35 +219,63 @@ module.exports = class UserProfileHelper {
                     "entityTypeId"
                 ];
 
-                let entities = await entitiesHelper.entityDocuments({
-                    _id : userExtensionDocument.roles[0].entities[0]
-                },projection);
+                for(
+                    let role = 0;
+                    role < userExtensionDocument.roles.length;
+                    role++
+                ) {
+                    
+                    let userRole = userExtensionDocument.roles[role];
+                    
+                    let entities = await entitiesHelper.entityDocuments({
+                        _id : { $in : userRole.entities }
+                    },projection);
 
-                if( entities[0]._id ) {
+                    if( entities && entities.length > 0 ) {
 
-                    userProfileData = _metaInformationData(
-                        userProfileData,
-                        entities[0]
-                    )
+                        for(let entity = 0 ; entity < entities.length ; entity++ ) {
 
-                    if( !userProfileData.metaInformation.state ) {
-                        
-                        let relatedEntities = 
-                        await entitiesHelper.relatedEntities(
-                            entities[0]._id, 
-                            entities[0].entityTypeId, 
-                            entities[0].entityType, 
-                            projection
-                        );
+                            let clonedUserProfile = 
+                            JSON.parse(JSON.stringify(userProfileData));
 
-                        if( relatedEntities.length > 0 ) {
-                            relatedEntities.forEach(entity=>{
-                                userProfileData = _metaInformationData(
-                                    userProfileData,
-                                    entity
-                                )
-                            })
+                            let updateMetaInformation = _metaInformationData(
+                                _.omit(clonedUserProfile,"metaInformation.state"),
+                                entities[entity]
+                            );
+
+                            if( !updateMetaInformation.metaInformation.state ) {
+                            
+                                let relatedEntities = 
+                                await entitiesHelper.relatedEntities(
+                                    entities[entity]._id, 
+                                    entities[entity].entityTypeId, 
+                                    entities[entity].entityType, 
+                                    projection
+                                );
+        
+                                if( relatedEntities.length > 0 ) {
+
+                                    let stateExists= relatedEntities.find(
+                                        state=>state.metaInformation.externalId ===
+                                        userProfileData.metaInformation.state.externalId
+                                    );
+
+                                    if( stateExists ) {
+                                        relatedEntities.forEach(entity => {
+                                            userProfileData = _metaInformationData(
+                                                userProfileData,
+                                                entity
+                                            )
+                                        })
+                                    }
+                                }
+                            } else {
+                                userProfileData = updateMetaInformation;
+                                break;
+                            }
+                            
                         }
+
                     }
                 }
              }

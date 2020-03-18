@@ -11,8 +11,11 @@ module.exports = {
 
       await Promise.all(inputFields.map(async function (inputField) {
 
+        let field = inputField.replace( /([A-Z])/g, " $1" );
+        let fieldLabel = field.charAt(0).toUpperCase() + field.slice(1);
+
         let form = {
-          label : inputField,
+          label : fieldLabel,
           field : inputField,
           value : "",
           visible : true,
@@ -27,7 +30,6 @@ module.exports = {
         switch(inputField) {
           case 'state':
             form.input = "select";
-            form.validation.regex = "";
             break;
 
           case 'email':

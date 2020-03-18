@@ -282,12 +282,18 @@ module.exports = class UserExtensionHelper {
                 // In future can be removed if required for all state.
 
                 let goaStateExists = false;
-                if( relatedEntities.length > 0 ) {
-                    let checkGoaStateExistsOrNot = relatedEntities.some(
-                        entity=>entity.metaInformation.name === constants.common.GOA_STATE
-                    )
+                let goaState = constants.common.GOA_STATE.toUpperCase();
 
-                    if( checkGoaStateExistsOrNot && appName === constants.common.UNNATI_APP_NAME ){
+                if( relatedEntities.length > 0 ) {
+                    
+                    let checkGoaStateExistsOrNot = relatedEntities.some(
+                        entity => entity.metaInformation.name.toUpperCase() === goaState
+                    );
+
+                    if( 
+                        checkGoaStateExistsOrNot && 
+                        appName === constants.common.UNNATI_APP_NAME 
+                    ) {
                         goaStateExists = true;
                     } 
                     
@@ -322,7 +328,7 @@ module.exports = class UserExtensionHelper {
                         
                         if( 
                             appName === constants.common.UNNATI_APP_NAME && 
-                            entity.metaInformation.name === constants.common.GOA_STATE
+                            entity.metaInformation.name.toUpperCase() === goaState
                         ) {
                             goaStateExists = true;
                         }

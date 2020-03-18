@@ -29,9 +29,6 @@ module.exports = {
         type : String,
         default : "notVerified"
       },
-      verified: {
-        type : Boolean,
-      },
       verifiedAt:{
         type: Date,
        },

@@ -67,7 +67,6 @@ let profilePendingVerificationNotification = function () {
                         let cloneUserProfileData = { ...userProfileData };
 
                         cloneUserProfileData["user_id"] = currentUser.userId;
-                        cloneUserProfileData["verified"] = currentUser.verified;
                         cloneUserProfileData["title"] = 
                         constants.common.PROFILE_UPDATE_NOTIFICATION_MESSAGE;
                             
