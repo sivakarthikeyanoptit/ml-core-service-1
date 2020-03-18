@@ -270,7 +270,16 @@ module.exports = class UserProfileHelper {
                                         );
 
                                         if( !stateExists ) {
-                                            delete userProfileData.metaInformation[updateMetaInformation.entityType];
+                                            if( userProfileData.metaInformation[updateMetaInformation.entityType].length > 0 ) {
+                                                let findIndexEntity = 
+                                                userProfileData.metaInformation[updateMetaInformation.entityType].findIndex(
+                                                    data => data.value.toString() === entities[entity]._id.toString()
+                                                )
+
+                                                userProfileData.metaInformation[updateMetaInformation.entityType].splice(findIndexEntity);
+                                            } else {
+                                                delete userProfileData.metaInformation[updateMetaInformation.entityType];
+                                            }
                                             updateMetaData = false;
                                         } 
                                     }
