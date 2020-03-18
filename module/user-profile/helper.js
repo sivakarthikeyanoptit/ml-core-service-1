@@ -123,19 +123,27 @@ module.exports = class UserProfileHelper {
                     ["firstName","lastName","email","phoneNumber","state"]
                 );
 
-                if( ! _.isEmpty(entityKeyData) ) {
+                if( ! _.isEmpty(userData.metaInformation.state)) {
+                    
+                    let entitiesSequence = 
+                    childHierarchyForState[userData.metaInformation.state.value.toString()];
 
-                    Object.keys(entityKeyData).forEach(eachEntityKey=>{
+                    entitiesSequence.forEach(entitySequence=>{
                         
-                        let form = { ...formData.value[0] };
+                        let entityData = userData.metaInformation[entitySequence];
 
-                        form.label = 
-                        eachEntityKey.charAt(0).toUpperCase() + eachEntityKey.slice(1);
-                        form.field = eachEntityKey;
-                        form.input = "multiselect";
-                        form.value = entityKeyData[eachEntityKey];
-                        form.validation = {};
-                        formData.value.push(form);
+                        if( entityData ) {
+                            
+                            let form = { ...formData.value[0] };
+                            form.label = 
+                            entitySequence.charAt(0).toUpperCase() + entitySequence.slice(1);
+                            form.field = entitySequence;
+                            form.input = "multiselect";
+                            form.value = entityData;
+                            form.validation = {};
+                            formData.value.push(form);
+                        }
+                        
                     })
                 }
 
@@ -433,7 +441,7 @@ function _checkStateWithSubEntities(groups, entityTypeId) {
 
 function _entitiesLabelValueData(entity) {
     return {
-        label : entity.metaInformation.name,
+        label : entity.metaInformation.name ? entity.metaInformation.name : "",
         value : entity._id,
         externalId: entity.metaInformation.externalId,
     }
@@ -462,12 +470,27 @@ function _metaInformationData(userProfileData,entities) {
         if( !userProfileData.metaInformation[entityType]) {
             userProfileData.metaInformation[entityType] = [];
         }
+        
+        let pushToMeta = true;
+            
+        if( userProfileData.metaInformation[entityType].length > 0 ) {
+            
+            let checkEntityPresent = 
+            userProfileData.metaInformation[entityType].find(entity=>
+                entity.value.toString() === entities._id.toString()
+            );
+            
+            if( checkEntityPresent ) {
+                pushToMeta = false;
+            }
+        }
 
-        userProfileData.metaInformation[entityType].push(
-            _entitiesLabelValueData(
-                entities
-            )
-        );
+        if( pushToMeta ) {
+            userProfileData.metaInformation[entityType].push(
+                _entitiesLabelValueData( entities )
+            );
+        }
+
     }
 
     return {
