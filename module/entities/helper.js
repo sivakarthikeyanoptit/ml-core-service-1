@@ -311,10 +311,10 @@ module.exports = class EntitiesHelper {
                             obj
                         );
 
-                        if( Array.isArray(entitiesDocument) && 
-                        entitiesDocument.length > 0
+                        if( Array.isArray(entitiesDocument.data) && 
+                        entitiesDocument.data.length > 0
                         ) {
-                            result.push(entitiesDocument);
+                            result = entitiesDocument;
                         }
                     }));
                 }
