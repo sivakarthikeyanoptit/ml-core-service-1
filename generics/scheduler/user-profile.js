@@ -1,20 +1,17 @@
 /**
- * name : delete-read-notifications.js
+ * name : user-profile.js
  * author : Aman Jung Karki
  * Date : 15-Nov-2019
- * Description : Delete all read notifications every month for samiksha.
+ * Description : Cron job for user profile update.
  */
 
 // dependencies
 
 const kafkaCommunication = require(ROOT_PATH + "/generics/helpers/kafka-communications");
-const slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
-const UNNATI_INDEX =
-    gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_UNNATI_INDEX");
 const userProfileHelper = require(MODULES_BASE_PATH + "/user-profile/helper.js");
 
 /**
-  * send notification .
+  * Update user profile.
   * @function
   * @name profilePendingVerificationNotification
   * @returns {Promise} return a Promise.
@@ -78,7 +75,10 @@ let profilePendingVerificationNotification = function () {
                             cloneUserProfileData
                         );
                        
-                        if (pushUserNotificationToKafka.status && pushUserNotificationToKafka.status != "success") {
+                        if (
+                            pushUserNotificationToKafka.status && 
+                            pushUserNotificationToKafka.status !== "success"
+                        ) {
                             throw new Error(`Failed to push user profile notification for user ${currentUser.userId}`);
                         }
 
