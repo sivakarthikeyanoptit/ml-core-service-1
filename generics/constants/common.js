@@ -23,5 +23,6 @@ module.exports = {
   "BODH_DIAL_CODE_LIVE_STATUS" : "Live",
   "GOA_STATE" : "Goa",
   "UNNATI_APP_NAME" : "unnati",
-  "PROFILE_UPDATE_NOTIFICATION_MESSAGE":"Please update your details.Help us make your experience better."
+  "PROFILE_UPDATE_NOTIFICATION_MESSAGE":"Please update your details.Help us make your experience better.",
+  "PROFILE_UPDATE_TITLE" : "Confirm your details."
 };

@@ -405,9 +405,31 @@ module.exports = class UserProfileHelper {
                     updatedBy : userId,
                     status : 
                     constants.common.USER_PROFILE_PENDING_VERIFICATION_STATUS,
-                    submittedAt : new Date(),
-                    metaInformation : metaInformationData
+                    submittedAt : new Date()
                 }
+
+                Object.keys(_.omit( metaInformationData,
+                    [
+                        "firstName",
+                        "lastName",
+                        "email",
+                        "phoneNumber"
+                    ]
+                )).forEach(metaDataKey=>{
+                    
+                    if( Array.isArray(metaInformationData[metaDataKey]) &&
+                        metaInformationData[metaDataKey].length > 0
+                    ) {
+                        metaInformationData[metaDataKey].forEach(entity=>{
+                            _convertStringToObjectId(entity);
+                        })
+                    } else {
+
+                        _convertStringToObjectId(metaInformationData[metaDataKey]);
+                    }
+                });
+
+                updateUserProfileData["metaInformation"] = metaInformationData;
 
                 userProfileData = await this.list({
                     userId: userId,
@@ -462,9 +484,15 @@ module.exports = class UserProfileHelper {
     * verified.
     */
 
-    static userProfileNotVerified( userId = false ) {
+    static userProfileNotVerified( fields = false,userId = false ) {
         return new Promise(async (resolve, reject) => {
             try {
+
+                let projection = {};
+
+                if( fields ) {
+                    projection = fields;
+                }
 
                 let findQuery = {
                     status: 
@@ -476,7 +504,10 @@ module.exports = class UserProfileHelper {
                 }
 
                 let userProfileDocuments = 
-                await database.models.userProfile.find(findQuery).lean();
+                await database.models.userProfile.find(
+                    findQuery,
+                    projection
+                ).lean();
 
                 return resolve(userProfileDocuments);
               
@@ -539,7 +570,7 @@ function _checkStateWithSubEntities(groups, entityTypeId) {
 function _entitiesLabelValueData(entity) {
     return {
         label : entity.metaInformation.name ? entity.metaInformation.name : "",
-        value : entity._id,
+        value : ObjectId(entity._id),
         externalId: entity.metaInformation.externalId,
     }
 }
@@ -594,6 +625,26 @@ function _metaInformationData(userProfileData,entities) {
         entityType : entityType
     };
 }
+
+  /**
+   * Convert metaInformation value data to object id.
+   * @method
+   * @name _convertStringToObjectId
+   * @param data - Object of string data
+   * @returns {json}
+  */
+
+ function _convertStringToObjectId(data) {
+
+    let entityId = data.value;
+    
+    if(entityId !== "others") {
+        entityId = ObjectId(entityId)
+    }
+
+    data.value = entityId;
+    return data;
+ }
 
 
 

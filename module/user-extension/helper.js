@@ -248,7 +248,8 @@ module.exports = class UserExtensionHelper {
                 }
             ];
 
-            let userExtensionData = await database.models.userExtension.aggregate(queryObject);
+            let userExtensionData = 
+            await database.models.userExtension.aggregate(queryObject);
             let relatedEntities = [];
 
             if (userExtensionData[0]) {

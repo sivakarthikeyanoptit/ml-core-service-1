@@ -30,16 +30,21 @@ let profilePendingVerificationNotification = function () {
             try {
                 
                 let userProfiles = 
-                await userProfileHelper.userProfileNotVerified();
+                await userProfileHelper.userProfileNotVerified(
+                    {
+                        userId : 1
+                    }
+                );
 
                 let result = [];
                 if ( userProfiles && userProfiles.length > 0 ) {
 
                     let userProfileData = {
                         "is_read" : false,
-                        "action" : "Update",
+                        "action" : "profile_update",
                         "created_at" : new Date(),
-                        "text" : "text",
+                        "text" : constants.common.PROFILE_UPDATE_NOTIFICATION_MESSAGE,
+                        "title" : constants.common.PROFILE_UPDATE_TITLE,
                         "type" : process.env.ELASTICSEARCH_USER_NOTIFICATIONS_TYPE,
                         "internal" : false,
                         "payload" : {
@@ -67,8 +72,6 @@ let profilePendingVerificationNotification = function () {
                         let cloneUserProfileData = { ...userProfileData };
 
                         cloneUserProfileData["user_id"] = currentUser.userId;
-                        cloneUserProfileData["title"] = 
-                        constants.common.PROFILE_UPDATE_NOTIFICATION_MESSAGE;
                             
                         let pushUserNotificationToKafka = 
                         await kafkaCommunication.pushNotificationsDataToKafka(
