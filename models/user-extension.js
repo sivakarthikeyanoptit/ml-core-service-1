@@ -33,6 +33,10 @@ module.exports = {
         type: Boolean,
         default: false
       },
-      devices : Array
+      devices : Array,
+      userProfileScreenVisitedTrack:{
+        type:Object,
+        default:null
+      }
     }
   }

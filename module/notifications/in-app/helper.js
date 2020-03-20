@@ -36,22 +36,15 @@ module.exports = class InAppNotificationsHelper {
       * @returns {Promise} returns a promise.
      */
 
+
     static list(userId, pageSize, pageNo, appType) {
         return new Promise(async (resolve, reject) => {
             try {
 
-                // TODO:: This is a dirty fix.
-                // Removing updateVersion flow for now as planned to
-                // get updateVersion from module instead of hitting to elastic search
-                // again and again
-
-                // await elasticSearchHelper.pushAppVersionToLoggedInUser(
-                //     userId, appName, appType
-                // );
-
                 let getNotificationDocument = 
                 await elasticSearchHelper.getNotificationData(
-                    userId, appType
+                    userId, 
+                    appType
                 );
 
                 if (getNotificationDocument.statusCode !== httpStatusCode["ok"].status) {
@@ -133,6 +126,8 @@ module.exports = class InAppNotificationsHelper {
                 await elasticSearchHelper.getNotificationData(
                     userId, apptype
                 );
+               
+               
 
                 if (getNotificationDocument.statusCode === httpStatusCode["ok"].status) {
                     
