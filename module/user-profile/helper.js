@@ -92,19 +92,18 @@ module.exports = class UserProfileHelper {
                         }
                     );
                 }
-                    
+
                 let states = 
-                await database.models.entities.find(
+                await entitiesHelper.entityDocuments(
                     { 
                         entityType: constants.common.STATE_ENTITY_TYPE 
-                    },{ 
-                        entityTypeId: 1, 
-                        _id: 1, 
-                        "metaInformation.name": 1, 
-                        groups: 1, 
-                        childHierarchyPath: 1 
-                    }
-                ).lean();
+                    },[
+                        "entityTypeId",
+                        "metaInformation.name",
+                        "groups",
+                        "childHierarchyPath"
+                    ] 
+                );
                 
                 let statesInformation = [];
                 let childHierarchyForState = {};
@@ -131,17 +130,14 @@ module.exports = class UserProfileHelper {
                     });
                 }));
                     
-                let userData = await database.models.userProfile.find(
-                    { 
-                        userId : loggedInUser.userId,
-                        deleted : false
-                    }, { 
-                        metaInformation: 1,
-                        _id: 1,
-                        status : 1 
-                    }).sort({ 
-                        createdAt: -1
-                }).lean();
+                let userData = await this.list(  { 
+                    userId : loggedInUser.userId,
+                    deleted : false
+                }, { 
+                    metaInformation: 1,
+                    _id: 1,
+                    status : 1 
+                });
                 
                 if ( userData.length < 1 ) {
                     let userProfileCreated = await this.create(
@@ -410,24 +406,33 @@ module.exports = class UserProfileHelper {
                     submittedAt : new Date()
                 }
 
-                Object.keys(_.omit( metaInformationData,
-                    [
-                        "firstName",
-                        "lastName",
-                        "email",
-                        "phoneNumber"
-                    ]
-                )).forEach(metaDataKey=>{
+                Object.keys(metaInformationData).forEach(metaDataKey=>{
                     
                     if( Array.isArray(metaInformationData[metaDataKey]) &&
                         metaInformationData[metaDataKey].length > 0
                     ) {
                         metaInformationData[metaDataKey].forEach(entity=>{
-                            _convertStringToObjectId(entity);
+                            entity.value = 
+                            gen.utils.convertStringToObjectId(entity.value);
                         })
                     } else {
 
-                        _convertStringToObjectId(metaInformationData[metaDataKey]);
+                        if( 
+                            typeof(metaInformationData[metaDataKey]) === "string" 
+                        ) {
+                            
+                            metaInformationData[metaDataKey] = 
+                            gen.utils.convertStringToObjectId(
+                                metaInformationData[metaDataKey]
+                            );
+
+                        } else {
+                            
+                            metaInformationData[metaDataKey].value = 
+                            gen.utils.convertStringToObjectId(
+                            metaInformationData[metaDataKey].value
+                        );
+                    }
                     }
                 });
 
@@ -628,25 +633,6 @@ function _metaInformationData(userProfileData,entities) {
     };
 }
 
-  /**
-   * Convert metaInformation value data to object id.
-   * @method
-   * @name _convertStringToObjectId
-   * @param data - Object of string data
-   * @returns {json}
-  */
-
- function _convertStringToObjectId(data) {
-
-    let entityId = data.value;
-    
-    if(entityId !== "others") {
-        entityId = ObjectId(entityId)
-    }
-
-    data.value = entityId;
-    return data;
- }
 
 
 
