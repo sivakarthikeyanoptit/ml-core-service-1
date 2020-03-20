@@ -63,7 +63,7 @@ var databaseConfiguration = function (config) {
         });
       }
     }
-
+    
     var model = db.model(opts.name, schema, opts.name);
     return model;
   };
