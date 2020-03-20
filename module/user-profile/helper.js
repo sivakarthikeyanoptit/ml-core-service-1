@@ -5,7 +5,8 @@
  * Description : All user profile helper related information.
  */
 
-let entitiesHelper = require(ROOT_PATH + "/module/entities/helper");
+let entitiesHelper = require(MODULES_BASE_PATH + "/entities/helper");
+let formsHelper = require(MODULES_BASE_PATH + "/forms/helper");
 
 module.exports = class UserProfileHelper {
 
@@ -49,12 +50,11 @@ module.exports = class UserProfileHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let formData =
-                    await database.models.forms.findOne({ 
-                        name: constants.common.USER_PROFILE_FORM_NAME 
-                    }).lean();
+                let formData = await formsHelper.list({
+                    name: constants.common.USER_PROFILE_FORM_NAME 
+                })
 
-                if( !formData ) {
+                if( !formData[0] ) {
                     return reject({  
                         message :
                         constants.apiResponses.COULD_NOT_GET_FORM 
@@ -172,9 +172,11 @@ module.exports = class UserProfileHelper {
                             canSubmit = false;
                         }
 
+                    } else if(pendingUserProfile) {
+                        userData = pendingUserProfile;
+                        canSubmit = false;
                     } else {
                         userData = userData[0];
-                        canSubmit = false;
                     }
                 }
 
@@ -189,7 +191,7 @@ module.exports = class UserProfileHelper {
 
                         if( entityData ) {
                             
-                            let form = { ...formData.value[0] };
+                            let form = { ...formData[0].value[0] };
                             form.label = 
                             entitySequence.charAt(0).toUpperCase() + entitySequence.slice(1);
 
@@ -198,13 +200,13 @@ module.exports = class UserProfileHelper {
                             form.input = "multiselect";
                             form.value = entityData;
                             form.validation = {};
-                            formData.value.push(form);
+                            formData[0].value.push(form);
                         }
                         
                     })
                 }
 
-                formData.value.forEach(form=>{
+                formData[0].value.forEach(form=>{
                     
                     if( form.field == "state" ) {
                         
@@ -224,7 +226,7 @@ module.exports = class UserProfileHelper {
 
                 return resolve({ 
                     result : {
-                        form: formData.value,
+                        form: formData[0].value,
                         statesWithSubEntities: childHierarchyForState,
                         canSubmit : canSubmit
                     }, 

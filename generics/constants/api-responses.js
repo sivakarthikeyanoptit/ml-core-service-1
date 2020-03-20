@@ -44,6 +44,7 @@ module.exports = {
   "ENTITY_ID_NOT_FOUND" : "Entity id not found in params or body data",
   "MISSING_ENTITYID_ENTITYTYPE_ENTITYTYPEID" : "Missing entity type,entity type id and entity id",
   "USER_EXTENSION_FETCHED" : "User profile fetched successfully.",
+  "USER_EXTENSION_NOT_FOUND" : "No user Details found",
   "FORM_FETCH":"User Profile  form fetched successfully ",
   "STATE_LIST_NOT_FOUND":"State list not found",
   "COULD_NOT_GET_FORM":"Could not get userProfileForm",

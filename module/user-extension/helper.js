@@ -380,16 +380,16 @@ module.exports = class UserExtensionHelper {
                     )
                 );
             } else {
-                return resolve({});
+                return resolve({
+                    status : httpStatusCode['bad_request'].status,
+                    message : constants.apiResponses.USER_EXTENSION_NOT_FOUND
+                });
             }
         } catch (error) {
             return reject(error);
         }
     })
-
-
 }
-
 
 };
 
