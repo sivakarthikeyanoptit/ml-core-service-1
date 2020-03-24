@@ -50,8 +50,7 @@ let profilePendingVerificationNotification = function () {
                         },
                         "appType" : 
                         [
-                            process.env.ASSESSMENT_APPLICATION_APP_TYPE,
-                            process.env.IMPROVEMENT_PROJECT_APPLICATION_APP_TYPE
+                            process.env.IMPROVEMENT_PROJECT_APPLICATION_APP_TYPE 
                         ]
                     };
 
