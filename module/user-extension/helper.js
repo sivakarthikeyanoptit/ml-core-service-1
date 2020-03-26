@@ -11,7 +11,6 @@
     * @class
 */
 
-const userProfileHelper = require(MODULES_BASE_PATH + "/user-profile/helper.js");
 const entityTypesHelper = require(MODULES_BASE_PATH+"/entityTypes/helper");
 const entitiesHelper = require(MODULES_BASE_PATH+"/entities/helper");
 
@@ -124,10 +123,6 @@ module.exports = class UserExtensionHelper {
                     }
 
                 }
-
-                await userProfileHelper.create({
-                    userId : userDetails.userId
-                },userDetails.userToken);
 
                 return resolve(response);
 
