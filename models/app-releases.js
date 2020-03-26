@@ -17,6 +17,7 @@ module.exports = {
       text : String,
       releaseType : String,
       createdBy: String,
+      updatedBy: String,
       appType : String
     }
   };
