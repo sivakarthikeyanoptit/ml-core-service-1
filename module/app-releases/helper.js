@@ -66,12 +66,15 @@ module.exports = class VersionHelper {
       * @returns {Promise} returns a promise.
      */
 
-    static upload(data) {
+    static upload( data,userId ) {
         return new Promise(async (resolve, reject) => {
             try {
 
                 let uploadVersion = 
-                await this.createOrUpdateRelease(data);
+                await this.create(
+                    data,
+                    userId
+                );
 
                 return resolve(uploadVersion);
 
@@ -82,13 +85,13 @@ module.exports = class VersionHelper {
     }
 
     /**
-    * Create or update app release data.
+    * Create app release data.
     * @method
-    * @name createOrUpdateRelease
-    * @returns {Object} return version data.
+    * @name create
+    * @returns {Object} create version data.
     */
    
-    static createOrUpdateRelease( data ) {
+    static create( data,userId ) {
         return new Promise( async (resolve,reject)=>{
             try {
                 
@@ -97,6 +100,8 @@ module.exports = class VersionHelper {
 
                 data.appName = gen.utils.lowerCase(data.appName);
                 data.os = gen.utils.lowerCase(data.os);
+                data.createdBy = userId;
+                data.updatedBy = userId;
 
                 let versionRelease = await database.models.appReleases.findOneAndUpdate({
                     appName : data.appName,
@@ -128,7 +133,125 @@ module.exports = class VersionHelper {
                 }
 
                 return resolve(data);
+            } catch(e) {
+                return reject(e);
+            }
+        })
+    }
 
+    /**
+    * Update app release data.
+    * @method
+    * @name update
+    * @param updateData - app version update data 
+    * @returns {Object} updated version data.
+    */
+   
+   static update( id,updateData ) {
+    return new Promise( async (resolve,reject)=>{
+        try {
+
+            let currentAppVersion = await this.list(
+                {
+                    _id : id
+                },["_id","appName","os"]
+            );
+
+            if( !currentAppVersion[0] ) {
+                return resolve({
+                    status : httpStatusCode.bad_request.status,
+                    message : constants.apiResponses.APP_VERSION_NOT_FOUND
+                })
+            }
+
+            let sessionPath = 
+            `${constants.common.ALL_APP_VERSION}-${gen.utils.lowerCase(currentAppVersion[0].appName)}-${gen.utils.lowerCase(currentAppVersion[0].os)}`;
+
+            if( updateData.status === constants.common.ACTIVE ) {
+                
+                await database.models.appReleases.findOneAndUpdate({
+                    _id : { $ne : currentAppVersion[0]._id },
+                    appName : currentAppVersion[0].appName,
+                    os : currentAppVersion[0].os
+                },{
+                    $set : { 
+                        status : constants.common.IN_ACTIVE 
+                    }
+                })
+            }
+            
+            let updateAppReleaseData = 
+            await database.models.appReleases.findOneAndUpdate({ 
+                _id : currentAppVersion[0]._id
+            },{
+                $set : updateData 
+            },{ new : true }).lean();
+
+            if( !updateAppReleaseData || !updateAppReleaseData._id ) {
+               return resolve({
+                   status : httpStatusCode.bad_request.status,
+                   message : constants.apiResponses.APP_VERSION_NOT_UPDATED
+                })
+            }
+            
+            let versionData = _versionPayload(updateAppReleaseData);
+            sessionHelpers.set(sessionPath,versionData);
+
+            return resolve({
+                message : constants.apiResponses.APP_VERSION_UPDATED,
+                result : updateAppReleaseData
+            });
+        } catch(e) {
+            return reject(e);
+        }
+    })
+   }
+
+   /**
+    * List of all version data.
+    * @method
+    * @name versionDataList
+    * @param requestedData - requestedData
+    * @returns {Array} List of all app release version.
+    */
+   
+   static versionDataList( filters = {} ) {
+    return new Promise( async (resolve,reject)=>{
+        try {
+
+            let queryObject = {};
+
+            if( filters.appName ) {
+                queryObject["appName"] = filters.appName;
+            }
+
+            if( filters.os ) {
+                queryObject["os"] = filters.os;
+            }
+
+            if( filters.releaseType ) {
+                queryObject["releaseType"] = filters.releaseType;
+            }
+
+            if( filters.status ) {
+                queryObject["status"] = filters.status;
+            }
+
+            let versionDataList = await this.list(
+                queryObject
+            );
+
+            if( versionDataList.length < 1 ) {
+                return resolve({
+                    status : httpStatusCode.bad_request.status,
+                    message : constants.apiResponses.APP_VERSION_NOT_FOUND
+                })
+            }
+
+            return resolve({
+                message : constants.apiResponses.APP_VERSION_LISTS,
+                result : versionDataList
+            });
         } catch(e) {
             return reject(e);
         }
