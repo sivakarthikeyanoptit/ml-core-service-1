@@ -37,6 +37,8 @@ module.exports = {
   "APP_VERSION_CREATED" : "App version created",
   "APP_VERSION_NOT_UPDATED" : "App version could not be updated",
   "APP_VERSION_UPDATED" : "App version updated",
+  "APP_VERSION_NOT_FOUND" : "App version not found",
+  "APP_VERSION_LISTS" : "Lists of app version data",
   "VERSION_UPDATE_FILE_TYPE" : "Missing file of type versionUpdate",
   "NOTIFICATION_LIST": "List Of Notifications",
   "UNREAD_NOTIFICATION": "Unread Notification",
