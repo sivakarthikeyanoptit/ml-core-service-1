@@ -113,7 +113,7 @@ module.exports = class VersionHelper {
                     
                     if( versionRelease.status === constants.common.ACTIVE ) {
                         
-                        await database.models.appReleases.findOneAndUpdate(
+                        await database.models.appReleases.updateMany(
                             { 
                                 _id : { $ne : versionRelease._id },
                                 appName : data.appName,
