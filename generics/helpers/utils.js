@@ -99,10 +99,42 @@ function checkIfEnvDataExistsOrNot(data){
   return value;
 }
 
+ /**
+  * check whether the id is mongodbId or not.
+  * @function
+  * @name isValidMongoId
+  * @param {String} id 
+  * @returns {Boolean} returns whether id is valid mongodb id or not.  
+*/
+
+function isValidMongoId(id) {
+  return ObjectId.isValid(id) && new ObjectId(id).toString() === id;
+}
+
+  /**
+   * Convert string to mongodb object id.
+   * @method
+   * @name convertStringToObjectId
+   * @param id - string id
+   * @returns {ObjectId} - returns objectId 
+  */
+
+function convertStringToObjectId(id) {
+    
+  let checkWhetherIdIsValidMongoId = gen.utils.isValidMongoId(id);
+  if(checkWhetherIdIsValidMongoId) {
+      id = ObjectId(id);
+  }
+
+  return id;
+}
+
 module.exports = {
   camelCaseToTitleCase : camelCaseToTitleCase,
   lowerCase : lowerCase,
   checkIfStringIsUrl : checkIfStringIsUrl,
   checkIfEnvDataExistsOrNot : checkIfEnvDataExistsOrNot,
-  hyphenCaseToCamelCase : hyphenCaseToCamelCase
+  hyphenCaseToCamelCase : hyphenCaseToCamelCase,
+  isValidMongoId : isValidMongoId,
+  convertStringToObjectId : convertStringToObjectId
 };
