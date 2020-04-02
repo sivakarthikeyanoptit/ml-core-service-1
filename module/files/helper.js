@@ -31,13 +31,13 @@ module.exports = class FilesHelper{
            try {
 
             let result;
-            if( process.env.CLOUD_STORAGE === "AWS" ) {
+            if( process.env.CLOUD_STORAGE === constants.common.AWS_SERVICE ) {
                 result = await awsServices.uploadFile(
                     file,
                     filePathForBucket,
                     bucketName
                 );
-            } else if( process.env.CLOUD_STORAGE === "GC" ) {
+            } else if( process.env.CLOUD_STORAGE === constants.common.GOOGLE_CLOUD_SERVICE ) {
                 result = await googleCloudServices.uploadFile(
                     file,
                     filePathForBucket,
@@ -60,17 +60,23 @@ module.exports = class FilesHelper{
       * @return {String} - Downloadable url link
     */
 
-   static getDownloadableUrl( filePath,bucketName ) {
+   static getDownloadableUrl( filePath,bucketName,storageName="" ) {
        return new Promise(async (resolve, reject) => {
            try {
                let result;
-               
-               if( process.env.CLOUD_STORAGE === "AWS" ) {
+              
+               let cloudStorage = process.env.CLOUD_STORAGE;
+
+               if(storageName !== "") {
+                cloudStorage = storageName;
+                }
+            
+               if(cloudStorage === constants.common.AWS_SERVICE ) {
                    result = await awsServices.getDownloadableUrl(
                        filePath,
                        bucketName
                     );
-                } else if( process.env.CLOUD_STORAGE === "GC" ) {
+                } else if(cloudStorage === constants.common.GOOGLE_CLOUD_SERVICE) {
                     result = await googleCloudServices.getDownloadableUrl(
                         filePath,
                         bucketName
