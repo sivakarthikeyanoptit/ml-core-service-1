@@ -41,7 +41,16 @@ module.exports = class Aws {
      * @apiVersion 1.0.0
      * @apiGroup Aws
      * @apiHeader {String} X-authenticated-user-token Authenticity token
-     * @apiParam {File} userData Mandatory userData file of type csv.
+     * @apiParamExample {json} Request-Body:
+     * {
+     * "filePath": "",
+     * "bucketName": ""
+  }
+     * @apiSuccessExample {json} Success-Response:
+     * {
+     *  "status": "",
+     *  "result": ""
+     * }
      * @apiSampleRequest /kendra/api/v1/cloud-services/aws/getDownloadableUrl
      * @apiUse successBody
      * @apiUse errorBody

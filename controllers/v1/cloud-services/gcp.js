@@ -47,7 +47,11 @@ module.exports = class Gcp {
      * "bucketName": ""
   }
      * @apiSampleRequest /kendra/api/v1/cloud-services/gcp/getDownloadableUrl
-     * @apiUse successBody
+     * @apiSuccessExample {json} Success-Response:
+     * {
+     *  "status": "",
+     *  "result": ""
+     * }
      * @apiUse errorBody
      */
 
