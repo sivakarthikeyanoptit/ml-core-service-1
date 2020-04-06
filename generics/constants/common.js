@@ -26,5 +26,6 @@ module.exports = {
   "PROFILE_UPDATE_NOTIFICATION_MESSAGE":"Please update your details.Help us make your experience better.",
   "PROFILE_UPDATE_TITLE" : "Confirm your details.",
   "AWS_SERVICE": "AWS",
-  "GOOGLE_CLOUD_SERVICE": "GC"
+  "GOOGLE_CLOUD_SERVICE": "GC",
+  "AZURE_SERVICE": "AZURE"
 };

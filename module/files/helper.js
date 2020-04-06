@@ -7,16 +7,17 @@
  */
 
 // Dependencies
-let awsServices = require(ROOT_PATH+"/generics/services/aws");
-let googleCloudServices = require(ROOT_PATH+"/generics/services/google-cloud");
+let awsServices = require(ROOT_PATH + "/generics/services/aws");
+let googleCloudServices = require(ROOT_PATH + "/generics/services/google-cloud");
+let azureService = require(ROOT_PATH + "/generics/services/azure");
 
 /**
     * FilesHelper
     * @class
 */
 
-module.exports = class FilesHelper{
-    
+module.exports = class FilesHelper {
+
     /**
       * Upload file in different services based on cloud storage provide.
       * @method
@@ -26,67 +27,141 @@ module.exports = class FilesHelper{
       * @returns {json} Response consists of links of uploaded qr code.
     */
 
-   static upload( file,filePathForBucket,bucketName ) {
-       return new Promise(async (resolve, reject) => {
-           try {
+    static uploadFile(file, filePathForBucket, bucketName) {
+        return new Promise(async (resolve, reject) => {
+            try {
 
-            let result;
-            if( process.env.CLOUD_STORAGE === constants.common.AWS_SERVICE ) {
-                result = await awsServices.uploadFile(
-                    file,
-                    filePathForBucket,
-                    bucketName
-                );
-            } else if( process.env.CLOUD_STORAGE === constants.common.GOOGLE_CLOUD_SERVICE ) {
-                result = await googleCloudServices.uploadFile(
-                    file,
-                    filePathForBucket,
-                    bucketName
-                )
-            }
-
-            return resolve(result);
-            } catch (error) {
-                return reject(error);
-            }
-        })
-   }
-
-   /**
-      * Get downloadable url
-      * @method
-      * @name getDownloadableUrl
-      * @param  {filePath}  - File path.
-      * @return {String} - Downloadable url link
-    */
-
-   static getDownloadableUrl( filePath,bucketName,storageName="" ) {
-       return new Promise(async (resolve, reject) => {
-           try {
-               let result;
-              
-               let cloudStorage = process.env.CLOUD_STORAGE;
-
-               if(storageName !== "") {
-                cloudStorage = storageName;
-                }
-            
-               if(cloudStorage === constants.common.AWS_SERVICE ) {
-                   result = await awsServices.getDownloadableUrl(
-                       filePath,
-                       bucketName
-                    );
-                } else if(cloudStorage === constants.common.GOOGLE_CLOUD_SERVICE) {
-                    result = await googleCloudServices.getDownloadableUrl(
-                        filePath,
+                let result;
+                if (process.env.CLOUD_STORAGE === constants.common.AWS_SERVICE) {
+                    result = await awsServices.uploadFile(
+                        file,
+                        filePathForBucket,
                         bucketName
                     );
+                } else if (process.env.CLOUD_STORAGE === constants.common.GOOGLE_CLOUD_SERVICE) {
+                    result = await googleCloudServices.uploadFile(
+                        file,
+                        filePathForBucket,
+                        bucketName
+                    )
+                } else if (process.env.CLOUD_STORAGE === constants.common.AZURE_SERVICE) {
+                    result = await azureService.uploadFile(
+                        file,
+                        filePathForBucket,
+                        bucketName
+                    )
                 }
-                
+
                 return resolve(result);
             } catch (error) {
                 return reject(error);
             }
         })
     }
+
+    /**
+       * Get downloadable url
+       * @method
+       * @name getDownloadableUrl
+       * @param  {filePath}  - File path.
+       * @return {String} - Downloadable url link
+     */
+
+    static getDownloadableUrl(filePath, bucketName, storageName = "") {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let cloudStorage = process.env.CLOUD_STORAGE;
+
+                if (storageName !== "") {
+                    cloudStorage = storageName;
+                }
+
+                if (Array.isArray(filePath) === true) {
+
+                    let result = [];
+
+                    await Promise.all(filePath.map(async element => {
+                        let responseObj = {};
+                        responseObj.filePath = element;
+                        responseObj.url = 
+                        await _getLinkFromCloudService(
+                                element,
+                                bucketName,
+                                cloudStorage
+                            );
+
+                        result.push(responseObj)
+
+                    }));
+
+                    return resolve(result);
+
+                } else {
+
+                    let result;
+
+                    result = await _getLinkFromCloudService(
+                        filePath,
+                        bucketName,
+                        cloudStorage
+                    );
+
+                    let responseObj = {
+                        filePath: filePath,
+                        url: result
+                    };
+
+                    return resolve(responseObj);
+                }
+
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+}
+
+
+/**
+       * Get downloadable url
+       * @method
+       * @name _getLinkFromCloudService
+       * @param  {filePath}  - File path.
+       * @return {String} - Downloadable url link
+     */
+
+function _getLinkFromCloudService(filePath, bucketName, cloudStorage) {
+
+    return new Promise(async function (resolve, reject) {
+        try {
+
+            let result;
+
+            if (cloudStorage === constants.common.AWS_SERVICE) {
+                result = await awsServices.getDownloadableUrl(
+                    filePath,
+                    bucketName
+                );
+            } else if (cloudStorage === constants.common.GOOGLE_CLOUD_SERVICE) {
+                result = await googleCloudServices.getDownloadableUrl(
+                    filePath,
+                    bucketName
+                );
+            } else if (cloudStorage === constants.common.AZURE_SERVICE) {
+                result = await azureService.getDownloadableUrl(
+                    filePath,
+                    bucketName
+                );
+            }
+
+
+            return resolve(result);
+        } catch (error) {
+            return reject(error);
+        }
+
+    })
+
 }

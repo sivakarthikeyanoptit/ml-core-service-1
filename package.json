@@ -18,6 +18,7 @@
   "author": "Shikshalokam <info@shikshalokam.com>",
   "license": "ISC",
   "dependencies": {
+    "@azure/storage-blob": "^12.1.1",
     "@elastic/elasticsearch": "^6.7.1",
     "@google-cloud/storage": "^4.3.1",
     "aws-sdk": "^2.624.0",
