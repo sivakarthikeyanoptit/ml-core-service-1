@@ -93,7 +93,7 @@ module.exports = async function (req, res, next) {
   }
 
   // Allow search endpoints for non-logged in users.
-  if (req.path.includes("bodh/search")) {
+  if ( req.path.includes("bodh/search") || req.path.includes("bodh/request") ) {
     next();
     return
   }
