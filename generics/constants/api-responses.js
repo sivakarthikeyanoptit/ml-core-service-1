@@ -12,6 +12,8 @@ module.exports = {
   "BODH_SEARCH_MIDDLEWARE_SUCCESS" : "Search result fetched successfully.",
   "BODH_SEARCH_AUTOCOMPLETE_SUCCESS" : "Search suggestions fetched successfully.",
   "BODH_SEARCH_AUTOCOMPLETE_FAILURE" : "Failed to retrieve search suggestions.",
+  "FETCH_BODH_REQUEST_MIDDLEWARE" : "Successfully fetched bodh request data",
+  "BODH_REQUEST_MIDDLEWARE_FAILED" : "Failed to retrieve bodh request data",
   "DICTIONARY_KEYWORDS_MISSING_FILE_ERROR" : "Missing keywords file",
   "DICTIONARY_KEYWORDS_MAPPING_MISSING_ERROR" : "Dictionary keywords mapping is missing.",
   "DICTIONARY_KEYWORDS_UPDATE_SUCCESS" : "Content keywords updated successfully.",
@@ -32,5 +34,5 @@ module.exports = {
   "QR_CODE_GENERATED" : "QR code generated successfully",
   "DIAL_CODE_NOT_GENERATED" : "Failed to generate dial code",
   "COULD_NOT_PUBLISH_DIAL_CODE" : "Failed to publish dial code",
-  "COULD_NOT_PUBLISH_CONTENT_DATA" : "Failed to publish content data"
+  "COULD_NOT_PUBLISH_CONTENT_DATA" : "Failed to publish content data",
 };
