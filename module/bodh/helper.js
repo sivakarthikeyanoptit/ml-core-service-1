@@ -617,4 +617,58 @@ module.exports = class BodhHelper {
         })
     }
 
+     /**
+      * Get request middleware data.
+      * @method
+      * @name getBodhResult
+      * @param {Object} request Contains request url, headers and body.
+      * @returns {Object} returns message and result of the bodh api.
+     */
+
+    static getBodhResult(request) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                
+                let reqObj = new httpRequest();
+                let response;
+
+                let options = {
+                    headers : request.headers
+                }
+
+                let methodName = request.method.toUpperCase();
+
+                if( methodName === constants.common.GET_METHOD ) {
+                    
+                    response = await reqObj.get(
+                        request.url,
+                        options
+                    );
+                } else if( methodName === constants.common.POST_METHOD ) {
+                    options["json"] = request.body;
+
+                    response = await reqObj.post(
+                        request.url,
+                        options
+                    );
+                }
+
+                return resolve({
+                    success : true,
+                    message : 
+                    constants.apiResponses.FETCH_BODH_REQUEST_MIDDLEWARE,
+                    result : response.data
+                });
+                
+            } catch (error) {
+                return resolve({
+                    success : true,
+                    message : error.message,
+                    data : false
+                });
+            }
+        })
+    }
+
 };

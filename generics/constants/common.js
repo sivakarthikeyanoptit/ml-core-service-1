@@ -24,5 +24,7 @@ module.exports = {
   "GOA_STATE" : "Goa",
   "UNNATI_APP_NAME" : "unnati",
   "PROFILE_UPDATE_NOTIFICATION_MESSAGE":"Please update your details.Help us make your experience better.",
-  "PROFILE_UPDATE_TITLE" : "Confirm your details."
+  "PROFILE_UPDATE_TITLE" : "Confirm your details.",
+  "GET_METHOD" : "GET",
+  "POST_METHOD" : "POST"
 };
