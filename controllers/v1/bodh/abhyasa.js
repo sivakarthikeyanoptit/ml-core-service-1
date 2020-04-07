@@ -31,7 +31,7 @@ module.exports = class Abhyasa {
 
     /**
      * @api {get} /kendra/api/v1/bodh/abhyasa/userIsAllowed/:userId  
-     * Check whether user belongs to AP organizations or not.
+     * Check whether user belongs to AP organisations or not.
      * @apiVersion 1.0.0
      * @apiGroup Abhyasa
      * @apiHeader {String} X-authenticated-user-token Authenticity token
@@ -40,20 +40,20 @@ module.exports = class Abhyasa {
      * @apiUse errorBody
      * @apiParamExample {json} Response:
      * {
-     * "message" : "Check if user belongs to AP organization",
+     * "message" : "Check if user belongs to AP organisation",
      * "status" : 200,
      * "result" : {
      * "isAllowed" : true,
-     * "organizationId" : "0125747659358699520"
+     * "organisationId" : "0125747659358699520"
      * }
      * }
 
     /**
-      * Check whether user belongs to AP organizations or not.
+      * Check whether user belongs to AP organisations or not.
       * @method
       * @name userIsAllowed
       * @param  {Request}  req  request body.
-      * @returns {json} If user belongs to AP organizations then user is allowed 
+      * @returns {json} If user belongs to AP organisations then user is allowed 
       * else user is not allowed.
      */
 
@@ -66,7 +66,7 @@ module.exports = class Abhyasa {
                 let abhyasaUser = await bodhHelper.userIsAllowed(
                     req.userDetails.userToken,
                     req.params._id ? req.params._id : req.userDetails.userId,
-                    process.env.AP_USERS_ORGANIZATION_ID
+                    process.env.AP_USERS_ORGANISATION_ID
                 );
 
                 abhyasaUser.message = constants.apiResponses.AP_USER_ALLOWED;
