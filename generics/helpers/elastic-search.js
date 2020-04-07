@@ -1398,7 +1398,7 @@ var getIndexTypeMapping = function (indexName = "", typeName = "") {
   * @name setIndexTypeMapping
   * @param {String} index - name of the index for elastic search.
   * @param {String} type - type for elastic search. 
-  * @param {Object} mapping - type for elastic search. 
+  * @param {Object} mapping - mapping for elastic search. 
   * @returns {Promise} returns a promise.
 */
 
@@ -1407,12 +1407,12 @@ var setIndexTypeMapping = function (index = "", type = "", mapping) {
   return new Promise(async function (resolve, reject) {
     try {
 
-      if (!index || index == "") {
-        throw "index is required";
+      if (index == "") {
+        throw new Error("Index is required");
       }
 
-      if (!type || type == "") {
-        throw "type is required";
+      if (type == "") {
+        throw new Error("Type is required");
       }
 
 
@@ -1444,13 +1444,13 @@ var setIndexTypeMapping = function (index = "", type = "", mapping) {
   * @returns {Promise} returns a promise.
 */
 
-var createIndex = function (index) {
+var createIndex = function (index = "") {
 
   return new Promise(async function (resolve, reject) {
     try {
 
-      if (!index) {
-        throw "index is required";
+      if (index == "") {
+        throw new Error("Index is required");
       }
       
       const createIndex = await elasticsearch.client.indices.create({ index: index});
