@@ -88,7 +88,7 @@ module.exports = class FilesHelper {
                         let responseObj = {};
                         responseObj.filePath = element;
                         responseObj.url = 
-                        await _getLinkFromCloudService(
+                        await  _getLinkFromCloudService(
                                 element,
                                 bucketName,
                                 cloudStorage
@@ -97,9 +97,9 @@ module.exports = class FilesHelper {
                         result.push(responseObj)
 
                     }));
-
+                    
                     return resolve(result);
-
+                    
                 } else {
 
                     let result;

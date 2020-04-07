@@ -14,7 +14,7 @@ module.exports = (req) => {
         },
         
         getDownloadableUrl: function () {
-            req.checkBody('filePath').exists().withMessage("required filePath field");
+            req.checkBody('filePaths').exists().withMessage("required filePaths field");
             req.checkBody('containerName').exists().withMessage("required containerName field");
         }
     }

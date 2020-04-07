@@ -10,7 +10,7 @@ module.exports = (req) => {
     let gcpInputValidator = {
         
         getDownloadableUrl: function () {
-            req.checkBody('filePath').exists().withMessage("required filePath field");
+            req.checkBody('filePaths').exists().withMessage("required filePaths field");
             req.checkBody('bucketName').exists().withMessage("required bucketName field");
         }
     }

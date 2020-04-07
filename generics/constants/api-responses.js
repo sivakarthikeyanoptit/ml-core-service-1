@@ -51,5 +51,6 @@ module.exports = {
   "STATE_LIST_NOT_FOUND":"State list not found",
   "COULD_NOT_GET_FORM":"Could not get userProfileForm",
   "USER_PROFILE_SAVED" : "User profile Saved successfully",
-  "PROFILE_UNDER_PENDING_VERIFICATION":"User profile is under Pending for verification"
+  "PROFILE_UNDER_PENDING_VERIFICATION":"User profile is under Pending for verification",
+  "CLOUD_SERVICE_SUCCESS_MESSAGE" : "Url's generated successfully"
 };
