@@ -662,11 +662,52 @@ module.exports = class BodhHelper {
                 });
                 
             } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+    /**
+      * Check whether user is allowed in particular organization.
+      * @method
+      * @name userIsAllowed
+      * @param {String} token - logged in user token.
+      * @param {String} userId - user Id.
+      * @param {String} organizationId
+      * @returns {Object} - isAllowed and organizationId
+     */
+
+    static userIsAllowed( token,userId,organizationId ) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let userProfileInformation = 
+                await sunbirdService.getUserProfile(
+                    token,
+                    userId
+                );
+
+                let organizationIndex = 
+                userProfileInformation.result.response.organisations.findIndex(
+                    (organisation) => organisation.organisationId === organizationId
+                )
+
+                let result = {
+                    isAllowed : false
+                };
+
+                if( organizationIndex !== -1 ) {
+                    result.isAllowed = true;
+                    result["organizationId"] = organizationId;
+                }
+
                 return resolve({
-                    success : true,
-                    message : error.message,
-                    data : false
-                });
+                    message : constants.apiResponses.USER_ALLOWED,
+                    result: result
+                })
+                
+            } catch (error) {
+                return reject(error);
             }
         })
     }
