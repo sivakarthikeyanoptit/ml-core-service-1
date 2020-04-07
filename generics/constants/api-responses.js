@@ -12,10 +12,11 @@ module.exports = {
   "BODH_SEARCH_MIDDLEWARE_SUCCESS" : "Search result fetched successfully.",
   "BODH_SEARCH_AUTOCOMPLETE_SUCCESS" : "Search suggestions fetched successfully.",
   "BODH_SEARCH_AUTOCOMPLETE_FAILURE" : "Failed to retrieve search suggestions.",
+  "FETCH_BODH_REQUEST_MIDDLEWARE" : "Successfully fetched bodh request data",
+  "BODH_REQUEST_MIDDLEWARE_FAILED" : "Failed to retrieve bodh request data",
   "DICTIONARY_KEYWORDS_MISSING_FILE_ERROR" : "Missing keywords file",
   "DICTIONARY_KEYWORDS_MAPPING_MISSING_ERROR" : "Dictionary keywords mapping is missing.",
   "DICTIONARY_KEYWORDS_UPDATE_SUCCESS" : "Content keywords updated successfully.",
-
   "ENTITY_NOT_FOUND" : "No entity found",
   "ENTITIES_FETCHED" : "List of entities fetched successfully",
   "BODY_NOT_FOUND" : "Body data not found",
