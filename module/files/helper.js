@@ -24,7 +24,8 @@ module.exports = class FilesHelper {
       * @name upload
       * @param  {file}  - file to upload.
       * @param  {filePathForBucket}  - file path where the file should upload.
-      * @returns {json} Response consists of links of uploaded qr code.
+      * @param {String} - bucketName
+      * @returns {json} Response consists of links of uploaded file.
     */
 
     static uploadFile(file, filePathForBucket, bucketName) {
@@ -64,6 +65,8 @@ module.exports = class FilesHelper {
        * @method
        * @name getDownloadableUrl
        * @param  {filePath}  - File path.
+       * @param  {String}  - Bucket name
+       * @param  {String}  - Storage name
        * @return {String} - Downloadable url link
      */
 
@@ -77,10 +80,10 @@ module.exports = class FilesHelper {
                     cloudStorage = storageName;
                 }
 
-                if (Array.isArray(filePath) === true) {
+                if (Array.isArray(filePath) && filePath.length > 0) {
 
                     let result = [];
-
+                    
                     await Promise.all(filePath.map(async element => {
                         let responseObj = {};
                         responseObj.filePath = element;

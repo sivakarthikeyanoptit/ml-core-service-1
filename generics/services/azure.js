@@ -40,11 +40,11 @@ let containerClient;
   * @returns {Object} - upload file information
 */
 
-let uploadFile = async function (file, fileName, container) {
+let uploadFile = async function (file, fileName, containerName) {
 
   return new Promise(async (resolve, reject) => {
 
-    const containerClient = blobServiceClient.getContainerClient(container);
+    const containerClient = blobServiceClient.getContainerClient(containerName);
     const content = file;
     const blobName = fileName;
     const blockBlobClient = containerClient.getBlockBlobClient(blobName);
@@ -58,7 +58,7 @@ let uploadFile = async function (file, fileName, container) {
 
       let result = {
         name: fileName,
-        bucket: container,
+        containerName: containerName,
         location: uploadBlobResponse.requestId
       };
       return resolve(result);
@@ -77,14 +77,14 @@ let uploadFile = async function (file, fileName, container) {
   * @returns {String} - Get downloadable url link
 */
 
-let getDownloadableUrl = function (filePath, container) {
+let getDownloadableUrl = function (filePath, containerName) {
 
   return new Promise(async (resolve, reject) => {
 
     try {
 
       let sasToken = generateBlobSASQueryParameters({
-        containerName: container,
+        containerName: containerName,
         blobName: filePath,
         permissions: BlobSASPermissions.parse("rw"),
         startsOn: new Date(),

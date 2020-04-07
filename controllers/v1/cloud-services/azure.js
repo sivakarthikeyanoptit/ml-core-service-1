@@ -75,8 +75,7 @@ module.exports = class Azure {
             await filesHelpers.uploadFile(
                  req.files.file.data,
                  req.body.filePath, 
-                 req.body.bucketName,
-                 constants.common.AZURE_SERVICE
+                 req.body.containerName
             );
 
             return resolve({
@@ -141,7 +140,7 @@ module.exports = class Azure {
                 let downloadableUrl =
                 await filesHelpers.getDownloadableUrl(
                      req.body.filePath, 
-                     req.body.bucketName,
+                     req.body.containerName,
                      constants.common.AZURE_SERVICE
                 );
 
