@@ -69,7 +69,9 @@ module.exports = class Abhyasa {
                     process.env.AP_USERS_ORGANISATION_ID
                 );
 
-                abhyasaUser.message = constants.apiResponses.AP_USER_ALLOWED;
+                if( !abhyasaUser.status ) {
+                    abhyasaUser.message = constants.apiResponses.AP_USER_ALLOWED;
+                }
 
                 return resolve(abhyasaUser);
 

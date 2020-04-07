@@ -176,7 +176,7 @@ module.exports = class BodhHelper {
                             throw new Error("Failed to add content to auto complete index.")
                         }
 
-                        if(eachContent.createdFor && eachContent.createdFor.length > 0) {
+                        if(Array.isArray(eachContent.createdFor) && eachContent.createdFor.length > 0) {
                             // Put course detail in ES by organisation index
                             for (let pointerToContentCreatedForOrganisations = 0; pointerToContentCreatedForOrganisations < eachContent.createdFor.length; pointerToContentCreatedForOrganisations++) {
                                 const orgId = eachContent.createdFor[pointerToContentCreatedForOrganisations]; 
@@ -440,9 +440,9 @@ module.exports = class BodhHelper {
                 let organisationId = "";
                 if(queryFilters["createdFor"]) {
                     if(Array.isArray(queryFilters["createdFor"])) {
-                        organisationId = queryFilters["createdFor"][0]
+                        organisationId = queryFilters["createdFor"][0];
                     } else if(queryFilters["createdFor"] != "") {
-                        organisationId = queryFilters["createdFor"]
+                        organisationId = queryFilters["createdFor"];
                     }
                     delete queryFilters["createdFor"];
                 }
@@ -806,6 +806,14 @@ module.exports = class BodhHelper {
                     token,
                     userId
                 );
+
+                if( userProfileInformation.responseCode !== constants.common.OK ) {
+                    
+                    return resolve({
+                        status : httpStatusCode.bad_request.status,
+                        message : constants.apiResponses.USER_NOT_FOUND
+                    })
+                }
 
                 let organisationIndex = 
                 userProfileInformation.result.response.organisations.findIndex(
