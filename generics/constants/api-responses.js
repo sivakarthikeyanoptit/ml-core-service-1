@@ -35,4 +35,7 @@ module.exports = {
   "DIAL_CODE_NOT_GENERATED" : "Failed to generate dial code",
   "COULD_NOT_PUBLISH_DIAL_CODE" : "Failed to publish dial code",
   "COULD_NOT_PUBLISH_CONTENT_DATA" : "Failed to publish content data",
+
+  "USER_ALLOWED" : "User allowed status for organization is fetched",
+  "AP_USER_ALLOWED" : "Check if user belongs to AP organization"
 };
