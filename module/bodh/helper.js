@@ -809,10 +809,10 @@ module.exports = class BodhHelper {
 
                 if( userProfileInformation.responseCode !== constants.common.OK ) {
                     
-                    return resolve({
+                    throw {
                         status : httpStatusCode.bad_request.status,
                         message : constants.apiResponses.USER_NOT_FOUND
-                    })
+                    }
                 }
 
                 let organisationIndex = 
