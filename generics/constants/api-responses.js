@@ -17,7 +17,6 @@ module.exports = {
   "DICTIONARY_KEYWORDS_MISSING_FILE_ERROR" : "Missing keywords file",
   "DICTIONARY_KEYWORDS_MAPPING_MISSING_ERROR" : "Dictionary keywords mapping is missing.",
   "DICTIONARY_KEYWORDS_UPDATE_SUCCESS" : "Content keywords updated successfully.",
-
   "ENTITY_NOT_FOUND" : "No entity found",
   "ENTITIES_FETCHED" : "List of entities fetched successfully",
   "IMMEDIATE_ENTITIES_FETCHED" : "List of immediate entities fetched",
@@ -35,4 +34,6 @@ module.exports = {
   "DIAL_CODE_NOT_GENERATED" : "Failed to generate dial code",
   "COULD_NOT_PUBLISH_DIAL_CODE" : "Failed to publish dial code",
   "COULD_NOT_PUBLISH_CONTENT_DATA" : "Failed to publish content data",
+  "USER_ALLOWED" : "User allowed status for organisation is fetched",
+  "AP_USER_ALLOWED" : "Check if user belongs to AP organisation"
 };
