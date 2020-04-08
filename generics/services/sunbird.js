@@ -237,10 +237,57 @@ var publishContent = async function ( contentData,contentId ) {
     
 }
 
+
+/**
+  * Get user profile information.
+  * @function
+  * @name getUserProfile
+  * @param token - Logged in user token.
+  * @param userId - Logged in user id.
+  * @returns {JSON} - user profile information
+*/
+
+var getUserProfile = async function ( token,userId ) {
+
+    const userProfileUrl = 
+    process.env.sunbird_url+constants.endpoints.SUNBIRD_USER_READ+"/"+userId;
+
+    return new Promise(async (resolve,reject)=>{
+        try {
+            
+            let options = {
+                "headers": {
+                    "content-type" : "application/json",
+                    "authorization" : process.env.AUTHORIZATION,
+                    "x-authenticated-user-token" :  token
+                }
+            };
+
+            request.get(userProfileUrl,options,callback);
+            
+            function callback(err,data) {
+                if( err ) {
+                    throw {
+                        message : 
+                        constants.apiResponses.SUNBIRD_SERVICE_DOWN
+                    };
+                } else {
+                    let userProfileInformationData = data.body;
+                    return resolve(JSON.parse(userProfileInformationData))
+                }
+            }
+        } catch(err) {
+            return reject(err);
+        }
+    })
+    
+}
+
 module.exports = {
     generateCodes : generateCodes,
     publishCode : publishCode,
     codeStatus : codeStatus,
     linkContent : linkContent,
-    publishContent : publishContent
+    publishContent : publishContent,
+    getUserProfile : getUserProfile
 };

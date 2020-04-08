@@ -125,45 +125,48 @@ module.exports = function (app) {
 
       }
       catch (error) {
-        res.status(error.status ? error.status : 400).json({
-          status: error.status ? error.status : 400,
+        res.status(error.status ? error.status : httpStatusCode.bad_request.status).json({
+          status: error.status ? error.status : httpStatusCode.bad_request.status,
           message: error.message
         });
 
-        let customFields = {
-          appDetails: '',
-          userDetails: "NON_LOGGED_IN_USER"
-        };
-
-        if (req.userDetails) {
-          customFields = {
-            appDetails: req.headers["user-agent"],
-            userDetails: req.userDetails.firstName + " - " + req.userDetails.lastName + " - " + req.userDetails.email
+        if ( error.status !== httpStatusCode.bad_request.status ) {
+          
+          let customFields = {
+            appDetails: '',
+            userDetails: "NON_LOGGED_IN_USER"
           };
+  
+          if (req.userDetails) {
+            customFields = {
+              appDetails: req.headers["user-agent"],
+              userDetails: req.userDetails.firstName + " - " + req.userDetails.lastName + " - " + req.userDetails.email
+            };
+          }
+  
+          let toLogObject = {
+            slackErrorName: process.env.SLACK_ERROR_NAME,
+            color: process.env.SLACK_ERROR_MESSAGE_COLOR,
+            method: req.method,
+            url: req.url,
+            body: req.body && !_.isEmpty(req.body) ? req.body : "not provided",
+            errorMsg: "not provided",
+            errorStack: "not provided"
+          };
+  
+          if (error.message) {
+            toLogObject["errorMsg"] = JSON.stringify(error.message);
+          } else if (error.errorObject) {
+            toLogObject["errorMsg"] = error.errorObject.message;
+            toLogObject["errorStack"] = error.errorObject.stack;
+          }
+  
+          slackClient.sendMessageToSlack(_.merge(toLogObject, customFields));
         }
-
-        let toLogObject = {
-          slackErrorName: process.env.SLACK_ERROR_NAME,
-          color: process.env.SLACK_ERROR_MESSAGE_COLOR,
-          method: req.method,
-          url: req.url,
-          body: req.body && !_.isEmpty(req.body) ? req.body : "not provided",
-          errorMsg: "not provided",
-          errorStack: "not provided"
-        };
-
-        if (error.message) {
-          toLogObject["errorMsg"] = JSON.stringify(error.message);
-        } else if (error.errorObject) {
-          toLogObject["errorMsg"] = error.errorObject.message;
-          toLogObject["errorStack"] = error.errorObject.stack;
-        }
-
-        slackClient.sendMessageToSlack(_.merge(toLogObject, customFields));
-        
         if(ENABLE_DEBUG_LOGGING === "ON") {
           logger.error("Error Response:", error);
         }
+        
       };
     }
   };

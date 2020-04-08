@@ -53,5 +53,8 @@ module.exports = {
   "COULD_NOT_GET_FORM":"Could not get userProfileForm",
   "USER_PROFILE_SAVED" : "User profile Saved successfully",
   "PROFILE_UNDER_PENDING_VERIFICATION":"User profile is under Pending for verification",
-  "CLOUD_SERVICE_SUCCESS_MESSAGE" : "Url's generated successfully"
+  "CLOUD_SERVICE_SUCCESS_MESSAGE" : "Url's generated successfully",
+  "USER_ALLOWED" : "User allowed status for organisation is fetched",
+  "AP_USER_ALLOWED" : "Check if user belongs to AP organisation",
+  "USER_NOT_FOUND" : "User is not found"
 };
