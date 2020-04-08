@@ -173,7 +173,38 @@ module.exports = class BodhHelper {
                         );
 
                         if(addCourseToAutocomplete.statusCode != httpStatusCode["ok"].status && addCourseToAutocomplete.statusCode != 201) {
-                            throw new Error("Failed to add content to auto complete.")
+                            throw new Error("Failed to add content to auto complete index.")
+                        }
+
+                        if(Array.isArray(eachContent.createdFor) && eachContent.createdFor.length > 0) {
+                            // Put course detail in ES by organisation index
+                            for (let pointerToContentCreatedForOrganisations = 0; pointerToContentCreatedForOrganisations < eachContent.createdFor.length; pointerToContentCreatedForOrganisations++) {
+                                const orgId = eachContent.createdFor[pointerToContentCreatedForOrganisations]; 
+
+                                // Check if ES index for organisation content exists   
+                                const checkIfOrgIndexExists = await this.autocompleteIndexTypeMapExists(orgId);
+
+                                if(checkIfOrgIndexExists.success && !checkIfOrgIndexExists.data) {
+                                    // Create org content index in ES
+                                    const createOrgIndexMapping = await this.createAutocompleteIndexTypeMap(orgId);
+                                    if(createOrgIndexMapping.success && !createOrgIndexMapping.data) {
+                                        throw new Error("Failed to create auto complete index mapping.")
+                                    }
+                                }
+
+                                const addCourseToAutocomplete = await elasticSearchHelper.createOrUpdateDocumentInIndex(
+                                    bodhContentIndex+"-"+orgId,
+                                    bodhContentIndexType,
+                                    eachContent.IL_UNIQUE_ID,
+                                    {
+                                        suggest : suggestContent,
+                                        rawContent : eachContent
+                                    }
+                                );
+                                if(addCourseToAutocomplete.statusCode != httpStatusCode["ok"].status && addCourseToAutocomplete.statusCode != 201) {
+                                    throw new Error("Failed to add content to auto complete index.")
+                                }
+                            }
                         }
 
                         if(!addCourseToAutocomplete.data) {
@@ -258,10 +289,11 @@ module.exports = class BodhHelper {
       * Check if mapping for dictionary index exists in Elastic search.
       * @method
       * @name autocompleteIndexTypeMapExists
+      * @param {String} organisationId Query typed by user.
       * @returns {Promise} returns a promise.
      */
 
-    static autocompleteIndexTypeMapExists() {
+    static autocompleteIndexTypeMapExists(organisationId = "") {
         return new Promise(async (resolve, reject) => {
             try {
 
@@ -273,7 +305,12 @@ module.exports = class BodhHelper {
                     throw new Error("Missing bodh content index type name");
                 }
 
-                const bodhIndexMapping = await elasticSearchHelper.getIndexTypeMapping(bodhContentIndex, bodhContentIndexType);
+                let bodhContentIndexName = bodhContentIndex;
+                if(organisationId != "") {
+                    bodhContentIndexName = bodhContentIndex+"-"+organisationId;
+                }
+
+                const bodhIndexMapping = await elasticSearchHelper.getIndexTypeMapping(bodhContentIndexName, bodhContentIndexType);
 
                 if(bodhIndexMapping.statusCode != httpStatusCode["ok"].status) {
                     throw new Error("Bodh content index type map does not exist.");
@@ -295,6 +332,74 @@ module.exports = class BodhHelper {
         })
     }
 
+
+
+     /**
+      * Create bodh content index in Elastic search.
+      * @method
+      * @name createAutocompleteIndexTypeMap
+      * @param {String} organisationId Query typed by user.
+      * @returns {Promise} returns a promise.
+     */
+
+    static createAutocompleteIndexTypeMap(organisationId = "") {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                if(bodhContentIndex == "") {
+                    throw new Error("Missing bodh content index name");
+                }
+
+                if(bodhContentIndexType == "") {
+                    throw new Error("Missing bodh content index type name");
+                }
+
+                let bodhContentIndexName = bodhContentIndex;
+                if(organisationId != "") {
+                    bodhContentIndexName = bodhContentIndex+"-"+organisationId;
+                }
+
+                const createBodhContentIndex =  await elasticSearchHelper.createIndex(bodhContentIndexName);
+
+                if(createBodhContentIndex.statusCode != httpStatusCode["ok"].status) {
+                    throw new Error("Could not create bodh content index.");
+                }
+
+                let autoCompleteIndexMapping = {
+                    properties: {
+                        suggest: {
+                            type : "completion",
+                            contexts: [
+                                { 
+                                  "name": "isACourse",
+                                  "type": "category"
+                                }
+                            ]
+                        }
+                    }
+                }
+
+                const bodhIndexMapping = await elasticSearchHelper.setIndexTypeMapping(bodhContentIndexName, bodhContentIndexType, autoCompleteIndexMapping);
+                
+                if(bodhIndexMapping.statusCode != httpStatusCode["ok"].status) {
+                    throw new Error("Bodh content index type map does not exist.");
+                }
+            
+                return resolve({
+                    success : true,
+                    message : "Bodh content index type created",
+                    data : true
+                });
+                
+            } catch (error) {
+                return resolve({
+                    success : true,
+                    message : error.message,
+                    data : false
+                });
+            }
+        })
+    }
 
      /**
       * Get search suggestions for user query string from Elastic search.
@@ -332,7 +437,22 @@ module.exports = class BodhHelper {
                     }
                 }
 
-                const searchResponse = await elasticSearchHelper.searchDocumentFromIndex(bodhContentIndex, bodhContentIndexType, queryObject);
+                let organisationId = "";
+                if(queryFilters["createdFor"]) {
+                    if(Array.isArray(queryFilters["createdFor"]) && queryFilters["createdFor"][0] && queryFilters["createdFor"][0] != "") {
+                        organisationId = queryFilters["createdFor"][0];
+                    } else if(queryFilters["createdFor"] != "") {
+                        organisationId = queryFilters["createdFor"];
+                    }
+                    delete queryFilters["createdFor"];
+                }
+
+                let bodhContentIndexName = bodhContentIndex;
+                if(organisationId != "") {
+                    bodhContentIndexName = bodhContentIndex+"-"+organisationId;
+                }
+
+                const searchResponse = await elasticSearchHelper.searchDocumentFromIndex(bodhContentIndexName, bodhContentIndexType, queryObject);
 
                 let suggestions = new Array;
 
@@ -662,11 +782,60 @@ module.exports = class BodhHelper {
                 });
                 
             } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+    /**
+      * Check whether user is allowed in particular organisation.
+      * @method
+      * @name userIsAllowed
+      * @param {String} token - logged in user token.
+      * @param {String} userId - user Id.
+      * @param {String} organisationId
+      * @returns {Object} - isAllowed and organisationId
+     */
+
+    static userIsAllowed( token,userId,organisationId ) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let userProfileInformation = 
+                await sunbirdService.getUserProfile(
+                    token,
+                    userId
+                );
+
+                if( userProfileInformation.responseCode !== constants.common.OK ) {
+                    
+                    throw {
+                        status : httpStatusCode.bad_request.status,
+                        message : constants.apiResponses.USER_NOT_FOUND
+                    }
+                }
+
+                let organisationIndex = 
+                userProfileInformation.result.response.organisations.findIndex(
+                    (organisation) => organisation.organisationId === organisationId
+                )
+
+                let result = {
+                    isAllowed : false
+                };
+
+                if( organisationIndex !== -1 ) {
+                    result.isAllowed = true;
+                    result["organisationId"] = organisationId;
+                }
+
                 return resolve({
-                    success : true,
-                    message : error.message,
-                    data : false
-                });
+                    message : constants.apiResponses.USER_ALLOWED,
+                    result: result
+                })
+                
+            } catch (error) {
+                return reject(error);
             }
         })
     }

@@ -1392,6 +1392,81 @@ var getIndexTypeMapping = function (indexName = "", typeName = "") {
 };
 
 
+/**
+  * Set index mapping.
+  * @function
+  * @name setIndexTypeMapping
+  * @param {String} index - name of the index for elastic search.
+  * @param {String} type - type for elastic search. 
+  * @param {Object} mapping - mapping for elastic search. 
+  * @returns {Promise} returns a promise.
+*/
+
+var setIndexTypeMapping = function (index = "", type = "", mapping) {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (index == "") {
+        throw new Error("Index is required");
+      }
+
+      if (type == "") {
+        throw new Error("Type is required");
+      }
+
+
+    const putMapping = await elasticsearch.client.indices.putMapping({
+      index: index,
+      type: type,
+      body: mapping
+      // include_type_name : true - Commented as it is not required in 6.8
+    });
+
+    if(putMapping.statusCode != 200) {
+      throw new Error("Error while updating mapping for index.");
+    }
+    
+    return resolve(putMapping);
+
+    } catch (error) {
+      return reject(error);
+    }
+  })
+};
+
+
+/**
+  * Create index.
+  * @function
+  * @name createIndex
+  * @param {String} index - name of the index for elastic search.
+  * @returns {Promise} returns a promise.
+*/
+
+var createIndex = function (index = "") {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (index == "") {
+        throw new Error("Index is required");
+      }
+      
+      const createIndex = await elasticsearch.client.indices.create({ index: index});
+
+      if(createIndex.statusCode != 200) {
+        throw new Error("Error while creating bodh content index.")
+      }
+    
+      return resolve(createIndex);
+
+    } catch (error) {
+      return reject(error);
+    }
+  })
+};
+
 module.exports = {
   pushNotificationData : pushNotificationData,
   getNotificationData : getNotificationData,
@@ -1409,5 +1484,7 @@ module.exports = {
   getIndexTypeMapping : getIndexTypeMapping,
   deleteDocumentFromIndex : deleteDocumentFromIndex,
   createOrUpdateDocumentInIndex : createOrUpdateDocumentInIndex,
-  searchDocumentFromIndex : searchDocumentFromIndex
+  searchDocumentFromIndex : searchDocumentFromIndex,
+  createIndex : createIndex,
+  setIndexTypeMapping : setIndexTypeMapping
 };
