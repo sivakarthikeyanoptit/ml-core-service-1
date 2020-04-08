@@ -52,5 +52,8 @@ module.exports = {
   "STATE_LIST_NOT_FOUND":"State list not found",
   "COULD_NOT_GET_FORM":"Could not get userProfileForm",
   "USER_PROFILE_SAVED" : "User profile Saved successfully",
-  "PROFILE_UNDER_PENDING_VERIFICATION":"User profile is under Pending for verification"
+  "PROFILE_UNDER_PENDING_VERIFICATION":"User profile is under Pending for verification",
+  "USER_ALLOWED" : "User allowed status for organisation is fetched",
+  "AP_USER_ALLOWED" : "Check if user belongs to AP organisation",
+  "USER_NOT_FOUND" : "User is not found"
 };
