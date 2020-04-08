@@ -439,7 +439,7 @@ module.exports = class BodhHelper {
 
                 let organisationId = "";
                 if(queryFilters["createdFor"]) {
-                    if(Array.isArray(queryFilters["createdFor"])) {
+                    if(Array.isArray(queryFilters["createdFor"]) && queryFilters["createdFor"][0] != "") {
                         organisationId = queryFilters["createdFor"][0];
                     } else if(queryFilters["createdFor"] != "") {
                         organisationId = queryFilters["createdFor"];
