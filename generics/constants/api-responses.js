@@ -36,5 +36,7 @@ module.exports = {
   "COULD_NOT_PUBLISH_CONTENT_DATA" : "Failed to publish content data",
   "USER_ALLOWED" : "User allowed status for organisation is fetched",
   "AP_USER_ALLOWED" : "Check if user belongs to AP organisation",
-  "USER_NOT_FOUND" : "User is not found"
+  "USER_NOT_FOUND" : "User is not found",
+  "BATCH_ENROLL_FETCHED" : "Batch enroll fetched successfully",
+  "COULD_NOT_SYNCED_INDEX" : "Could not synced users index"
 };
