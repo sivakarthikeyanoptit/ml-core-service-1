@@ -840,4 +840,57 @@ module.exports = class BodhHelper {
         })
     }
 
+     /**
+      * Batch enrollment of users in courses.
+      * @method
+      * @name enroll
+      * @param {String} requestedData 
+      * @returns {Object} - message and result. Result is an array consisting of userId and
+      * success message.Success can be true or false.  
+     */
+
+    static enroll( requestedData,token ) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let result = requestedData.userIds.map(userId=>{
+                    let user = {};
+                    user["userId"] = userId;
+                    user["success"] = true;
+                    return user;
+                });
+
+                let indexSyncedData = 
+                await sunbirdService.indexSync(
+                    {
+                        "params": {},
+                        "request": {
+                            "objectType": "user_course",
+                            "objectIds": [
+                                "73746ab4b202c804220a6ccc16dc1639660486a2d492c51ceea8422f6a158123"
+                            ]
+                        }
+                    },
+                    token
+                );
+
+                if( indexSyncedData.responseCode !== constants.common.OK ) {
+                    
+                    throw {
+                        status : httpStatusCode.bad_request.status,
+                        message : constants.apiResponses.COULD_NOT_SYNCED_INDEX
+                    }
+                }
+
+                return resolve({
+                    message : constants.apiResponses.BATCH_ENROLL_FETCHED,
+                    result: result
+                });
+                
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
 };

@@ -19,5 +19,6 @@ module.exports = {
     SUNBIRD_DIALCODE_STATUS : "/api/dialcode/v1/read",
     SUNBIRD_CONTENT_LINK : "/api/dialcode/v1/content/link",
     SUNBIRD_PUBLISH_CONTENT : "/api/content/v1/publish",
-    SUNBIRD_USER_READ : "/api/user/v1/read"
+    SUNBIRD_USER_READ : "/api/user/v1/read",
+    SUNBIRD_INDEX_SYNC : "/api/data/v1/index/sync"
 }
