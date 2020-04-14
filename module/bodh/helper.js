@@ -332,8 +332,6 @@ module.exports = class BodhHelper {
         })
     }
 
-
-
      /**
       * Create bodh content index in Elastic search.
       * @method
@@ -841,37 +839,54 @@ module.exports = class BodhHelper {
     }
 
      /**
-      * Batch enrollment of users in courses.
+      * Courses enrolled by users.
       * @method
-      * @name enroll
+      * @name enrol
       * @param {String} requestedData 
       * @returns {Object} - message and result. Result is an array consisting of userId and
       * success message.Success can be true or false.  
      */
 
-    static enroll( requestedData,token ) {
+    static enrol( requestedData,token ) {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let result = requestedData.userIds.map(userId=>{
-                    let user = {};
-                    user["userId"] = userId;
-                    user["success"] = true;
-                    return user;
-                });
+                let results = [];
+                let enrollmentIds = [];
+
+                await Promise.all(requestedData.userIds.map(async function (userId) {
+
+                    let userCourse = 
+                    await cassandraDatabase.models.user_courses.findOneAsync(
+                        {
+                            userid : userId,
+                            batchid : requestedData.batchId
+                        },{
+                            allow_filtering: true
+                        }
+                    );
+
+                    let obj = {
+                        userId : userId,
+                        success : false
+                    };
+
+                    if( userCourse && userCourse.id ) {
+                        obj["success"] = true;
+                        enrollmentIds.push(userCourse.id);
+                    }
+
+                    results.push(obj);
+                }));
 
                 let indexSyncedData = 
-                await sunbirdService.indexSync(
-                    {
-                        "params": {},
-                        "request": {
-                            "objectType": "user_course",
-                            "objectIds": [
-                                "73746ab4b202c804220a6ccc16dc1639660486a2d492c51ceea8422f6a158123"
-                            ]
-                        }
-                    },
-                    token
+                await sunbirdService.indexSync({
+                    "params": {},
+                    "request": {
+                        "objectType": "user_course",
+                        "objectIds": enrollmentIds
+                    }
+                },token
                 );
 
                 if( indexSyncedData.responseCode !== constants.common.OK ) {
@@ -883,10 +898,10 @@ module.exports = class BodhHelper {
                 }
 
                 return resolve({
-                    message : constants.apiResponses.BATCH_ENROLL_FETCHED,
-                    result: result
+                    message :  constants.apiResponses.BATCH_ENROLL_FETCHED,
+                    result : results
                 });
-                
+
             } catch (error) {
                 return reject(error);
             }
