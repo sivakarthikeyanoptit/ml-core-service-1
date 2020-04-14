@@ -851,32 +851,37 @@ module.exports = class BodhHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let result = [];
+                let results = [];
 
                 await Promise.all(requestedData.userIds.map(async function (userId) {
-                    cassandraDatabase.models.user_courses.findOne(
-                        { 
+
+                    let userCourse = 
+                    await cassandraDatabase.models.user_courses.findOneAsync(
+                        {
                             userid : userId,
-                            batchid : requestedData.batchid
-                        },{ raw: true, allow_filtering: true }, async function (err, result) {
-                            
-                            let obj = {
-                                userId : userId,
-                                success : false
-                            };
+                            batchid : requestedData.batchId
+                        }
+                    );
 
-                            if( result && result.id ) {
-                                obj["success"] = true;
-                            }
+                    let obj = {
+                        userId : userId,
+                        success : false
+                    };
 
-                            result.push(obj);
+                    if( userCourse && userCourse.id ) {
+                        obj["success"] = true;
+                    }
+
+                    results.push(obj);
+
+                    if(result.length === requestedData.userIds.length ) {
+                        return resolve({
+                            message : constants.apiResponses.BATCH_ENROLL_FETCHED,
+                            result: results
                         });
+                    }
                 }));
 
-                return resolve({
-                    message : constants.apiResponses.BATCH_ENROLL_FETCHED,
-                    result: result
-                });
                 
             } catch (error) {
                 return reject(error);
