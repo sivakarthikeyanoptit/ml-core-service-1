@@ -21,6 +21,20 @@ let db_connect = function (configData) {
 };
 
 /**
+  * Cassandra Database configuration.
+  * @function
+  * @name db_connect
+  * @param {Object} cassandraConfigurationData  - configuration data for cassandra.
+*/
+
+let cassandra_connect = function (cassandraConfigurationData) {
+  global.cassandraDatabase = require("./db/cassandra")(cassandraConfigurationData);
+  if( !global.Abstract ){
+    global.Abstract = require(process.env.PATH_TO_ABSTRACT_FILE);
+  }
+};
+
+/**
   * kafka configuration.
   * @function
   * @name kafka_connect
@@ -77,7 +91,13 @@ const configuration = {
         options: {
           useNewUrlParser: true
         }
+      }, 
+      cassandra: {
+        host: process.env.CASSANDRA_HOST,
+        port:process.env.CASSANDRA_PORT,
+        keyspace: process.env.CASSANDRA_DB,
       }
+ 
     },
     plugins: {
       timestamps: true,
@@ -129,6 +149,7 @@ const configuration = {
 };
 
 db_connect(configuration);
+cassandra_connect(configuration.db.connection.cassandra);
 
 kafka_connect(configuration);
 

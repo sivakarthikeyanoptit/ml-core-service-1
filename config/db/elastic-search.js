@@ -8,7 +8,7 @@
 
 //dependencies
 const { Client : esClient } = require('@elastic/elasticsearch');
-let slackClient = require("../generics/helpers/slack-communications");
+let slackClient = require("../../generics/helpers/slack-communications");
 
 /**
  * Elastic search connection.
