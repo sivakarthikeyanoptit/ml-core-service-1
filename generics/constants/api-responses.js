@@ -55,5 +55,7 @@ module.exports = {
   "PROFILE_UNDER_PENDING_VERIFICATION":"User profile is under Pending for verification",
   "USER_ALLOWED" : "User allowed status for organisation is fetched",
   "AP_USER_ALLOWED" : "Check if user belongs to AP organisation",
-  "USER_NOT_FOUND" : "User is not found"
+  "USER_NOT_FOUND" : "User is not found",
+  "BATCH_ENROLL_FETCHED" : "Courses enrolled by users",
+  "COULD_NOT_SYNCED_INDEX" : "Could not synced users index"
 };
