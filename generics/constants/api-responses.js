@@ -37,6 +37,6 @@ module.exports = {
   "USER_ALLOWED" : "User allowed status for organisation is fetched",
   "AP_USER_ALLOWED" : "Check if user belongs to AP organisation",
   "USER_NOT_FOUND" : "User is not found",
-  "BATCH_ENROLL_FETCHED" : "Batch enroll fetched successfully",
+  "BATCH_ENROLL_FETCHED" : "Courses enrolled by users",
   "COULD_NOT_SYNCED_INDEX" : "Could not synced users index"
 };
