@@ -332,8 +332,6 @@ module.exports = class BodhHelper {
         })
     }
 
-
-
      /**
       * Create bodh content index in Elastic search.
       * @method
@@ -834,6 +832,76 @@ module.exports = class BodhHelper {
                     result: result
                 })
                 
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+     /**
+      * Courses enrolled by users.
+      * @method
+      * @name enrol
+      * @param {String} requestedData 
+      * @returns {Object} - message and result. Result is an array consisting of userId and
+      * success message.Success can be true or false.  
+     */
+
+    static enrol( requestedData,token ) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let results = [];
+                let enrollmentIds = [];
+
+                await Promise.all(requestedData.userIds.map(async function (userId) {
+
+                    let userCourse = 
+                    await cassandraDatabase.models.user_courses.findOneAsync(
+                        {
+                            userid : userId,
+                            batchid : requestedData.batchId
+                        },{
+                            allow_filtering: true
+                        }
+                    );
+
+                    let obj = {
+                        userId : userId,
+                        success : false
+                    };
+
+                    if( userCourse && userCourse.id ) {
+                        obj["success"] = true;
+                        enrollmentIds.push(userCourse.id);
+                    }
+
+                    results.push(obj);
+                }));
+
+                let indexSyncedData = 
+                await sunbirdService.indexSync({
+                    "params": {},
+                    "request": {
+                        "objectType": "user_course",
+                        "objectIds": enrollmentIds
+                    }
+                },token
+                );
+
+                if( indexSyncedData.responseCode !== constants.common.OK ) {
+                    
+                    throw {
+                        status : httpStatusCode.bad_request.status,
+                        message : constants.apiResponses.COULD_NOT_SYNCED_INDEX
+                    }
+                }
+
+                return resolve({
+                    message :  constants.apiResponses.BATCH_ENROLL_FETCHED,
+                    result : results
+                });
+
             } catch (error) {
                 return reject(error);
             }

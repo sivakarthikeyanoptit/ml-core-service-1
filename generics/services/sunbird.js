@@ -283,11 +283,56 @@ var getUserProfile = async function ( token,userId ) {
     
 }
 
+/**
+  * Sync index
+  * @function
+  * @name indexSync
+  * @param syncData - Sync 
+  * @param syncData.requests.objectType
+  * @param syncData.requests.userIds {Array} - user ids
+  * @param token - Logged in user token.
+  * @returns {Promise}
+*/
+
+var indexSync = async function ( syncData,token ) {
+
+    const indexSyncUrl = 
+    process.env.sunbird_url+constants.endpoints.SUNBIRD_INDEX_SYNC;
+
+    return new Promise(async (resolve,reject)=>{
+        
+        let options = {
+            "headers":{
+            "content-type": "application/json",
+            "authorization" :  process.env.AUTHORIZATION,
+            "x-authenticated-user-token" : token,
+            "x-channel-id" : process.env.SUNBIRD_ORGANISATION_ID 
+            },
+            json : syncData
+        };
+        
+        request.post(indexSyncUrl,options,callback);
+        
+        function callback(err,data){
+            if( err ) {
+                return reject({
+                    message : constants.apiResponses.SUNBIRD_SERVICE_DOWN
+                });
+            } else {
+                let indexSyncedData = data.body;
+                return resolve(indexSyncedData);
+            }
+        }
+    })
+    
+}
+
 module.exports = {
     generateCodes : generateCodes,
     publishCode : publishCode,
     codeStatus : codeStatus,
     linkContent : linkContent,
     publishContent : publishContent,
-    getUserProfile : getUserProfile
+    getUserProfile : getUserProfile,
+    indexSync : indexSync
 };
