@@ -332,8 +332,6 @@ module.exports = class BodhHelper {
         })
     }
 
-
-
      /**
       * Create bodh content index in Elastic search.
       * @method
@@ -841,15 +839,15 @@ module.exports = class BodhHelper {
     }
 
      /**
-      * Batch enrollment of users in courses.
+      * Courses enrolled by users.
       * @method
-      * @name enroll
+      * @name enrol
       * @param {String} requestedData 
       * @returns {Object} - message and result. Result is an array consisting of userId and
       * success message.Success can be true or false.  
      */
 
-    static enroll( requestedData,token ) {
+    static enrol( requestedData,token ) {
         return new Promise(async (resolve, reject) => {
             try {
 

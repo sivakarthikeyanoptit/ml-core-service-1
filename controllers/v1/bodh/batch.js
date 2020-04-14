@@ -14,7 +14,12 @@ const bodhHelper = require(MODULES_BASE_PATH + "/bodh/helper");
     * @class
 */
 
-module.exports = class Batch {
+module.exports = class Batch extends Abstract {
+
+    constructor() {
+        super(schemas["user-courses"]);
+    }
+        
 
     /**
      * @apiDefine errorBody
@@ -31,7 +36,7 @@ module.exports = class Batch {
 
     /**
      * @api {post} /kendra/api/v1/bodh/batch/enrol    
-     * Enroll users in courses batches.
+     * Courses enrolled by users.
      * @apiVersion 1.0.0
      * @apiGroup Batch
      * @apiHeader {String} X-authenticated-user-token Authenticity token
@@ -48,7 +53,7 @@ module.exports = class Batch {
      * }
      * @apiParamExample {json} Response:
      * {
-     * "message": "Batch enroll fetched successfully",
+     * "message": "Courses enrolled by users",
      * "status": 200,
      * "result": [
      * {
@@ -59,7 +64,7 @@ module.exports = class Batch {
      * }
     
     /**
-      * Enroll users in courses batches
+      * Courses enrolled by users
       * @method
       * @name enroll
       * @param  {Request} req request body.
@@ -72,7 +77,7 @@ module.exports = class Batch {
 
             try {
 
-                let batchEnroll = await bodhHelper.enroll(
+                let batchEnroll = await bodhHelper.enrol(
                     req.body,
                     req.userDetails.userToken
                 );
