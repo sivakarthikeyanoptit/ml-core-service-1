@@ -852,6 +852,7 @@ module.exports = class BodhHelper {
             try {
 
                 let results = [];
+                let enrollmentIds = [];
 
                 await Promise.all(requestedData.userIds.map(async function (userId) {
 
@@ -860,6 +861,8 @@ module.exports = class BodhHelper {
                         {
                             userid : userId,
                             batchid : requestedData.batchId
+                        },{
+                            allow_filtering: true
                         }
                     );
 
@@ -870,19 +873,35 @@ module.exports = class BodhHelper {
 
                     if( userCourse && userCourse.id ) {
                         obj["success"] = true;
+                        enrollmentIds.push(userCourse.id);
                     }
 
                     results.push(obj);
-
-                    if(result.length === requestedData.userIds.length ) {
-                        return resolve({
-                            message : constants.apiResponses.BATCH_ENROLL_FETCHED,
-                            result: results
-                        });
-                    }
                 }));
 
-                
+                let indexSyncedData = 
+                await sunbirdService.indexSync({
+                    "params": {},
+                    "request": {
+                        "objectType": "user_course",
+                        "objectIds": enrollmentIds
+                    }
+                },token
+                );
+
+                if( indexSyncedData.responseCode !== constants.common.OK ) {
+                    
+                    throw {
+                        status : httpStatusCode.bad_request.status,
+                        message : constants.apiResponses.COULD_NOT_SYNCED_INDEX
+                    }
+                }
+
+                return resolve({
+                    message :  constants.apiResponses.BATCH_ENROLL_FETCHED,
+                    result : results
+                });
+
             } catch (error) {
                 return reject(error);
             }
