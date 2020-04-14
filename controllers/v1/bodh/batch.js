@@ -30,12 +30,12 @@ module.exports = class Batch {
 
 
     /**
-     * @api {post} /kendra/api/v1/bodh/batch/enroll    
+     * @api {post} /kendra/api/v1/bodh/batch/enrol    
      * Enroll users in courses batches.
      * @apiVersion 1.0.0
      * @apiGroup Batch
      * @apiHeader {String} X-authenticated-user-token Authenticity token
-     * @apiSampleRequest /kendra/api/v1/bodh/batch/enroll
+     * @apiSampleRequest /kendra/api/v1/bodh/batch/enrol
      * @apiUse successBody
      * @apiUse errorBody
      * @apiParamExample {json} Request:
@@ -66,7 +66,7 @@ module.exports = class Batch {
       * @returns {json} 
      */
 
-    async enroll(req) {
+    async enrol(req) {
 
         return new Promise(async (resolve, reject) => {
 
