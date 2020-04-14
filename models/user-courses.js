@@ -3,6 +3,7 @@ module.exports = {
         fields : {
             id : "text",
             active : "boolean",
+            completedon : "timestamp",
             addedby :"text",
             batchid :"text",
             contentid :"text",
