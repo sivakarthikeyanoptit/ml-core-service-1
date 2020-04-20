@@ -10,5 +10,6 @@ module.exports = {
     EXTERNALID : "externalId",
     NAME : "name",
     ENTITYTYPE : "entityType",
-    GROUPS : "groups"
+    GROUPS : "groups",
+    ID : "_id"
 }

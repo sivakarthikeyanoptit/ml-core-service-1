@@ -11,6 +11,8 @@ const kafkaCommunication = require(ROOT_PATH + "/generics/helpers/kafka-communic
 const moment = require("moment-timezone");
 let currentDate = moment(new Date());
 const slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
+let sessionHelpers = require(ROOT_PATH+"/generics/helpers/sessions");
+
 const userExtensionHelper = require(MODULES_BASE_PATH + "/user-extension/helper");
 const pushNotificationsHelper = require(MODULES_BASE_PATH + "/notifications/push/helper");
 // const FCM_HELPER = require(MODULES_BASE_PATH + "/notifications/fcm/helper");
@@ -34,22 +36,15 @@ module.exports = class InAppNotificationsHelper {
       * @returns {Promise} returns a promise.
      */
 
+
     static list(userId, pageSize, pageNo, appType) {
         return new Promise(async (resolve, reject) => {
             try {
 
-                // TODO:: This is a dirty fix.
-                // Removing updateVersion flow for now as planned to
-                // get updateVersion from module instead of hitting to elastic search
-                // again and again
-
-                // await elasticSearchHelper.pushAppVersionToLoggedInUser(
-                //     userId, appName, appType
-                // );
-
                 let getNotificationDocument = 
                 await elasticSearchHelper.getNotificationData(
-                    userId, appType
+                    userId, 
+                    appType
                 );
 
                 if (getNotificationDocument.statusCode !== httpStatusCode["ok"].status) {
@@ -118,7 +113,7 @@ module.exports = class InAppNotificationsHelper {
       * @returns {Promise} returns a promise.
      */
 
-    static unReadCount(userId,apptype) {
+    static unReadCount(userId,apptype,appname,os,currentAppVersion) {
         return new Promise(async (resolve, reject) => {
             try {
 
@@ -126,42 +121,28 @@ module.exports = class InAppNotificationsHelper {
                     count: 0,
                     data: []
                 };
+                
+                let getNotificationDocument = 
+                await elasticSearchHelper.getNotificationData(
+                    userId, apptype
+                );
+               
+               
 
-                // TODO:: This is a dirty fix.
-                // Removing updateVersion flow for now as planned to
-                // get updateVersion from module instead of hitting to elastic search
-                // again and again
+                if (getNotificationDocument.statusCode === httpStatusCode["ok"].status) {
+                    
+                    response["count"] = 
+                    getNotificationDocument.body._source.notificationUnreadCount;
+                }
 
-                // if (os && appname) {
-                    // await elasticSearchHelper.pushAppVersionToLoggedInUser(
-                    //     userId, 
-                    //     appname,
-                    //     apptype
-                    // );
+                let sessionPath = `${constants.common.ALL_APP_VERSION}-${gen.utils.lowerCase(appname)}-${gen.utils.lowerCase(os)}`;
+                let sessionData = sessionHelpers.get(sessionPath);
 
-                    let getNotificationDocument = 
-                    await elasticSearchHelper.getNotificationData(
-                        userId, 
-                        apptype
-                    );
-
-                    if (getNotificationDocument.statusCode === httpStatusCode["ok"].status) {
-
-                        response["count"] = 
-                        getNotificationDocument.body._source.notificationUnreadCount;
-
-                        // let data = 
-                        // getNotificationDocument.body._source.notifications.filter(
-                        //     item => item.payload.type === "appUpdate" && 
-                        //     item.is_read === false && 
-                        //     item.payload.os === os);
-
-                        // if (data.length > 0) {
-                        //     response["data"] = data;
-                        // }
-
-                    }
-                // }
+                if( sessionData !== undefined && sessionData.payload &&
+                    sessionData.payload.appVersion !== currentAppVersion
+                ) {
+                    response.data.push(sessionData);
+                }
 
                 return resolve(response);
 
@@ -347,56 +328,6 @@ module.exports = class InAppNotificationsHelper {
 
             }
             catch (error) {
-                return reject(error);
-            }
-        })
-    }
-
-      /**
-      * Send app update status as notification.
-      * @method
-      * @name updateAppVersion
-      * @param {Object} updateAppData - app update data.
-      * @param {String} updateAppData.appName - app name of notification. 
-      * @param {String} updateAppData.title - title of notification.
-      * @param {String} updateAppData.text - text of notification.
-      * @param {String} updateAppData.version - version of the app.
-      * @param {String} updateAppData.status - status of the update notification.
-      * @param {String} updateAppData.os - device os.  
-      * @returns {Promise} returns a promise.
-     */
-
-    static updateAppVersion(updateAppData) {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-
-                for (let pointerToUpdateAppData = 0; 
-                    pointerToUpdateAppData < updateAppData.length; 
-                    pointerToUpdateAppData++) {
-
-                      let result = {};
-
-                      result["is_read"] = false;
-                      result["internal"] = true;
-                      result["action"] = "versionUpdate";
-                      result["appName"] = updateAppData[pointerToUpdateAppData].appName;
-                      result["created_at"] = new Date();
-                      result["text"] = updateAppData[pointerToUpdateAppData].text;
-                      result["title"] = updateAppData[pointerToUpdateAppData].title;
-                      result["type"] = "Information";
-                      result["payload"] = {};
-                      result["payload"]["appVersion"] = updateAppData[pointerToUpdateAppData].version;
-                      result["payload"]["updateType"] = updateAppData[pointerToUpdateAppData].status;
-                      result["payload"]["type"] = "appUpdate";
-                      result["payload"]["os"] = updateAppData[pointerToUpdateAppData].os;
-
-                    await kafkaCommunication.pushNotificationsDataToKafka(result);
-                }
-
-                return resolve();
-
-            } catch (error) {
                 return reject(error);
             }
         })
