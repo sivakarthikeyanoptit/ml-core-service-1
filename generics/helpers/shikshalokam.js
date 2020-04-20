@@ -14,6 +14,9 @@ const request = require("request");
 
 var getUserInfo = function (token, userId) {
 
+
+  
+
   if (process.env.DISABLE_LEARNER_SERVICE_ON_OFF && 
     process.env.DISABLE_LEARNER_SERVICE_ON_OFF == "ON") {
       
