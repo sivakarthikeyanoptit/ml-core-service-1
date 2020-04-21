@@ -86,8 +86,71 @@ let getDownloadableUrl = function( filePath,bucketName ) {
     })
 }
 
+  /**
+     * Get aws s3 cloud signed url.
+     * @method
+     * @name getS3SignedUrl
+     * @param {String} [folderPath = ""] - link to the folder path.
+     * @param {Array} [fileName = ""] - fileName.
+     * @param {Array} bucketName - name of the bucket.  
+     * @returns {Object} - signed url and s3 file name. 
+     */
+
+let signedUrl = (folderPath = "", fileName = "",bucketName) =>{
+    return new Promise(async (resolve, reject) => {
+        try {
+            
+            if(folderPath == "" || fileName == "") {
+                throw new Error(httpStatusCode.bad_request.status);
+            }
+
+            let noOfMinutes = constants.common.NO_OF_MINUTES;
+            let expiry = constants.common.NO_OF_EXPIRY_TIME * noOfMinutes;
+
+            try {
+                
+                const url = await s3.getSignedUrl('putObject', {
+                    Bucket: bucketName,
+                    Key: folderPath + fileName,
+                    Expires: expiry
+                });
+                
+                let result = {
+                    success : true,
+                    url : url
+                };
+
+                if(url && url != "") {
+
+                    result["name"] = folderPath + fileName;
+
+                } else {
+
+                    result["success"] = false;
+
+                }
+
+                return resolve(result);
+
+            } catch (error) {
+                return resolve({
+                    success : false,
+                    message : error.message,
+                    response : error
+                });
+            }
+                
+
+            } catch (error) {
+                return reject(error);
+            }
+        })
+}
+
+
 module.exports = {
   s3: s3,
   uploadFile : uploadFile,
-  getDownloadableUrl : getDownloadableUrl
+  getDownloadableUrl : getDownloadableUrl,
+  signedUrl : signedUrl
 };
