@@ -124,6 +124,101 @@ module.exports = class FilesHelper {
         })
     }
 
+    /**
+   * Get all signed urls.
+   * @method
+   * @name preSignedUrls
+   * @param {String} [folderPath] - link to the folder path.
+   * @param {Array} [fileNames] - fileNames.
+   * @param {Array} [storageName] - Storage name if provided.  
+   * @returns {Array} - consists of all signed urls files. 
+   */
+
+  static preSignedUrls( path, fileNames,bucket,storageName = "" ) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            if( !path ) {
+                throw new Error("File base url not given.");
+            }
+
+            if(!Array.isArray(fileNames) || fileNames.length < 1) {
+                throw new Error("File names not given.");
+            }
+
+            let cloudStorage = process.env.CLOUD_STORAGE;
+
+            if (storageName !== "") {
+                cloudStorage = storageName;
+            }
+
+            let signedUrls = new Array;
+
+            for (
+                let pointerToFileNames = 0; 
+                pointerToFileNames < fileNames.length; 
+                pointerToFileNames++
+            ) {
+                const file = fileNames[pointerToFileNames];
+                let signedUrlResponse;
+                
+                if( cloudStorage === constants.common.GOOGLE_CLOUD_SERVICE ) {
+                    signedUrlResponse = 
+                    await googleCloudServices.signedUrl(
+                        path, 
+                        file,
+                        bucket
+                    );
+
+                } else if ( cloudStorage === constants.common.AWS_SERVICE ) {
+                    signedUrlResponse = 
+                    await awsServices.signedUrl(
+                        path, 
+                        file,
+                        bucket
+                    );
+
+                } else if ( cloudStorage === constants.common.AZURE_SERVICE ) {
+                    signedUrlResponse = 
+                    await azureService.signedUrl(
+                        path, 
+                        file,
+                        bucket
+                    );
+                }
+
+                if(signedUrlResponse.success) {
+                    signedUrls.push({
+                        file: file,
+                        url: signedUrlResponse.url,
+                        payload: { sourcePath: signedUrlResponse.name },
+                        cloudStorage : cloudStorage
+                    });
+                }
+
+            }
+
+            if(signedUrls.length == fileNames.length) {
+                return resolve({
+                    success : true,
+                    message : constants.apiResponses.URL_GENERATED,
+                    result : signedUrls
+                });
+            } else {
+                return resolve({
+                    success : false,
+                    message : constants.apiResponses.FAILED_PRE_SIGNED_URL,
+                    result : signedUrls
+                });
+            }
+            
+
+        } catch (error) {
+            return reject(error);
+        }
+    })
+}
+
 }
 
 

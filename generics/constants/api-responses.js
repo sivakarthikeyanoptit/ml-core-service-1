@@ -58,5 +58,8 @@ module.exports = {
   "AP_USER_ALLOWED" : "Check if user belongs to AP organisation",
   "USER_NOT_FOUND" : "User is not found",
   "BATCH_ENROLL_FETCHED" : "Courses enrolled by users",
-  "COULD_NOT_SYNCED_INDEX" : "Could not synced users index"
+  "COULD_NOT_SYNCED_INDEX" : "Could not synced users index",
+  "SIGNED_URL_FETCHED" : "Successfully fetched signed urls",
+  "URL_GENERATED" : "Url generated successfully",
+  "FAILED_PRE_SIGNED_URL" : "Failed to generate signed url"
 };
