@@ -327,6 +327,105 @@ var indexSync = async function ( syncData,token ) {
     
 }
 
+/**
+  * Create content data
+  * @function
+  * @name createContent
+  * @param contentData - content data.
+  * @param token - Logged in user token.
+  * @returns {Promise}
+*/
+
+var createContent = async function ( contentData,token ) {
+
+    const contentUrl = 
+    process.env.sunbird_url+constants.endpoints.SUNBIRD_CREATE_CONTENT;
+
+    return new Promise(async (resolve,reject)=>{
+        
+        let options = {
+            "headers" : {
+                "content-type": "application/json",
+                "authorization" : 
+                process.env.BODH_AUTHORIZATION_TOKEN ? 
+                "Bearer " +process.env.BODH_AUTHORIZATION_TOKEN :
+                process.env.AUTHORIZATION,
+                "x-authenticated-user-token" : token,
+                "x-channel-id" : process.env.SUNBIRD_ORGANISATION_ID 
+            },
+            json : contentData
+        };
+        
+        request.post(contentUrl,options,callback);
+        
+        function callback(err,data){
+            if( err ) {
+                return reject({
+                    message : constants.apiResponses.SUNBIRD_SERVICE_DOWN
+                });
+            } else {
+                let contentData = data.body;
+                return resolve(contentData);
+            }
+        }
+    })
+    
+}
+
+/**
+  * Upload content data
+  * @function
+  * @name uploadContent
+  * @param file - Upload file data.
+  * @param contentId - content id.
+  * @param token - Logged in user token.
+  * @returns {Promise}
+*/
+
+var uploadContent = async function ( file,contentId,token ) {
+
+    const contentUrl = 
+    process.env.sunbird_url+constants.endpoints.SUNBIRD_UPLOAD_CONTENT + `/${contentId}`;
+
+    return new Promise(async (resolve,reject)=>{
+        
+        let options = {
+            "headers" : {
+                "content-type" : "application/x-www-form-urlencoded",
+                "authorization" : 
+                process.env.BODH_AUTHORIZATION_TOKEN ? 
+                "Bearer " +process.env.BODH_AUTHORIZATION_TOKEN :
+                process.env.AUTHORIZATION,
+                "x-authenticated-user-token" : token,
+                "x-channel-id" : process.env.SUNBIRD_ORGANISATION_ID 
+            },
+            formData : {
+                "fileName" : {
+                    value : file.data, 
+                    options : {
+                        filename : file.name,
+                        contentType : file.mimetype
+                    }
+                }
+            }
+        };
+        
+        request.post(contentUrl,options,callback);
+        
+        function callback(err,data){
+            if( err ) {
+                return reject({
+                    message : constants.apiResponses.SUNBIRD_SERVICE_DOWN
+                });
+            } else {
+                let contentData = data.body;
+                return resolve(JSON.parse(contentData));
+            }
+        }
+    })
+    
+}
+
 module.exports = {
     generateCodes : generateCodes,
     publishCode : publishCode,
@@ -334,5 +433,7 @@ module.exports = {
     linkContent : linkContent,
     publishContent : publishContent,
     getUserProfile : getUserProfile,
-    indexSync : indexSync
+    indexSync : indexSync,
+    createContent : createContent,
+    uploadContent : uploadContent
 };

@@ -908,4 +908,92 @@ module.exports = class BodhHelper {
         })
     }
 
+    /**
+      * Create content for platform
+      * @method
+      * @name createContent
+      * @param {String} requestedData
+      * @param {String} token 
+      * @returns {Object} Return content id. 
+     */
+
+    static createContent( requestedData,token ) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let contentData = {
+                    "request" : {
+                        "content" : requestedData
+                    }
+                };
+
+                let createdContentData = 
+                await sunbirdService.createContent(
+                    contentData,
+                    token
+                );
+
+                if( createdContentData.responseCode !== constants.common.OK ) {
+                    
+                    throw {
+                        status : httpStatusCode.bad_request.status,
+                        message : constants.apiResponses.FAILED_TO_CREATE_CONTENT
+                    }
+                }
+
+                return resolve({
+                    message :  constants.apiResponses.CREATED_BODH_CONTENT,
+                    result : {
+                        contentId : createdContentData.result.content_id
+                    }
+                });
+
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+     /**
+      * Upload content for platform
+      * @method
+      * @name uploadContent
+      * @param {String} file - required file
+      * @param {String} contentId - content id
+      * @param {String} token 
+      * @returns {Object} - Return content url.  
+     */
+
+    static uploadContent( file,contentId,token ) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let uploadedContentData = 
+                await sunbirdService.uploadContent(
+                    file,
+                    contentId,
+                    token
+                );
+
+                if( uploadedContentData.responseCode !== constants.common.OK ) {
+                    
+                    throw {
+                        status : httpStatusCode.bad_request.status,
+                        message : constants.apiResponses.COULD_NOT_UPLOAD_CONTENT
+                    }
+                }
+
+                return resolve({
+                    message :  constants.apiResponses.CONTENT_UPLOADED_SUCCESSFULLY,
+                    result : {
+                        contentUrl : uploadedContentData.result.content_url
+                    }
+                });
+
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
 };
