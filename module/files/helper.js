@@ -7,6 +7,9 @@
  */
 
 // Dependencies
+var zipFolder = require('zip-folder');
+const unzip = require("unzip");
+const fs = require("fs");
 let awsServices = require(ROOT_PATH + "/generics/services/aws");
 let googleCloudServices = require(ROOT_PATH + "/generics/services/google-cloud");
 let azureService = require(ROOT_PATH + "/generics/services/azure");
@@ -218,6 +221,166 @@ module.exports = class FilesHelper {
         }
     })
 }
+      /**
+       * Unzip file
+       * @method
+       * @name unzip
+       * @param  {String} zipFilePath - Path of zip file.
+       * @param  {String} folderToUnZip - Path where file should be unziped.
+       * @param  {String} deleteExistingZipFile - delete the existing zip file.
+       * @return {Object} - Save unzipped file
+     */
+
+    static unzip(zipFilePath, folderToUnZip,deleteExistingZipFile) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                if( !fs.existsSync(`${ROOT_PATH}${process.env.ZIP_PATH}`) ) {
+                    fs.mkdirSync(`${ROOT_PATH}${process.env.ZIP_PATH}`);
+                }
+
+                const fileContents = fs.createReadStream(zipFilePath);
+
+                fileContents
+                .pipe(unzip.Extract({ path : folderToUnZip }))
+                .on('close',(err)=>{
+                    if(err) {
+                        return resolve({
+                            success : false
+                        })
+                    } else {
+                        
+                        if( deleteExistingZipFile ) {
+                            fs.unlinkSync(zipFilePath)
+                        }
+
+                        return resolve({
+                            success : true
+                        })
+                    }
+                });
+
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+    /**
+       * zip a folder
+       * @method
+       * @name zip
+       * @param  {String} existingName - existing file name.
+       * @param  {String} newFileName - new file name to set
+       * @return {Object} - Save unzipped file
+     */
+
+    static zip( existing, newFolder ) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                
+                await zipFolder(existing, newFolder,function(err) {
+                    if (err) {
+
+                        return resolve({
+                            success : false
+                        })
+                    } else {
+
+                        return resolve({
+                            success : true
+                        })
+                    }
+                });
+                  
+            } catch (error) {
+                return resolve({
+                    success : false
+                })
+            }
+        })
+    }
+
+     /**
+       * Rename file name
+       * @method
+       * @name rename
+       * @param  {String} existingName - existing file name.
+       * @param  {String} newFileName - new file name to set
+       * @return {Object} - Save unzipped file
+     */
+
+    static rename(existingName, newFileName) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                fs.rename( existingName,newFileName, function(err) {
+                    if ( err ) {
+                        return resolve({
+                            success : false
+                        })
+                    } else {
+                        return resolve({
+                            success : true
+                        })
+                    }
+                });
+
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+   
+    /**
+       * Save zip file in public zip folder
+       * @method
+       * @name saveZipFile
+       * @param  {String} zipFileName  - name of zip file.
+       * @param  {String}  zipFileData
+       * @return {Object} - Save zip file data.
+     */
+
+    static saveZipFile(name, data) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                if( !fs.existsSync(`${ROOT_PATH}${process.env.ZIP_PATH}`) ) {
+                    fs.mkdirSync(`${ROOT_PATH}${process.env.ZIP_PATH}`);
+                }
+                
+                let zipFileName = `${ROOT_PATH}${process.env.ZIP_PATH}/${name}`
+
+                fs.writeFile(zipFileName,data,async function(err){
+                    if(err) {
+                        return resolve({
+                            save : false
+                        })
+                    } else {
+                        return resolve({
+                            save : true
+                        })
+                    }
+                })
+
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+    /**
+     * Remove folder recursively
+     * @function
+     * @name removeFolder
+     * @param path - folder path.
+     * @returns {Promise}
+    */
+
+    static removeFolder(path) {
+        _removeFolder(path);
+        return;
+    };
 
 }
 
@@ -262,4 +425,27 @@ function _getLinkFromCloudService(filePath, bucketName, cloudStorage) {
 
     })
 
+}
+
+/**
+ * Remove folder recursively
+ * @function
+ * @name _removeFolder
+ * @param path - folder path.
+ * @return
+*/
+
+function _removeFolder(path) {
+    
+    if( fs.existsSync(path) ) {
+        fs.readdirSync(path).forEach(function(file,index){
+          var currentPath = path + "/" + file;
+          if(fs.lstatSync(currentPath).isDirectory()) { // recurse
+            _removeFolder(currentPath);
+          } else { // delete file
+            fs.unlinkSync(currentPath);
+          }
+        });
+        fs.rmdirSync(path);
+    }
 }

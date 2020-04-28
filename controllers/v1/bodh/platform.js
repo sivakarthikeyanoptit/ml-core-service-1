@@ -92,7 +92,7 @@ module.exports = class Platform {
      * "code": "d464c257-ed5c-406b-ac95-2a51ecd18753",
      * "contentType": "Resource",
      * "name": "TEST-BODH-SCROM Upload content",
-     * "mimeType": "application/pdf",
+     * "mimeType": "application/vnd.ekstep.html-archive",
      * "createdBy": "6e24b29b-8b81-4b70-b1b5-fa430488b1cf",
      * "createdFor": [
      * "0124487522476933120"
@@ -173,7 +173,7 @@ module.exports = class Platform {
 
     
     /**
-      * Create content for bodh platform.
+      * Upload content in bodh platform.
       * @method
       * @name uploadContent
       * @param  {req}  - requested data.

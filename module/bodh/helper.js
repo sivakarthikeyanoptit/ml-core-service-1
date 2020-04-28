@@ -11,6 +11,7 @@ const { promisify } = require("util");
 const httpRequest = require(GENERIC_HELPERS_PATH+'/http-request');
 const dictionaryHelper = require(MODULES_BASE_PATH + "/dictionary/helper");
 const elasticSearchHelper = require(GENERIC_HELPERS_PATH + "/elastic-search");
+let filesHelper = require(MODULES_BASE_PATH + "/files/helper");
 
 // Constants
 const bodhContentIndex = gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_BODH_CONTENT_INDEX");
@@ -968,11 +969,61 @@ module.exports = class BodhHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let uploadedContentData = 
-                await sunbirdService.uploadContent(
-                    file,
+                let saveRequestedZipFile = await filesHelper.saveZipFile(
+                    file.name,
+                    file.data
+                ); 
+
+                if( !saveRequestedZipFile.save ) {}
+
+                let unZipFile = await filesHelper.unzip(
+                    `${ROOT_PATH}${process.env.ZIP_PATH}/${file.name}`,
+                    `${ROOT_PATH}/public/zip`,
+                    true
+                );
+
+                if( !unZipFile.success ) {
+                    return resolve({
+                        status : httpStatusCode.bad_request.status,
+                        message : constants.apiResponses.COULD_NOT_UNZIP_FOLDER
+                    })
+                }
+
+                let renameFile = 
+                await filesHelper.rename(
+                    `${ROOT_PATH}${process.env.ZIP_PATH}/${file.name.replace('.zip','')}/story.html`,
+                    `${ROOT_PATH}${process.env.ZIP_PATH}/${file.name.replace('.zip','')}/index.html`
+                );
+
+                if( !renameFile.success ) {
+                    return resolve({
+                        status : httpStatusCode.bad_request.status,
+                        message : constants.apiResponses.COULD_NOT_RENAME_FILE
+                    })
+                }
+
+                let zipFile = 
+                await filesHelper.zip(
+                    `${ROOT_PATH}${process.env.ZIP_PATH}/${file.name.replace('.zip','')}`,
+                    `${ROOT_PATH}${process.env.ZIP_PATH}/${file.name}`
+                );
+
+                filesHelper.removeFolder(
+                    `${ROOT_PATH}${process.env.ZIP_PATH}/${file.name.replace('.zip','')}`
+                );
+
+                if ( !zipFile.success ) {
+                    return resolve({
+                        status : httpStatusCode.bad_request.status,
+                        message : constants.apiResponses.COULD_NOT_ZIP_FOLDER
+                    })
+                } 
+
+                let uploadedContentData = await sunbirdService.uploadContent(
+                    `${ROOT_PATH}${process.env.ZIP_PATH}/${file.name}`,
                     contentId,
-                    token
+                    token,
+                    "application/x-www-form-urlencoded"
                 );
 
                 if( uploadedContentData.responseCode !== constants.common.OK ) {
@@ -982,6 +1033,8 @@ module.exports = class BodhHelper {
                         message : constants.apiResponses.COULD_NOT_UPLOAD_CONTENT
                     }
                 }
+
+                fs.unlinkSync(`${ROOT_PATH}${process.env.ZIP_PATH}/${file.name}`);
 
                 return resolve({
                     message :  constants.apiResponses.CONTENT_UPLOADED_SUCCESSFULLY,

@@ -66,5 +66,8 @@ module.exports = {
   "CREATED_BODH_CONTENT" : "Successfully created bodh content data",
   "CONTENT_FILE_REQUIRED" : "Required content file name",
   "CONTENT_UPLOADED_SUCCESSFULLY" : "Successfully uploaded content",
-  "COULD_NOT_UPLOAD_CONTENT" : "COuld not upload content"
+  "COULD_NOT_UPLOAD_CONTENT" : "COuld not upload content",
+  "COULD_NOT_UNZIP_FOLDER" : "Unable to unzip folder",
+  "COULD_NOT_RENAME_FILE" : "Could not rename a file",
+  "COULD_NOT_ZIP_FOLDER" : "Unable to zip folder"
 };

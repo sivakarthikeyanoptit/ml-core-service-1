@@ -9,6 +9,7 @@
 
 const request = require('request');
 const shikshalokamService = require(ROOT_PATH+"/generics/helpers/shikshalokam");
+let fs = require("fs");
 
 /**
   * Generate Dial codes
@@ -348,7 +349,7 @@ var createContent = async function ( contentData,token ) {
                 "content-type": "application/json",
                 "authorization" : 
                 process.env.BODH_AUTHORIZATION_TOKEN ? 
-                "Bearer " +process.env.BODH_AUTHORIZATION_TOKEN :
+                process.env.BODH_AUTHORIZATION_TOKEN :
                 process.env.AUTHORIZATION,
                 "x-authenticated-user-token" : token,
                 "x-channel-id" : process.env.SUNBIRD_ORGANISATION_ID 
@@ -382,7 +383,7 @@ var createContent = async function ( contentData,token ) {
   * @returns {Promise}
 */
 
-var uploadContent = async function ( file,contentId,token ) {
+var uploadContent = async function ( file,contentId,token,contentType ) {
 
     const contentUrl = 
     process.env.sunbird_url+constants.endpoints.SUNBIRD_UPLOAD_CONTENT + `/${contentId}`;
@@ -391,20 +392,19 @@ var uploadContent = async function ( file,contentId,token ) {
         
         let options = {
             "headers" : {
-                "content-type" : "application/x-www-form-urlencoded",
+                "content-type" : contentType,
                 "authorization" : 
                 process.env.BODH_AUTHORIZATION_TOKEN ? 
-                "Bearer " +process.env.BODH_AUTHORIZATION_TOKEN :
+                process.env.BODH_AUTHORIZATION_TOKEN :
                 process.env.AUTHORIZATION,
                 "x-authenticated-user-token" : token,
                 "x-channel-id" : process.env.SUNBIRD_ORGANISATION_ID 
             },
             formData : {
                 "fileName" : {
-                    value : file.data, 
-                    options : {
-                        filename : file.name,
-                        contentType : file.mimetype
+                    "value" : fs.createReadStream(file),
+                    "options" : {
+                        contentType : 'application/vnd.ekstep.html-archive'
                     }
                 }
             }
