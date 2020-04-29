@@ -17,7 +17,8 @@ module.exports = class EntitiesHelper {
    */
   static entityDocuments(
     findQuery = "all", 
-    fields = "all", 
+    fields = "all",
+    skipFields = "none", 
     limitingValue = "", 
     skippingValue = "",
     sortedData = ""
@@ -37,6 +38,12 @@ module.exports = class EntitiesHelper {
                     
                     fields.forEach(element => {
                         projectionObject[element] = 1;
+                    });
+                }
+
+                if (skipFields != "none") {
+                    skipFields.forEach(element => {
+                        projectionObject[element] = 0;
                     });
                 }
                 
@@ -165,6 +172,7 @@ module.exports = class EntitiesHelper {
                     entityType: data.entityType
                 },
                     projection,
+                    "none",
                     data.pageSize,
                     skippingValue,
                     {
@@ -476,6 +484,44 @@ module.exports = class EntitiesHelper {
                 status: error.status || httpStatusCode.internal_server_error.status,
                 message: error.message || httpStatusCode.internal_server_error.message
             });
+        }
+    })
+  }
+
+   /**
+   * Entity details information.
+   * @method 
+   * @name details
+   * @param {String} entityId - _id of entity.
+   * @return {Object} - consists of entity details information. 
+   */
+
+  static details( entityId ) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            let entityDocument = await this.entityDocuments(
+                {
+                    _id : entityId
+                },
+                "all",
+                ["groups"]
+            );
+
+            if ( !entityDocument[0] ) {
+                return resolve({
+                    status : httpStatusCode.bad_request.status,
+                    message : constants.apiResponses.ENTITY_NOT_FOUND
+                })
+            }
+
+            resolve({
+                message : constants.apiResponses.ENTITY_INFORMATION_FETCHED,
+                result : entityDocument[0]
+            });
+
+        } catch (error) {
+            return reject(error);
         }
     })
   }
