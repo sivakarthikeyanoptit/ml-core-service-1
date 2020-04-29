@@ -354,11 +354,11 @@ module.exports = class FilesHelper {
                 fs.writeFile(zipFileName,data,async function(err){
                     if(err) {
                         return resolve({
-                            save : false
+                            success : false
                         })
                     } else {
                         return resolve({
-                            save : true
+                            success : true
                         })
                     }
                 })

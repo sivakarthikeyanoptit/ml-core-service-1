@@ -7,6 +7,7 @@
 
 // Dependencies
 const fs = require("fs");
+const uuid = require('uuid/v1');
 const { promisify } = require("util");
 const httpRequest = require(GENERIC_HELPERS_PATH+'/http-request');
 const dictionaryHelper = require(MODULES_BASE_PATH + "/dictionary/helper");
@@ -938,7 +939,7 @@ module.exports = class BodhHelper {
                     
                     throw {
                         status : httpStatusCode.bad_request.status,
-                        message : constants.apiResponses.FAILED_TO_CREATE_CONTENT
+                        message : createdContentData.result.messages[0]
                     }
                 }
 
@@ -956,25 +957,46 @@ module.exports = class BodhHelper {
     }
 
      /**
-      * Upload content for platform
+      * Upload scrom content for platform
       * @method
-      * @name uploadContent
+      * @name uploadScromContent
       * @param {String} file - required file
       * @param {String} contentId - content id
       * @param {String} token 
       * @returns {Object} - Return content url.  
      */
 
-    static uploadContent( file,contentId,token ) {
+    static uploadScromContent( file,name,token,userId ) {
         return new Promise(async (resolve, reject) => {
             try {
+
+                let contentCreateData = {
+                    code : uuid(),
+                    contentType : constants.common.BODH_CONTENT_TYPE,
+                    name : name,
+                    mimeType : constants.common.BODH_MIME_TYPE,
+                    createdBy : userId
+                };
+
+
+                let contentCreationData = await this.createContent(
+                    contentCreateData,
+                    token
+                );
+
+                let contentId = contentCreationData.result.contentId;
 
                 let saveRequestedZipFile = await filesHelper.saveZipFile(
                     file.name,
                     file.data
                 ); 
 
-                if( !saveRequestedZipFile.save ) {}
+                if( !saveRequestedZipFile.success ) {
+                    throw {
+                        status : httpStatusCode.bad_request.status,
+                        message : constants.apiResponses.COULD_NOT_SAVE_ZIP_FILE
+                    }
+                }
 
                 let unZipFile = await filesHelper.unzip(
                     `${ROOT_PATH}${process.env.ZIP_PATH}/${file.name}`,
@@ -989,10 +1011,12 @@ module.exports = class BodhHelper {
                     })
                 }
 
+                let fileName = file.name.replace('.zip','');
+
                 let renameFile = 
                 await filesHelper.rename(
-                    `${ROOT_PATH}${process.env.ZIP_PATH}/${file.name.replace('.zip','')}/story.html`,
-                    `${ROOT_PATH}${process.env.ZIP_PATH}/${file.name.replace('.zip','')}/index.html`
+                    `${ROOT_PATH}${process.env.ZIP_PATH}/${fileName}/story.html`,
+                    `${ROOT_PATH}${process.env.ZIP_PATH}/${fileName}/index.html`
                 );
 
                 if( !renameFile.success ) {
@@ -1004,12 +1028,12 @@ module.exports = class BodhHelper {
 
                 let zipFile = 
                 await filesHelper.zip(
-                    `${ROOT_PATH}${process.env.ZIP_PATH}/${file.name.replace('.zip','')}`,
+                    `${ROOT_PATH}${process.env.ZIP_PATH}/${fileName}`,
                     `${ROOT_PATH}${process.env.ZIP_PATH}/${file.name}`
                 );
 
                 filesHelper.removeFolder(
-                    `${ROOT_PATH}${process.env.ZIP_PATH}/${file.name.replace('.zip','')}`
+                    `${ROOT_PATH}${process.env.ZIP_PATH}/${fileName}`
                 );
 
                 if ( !zipFile.success ) {
@@ -1023,14 +1047,19 @@ module.exports = class BodhHelper {
                     `${ROOT_PATH}${process.env.ZIP_PATH}/${file.name}`,
                     contentId,
                     token,
-                    "application/x-www-form-urlencoded"
+                    constants.common.FORM_DATA_CONTENT_TYPE
                 );
 
                 if( uploadedContentData.responseCode !== constants.common.OK ) {
                     
                     throw {
                         status : httpStatusCode.bad_request.status,
-                        message : constants.apiResponses.COULD_NOT_UPLOAD_CONTENT
+                        
+                        message :
+                        uploadedContentData.result && 
+                        uploadedContentData.result.messages && 
+                        uploadedContentData.result.messages[0] ? 
+                        uploadedContentData.result.messages[0] : uploadedContentData.responseCode
                     }
                 }
 
@@ -1039,6 +1068,7 @@ module.exports = class BodhHelper {
                 return resolve({
                     message :  constants.apiResponses.CONTENT_UPLOADED_SUCCESSFULLY,
                     result : {
+                        contentId : contentId,
                         contentUrl : uploadedContentData.result.content_url
                     }
                 });

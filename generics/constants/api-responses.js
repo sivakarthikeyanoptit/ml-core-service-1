@@ -18,6 +18,7 @@ module.exports = {
   "DICTIONARY_KEYWORDS_MAPPING_MISSING_ERROR" : "Dictionary keywords mapping is missing.",
   "DICTIONARY_KEYWORDS_UPDATE_SUCCESS" : "Content keywords updated successfully.",
   "ENTITY_NOT_FOUND" : "No entity found",
+  "ENTITY_INFORMATION_FETCHED" : "Entity information fetched successfully",
   "ENTITIES_FETCHED" : "List of entities fetched successfully",
   "BODY_NOT_FOUND" : "Body data not found",
   "QR_CODE_EXISTS" : "Qr code alreasy exists",
@@ -66,8 +67,9 @@ module.exports = {
   "CREATED_BODH_CONTENT" : "Successfully created bodh content data",
   "CONTENT_FILE_REQUIRED" : "Required content file name",
   "CONTENT_UPLOADED_SUCCESSFULLY" : "Successfully uploaded content",
-  "COULD_NOT_UPLOAD_CONTENT" : "COuld not upload content",
+  "COULD_NOT_UPLOAD_CONTENT" : "Could not upload content",
   "COULD_NOT_UNZIP_FOLDER" : "Unable to unzip folder",
   "COULD_NOT_RENAME_FILE" : "Could not rename a file",
-  "COULD_NOT_ZIP_FOLDER" : "Unable to zip folder"
+  "COULD_NOT_ZIP_FOLDER" : "Unable to zip folder",
+  "COULD_NOT_SAVE_ZIP_FILE" : "Could not save zip file"
 };

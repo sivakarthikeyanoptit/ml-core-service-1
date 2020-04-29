@@ -12,18 +12,8 @@ module.exports = (req) => {
         generate: function () {
             req.checkBody('contentData').exists().withMessage("required content data");
         },
-
-        createContent : function () {
-            req.checkBody('code').exists().withMessage("Required metadata code");
-            req.checkBody('contentType').exists().withMessage("Required content type");
-            req.checkBody('name').exists().withMessage("Required name");
-            req.checkBody('name').exists().withMessage("Required name");
-            req.checkBody('mimeType').exists().withMessage("Required mime type");
-            req.checkBody('createdBy').exists().withMessage("Required mime type");
-        },
-
-        uploadContent : function () {
-            req.checkParams('_id').exists().withMessage("required content id")
+        uploadScrom : function () {
+            req.checkQuery('name').exists().withMessage("required content name");
         }
     }
 

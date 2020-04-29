@@ -347,10 +347,7 @@ var createContent = async function ( contentData,token ) {
         let options = {
             "headers" : {
                 "content-type": "application/json",
-                "authorization" : 
-                process.env.BODH_AUTHORIZATION_TOKEN ? 
-                process.env.BODH_AUTHORIZATION_TOKEN :
-                process.env.AUTHORIZATION,
+                "authorization" : process.env.AUTHORIZATION,
                 "x-authenticated-user-token" : token,
                 "x-channel-id" : process.env.SUNBIRD_ORGANISATION_ID 
             },
@@ -393,10 +390,7 @@ var uploadContent = async function ( file,contentId,token,contentType ) {
         let options = {
             "headers" : {
                 "content-type" : contentType,
-                "authorization" : 
-                process.env.BODH_AUTHORIZATION_TOKEN ? 
-                process.env.BODH_AUTHORIZATION_TOKEN :
-                process.env.AUTHORIZATION,
+                "authorization" : process.env.AUTHORIZATION,
                 "x-authenticated-user-token" : token,
                 "x-channel-id" : process.env.SUNBIRD_ORGANISATION_ID 
             },
