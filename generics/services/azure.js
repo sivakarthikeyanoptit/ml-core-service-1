@@ -106,17 +106,16 @@ let getDownloadableUrl = function (filePath, containerName) {
   * Get azure cloud signed url.
   * @method
   * @name signedUrl
-  * @param {String} [folderPath = ""] - link to the folder path.
-  * @param {Array} [fileName = ""] - fileName.
-  * @param {Array} containerName - name of the container.  
+  * @param {String} fileName  - fileName.
+  * @param {String} containerName - name of the container.  
   * @return {Object} - signed url and azure file name. 
 */
 
-let signedUrl = (folderPath = "", fileName = "",containerName) => {
+let signedUrl = ( fileName ,containerName ) => {
   return new Promise(async (resolve, reject) => {
     try {
       
-      if(folderPath == "" || fileName == "") {
+      if( fileName == "" ) {
         throw new Error(httpStatusCode.bad_request.status);
       }
       
@@ -127,14 +126,14 @@ let signedUrl = (folderPath = "", fileName = "",containerName) => {
 
       let sasToken = generateBlobSASQueryParameters({
         containerName : containerName,
-        blobName : folderPath + fileName,
+        blobName : fileName,
         permissions: BlobSASPermissions.parse("w"),
         startsOn: startDate,
         expiresOn: expiryDate,
       },blobServiceClient.credential
       ).toString();
 
-    let url = containerClient.url + "/" + fileNameWithPath + "?" + sasToken;
+    let url = containerClient.url + "/" + fileName + "?" + sasToken;
     let result = {
       success : true,
       url : url
@@ -142,7 +141,7 @@ let signedUrl = (folderPath = "", fileName = "",containerName) => {
     
     if(url && url != "") {
 
-      result["name"] = folderPath + fileName;
+      result["name"] = fileName;
       
     } else {
 

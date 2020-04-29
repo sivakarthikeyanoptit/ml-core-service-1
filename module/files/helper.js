@@ -128,19 +128,15 @@ module.exports = class FilesHelper {
    * Get all signed urls.
    * @method
    * @name preSignedUrls
-   * @param {String} [folderPath] - link to the folder path.
    * @param {Array} [fileNames] - fileNames.
+   * @param {String} bucket - name of the bucket
    * @param {Array} [storageName] - Storage name if provided.  
    * @returns {Array} - consists of all signed urls files. 
    */
 
-  static preSignedUrls( path, fileNames,bucket,storageName = "" ) {
+  static preSignedUrls( fileNames,bucket,storageName = "" ) {
     return new Promise(async (resolve, reject) => {
         try {
-
-            if( !path ) {
-                throw new Error("File base url not given.");
-            }
 
             if(!Array.isArray(fileNames) || fileNames.length < 1) {
                 throw new Error("File names not given.");
@@ -164,8 +160,7 @@ module.exports = class FilesHelper {
                 
                 if( cloudStorage === constants.common.GOOGLE_CLOUD_SERVICE ) {
                     signedUrlResponse = 
-                    await googleCloudServices.signedUrl(
-                        path, 
+                    await googleCloudServices.signedUrl( 
                         file,
                         bucket
                     );
@@ -173,15 +168,13 @@ module.exports = class FilesHelper {
                 } else if ( cloudStorage === constants.common.AWS_SERVICE ) {
                     signedUrlResponse = 
                     await awsServices.signedUrl(
-                        path, 
                         file,
                         bucket
                     );
 
                 } else if ( cloudStorage === constants.common.AZURE_SERVICE ) {
                     signedUrlResponse = 
-                    await azureService.signedUrl(
-                        path, 
+                    await azureService.signedUrl( 
                         file,
                         bucket
                     );

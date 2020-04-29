@@ -112,7 +112,6 @@ module.exports = class Aws {
      * @apiHeader {String} X-authenticated-user-token Authenticity token
      * @apiParamExample {json} Request:
      * {
-     * "path" : "qrcode/",
      * "fileNames" : [
      * "N4X6E2/N4X6E2.png"
      * ],
@@ -130,7 +129,7 @@ module.exports = class Aws {
      * "file": "T9R6Y8/T9R6Y8.png",
      * "url": "https://sl-unnati-storage.s3.ap-south-1.amazonaws.com/qrcode/T9R6Y8/T9R6Y8.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAJW4YWQMTNBKD2KTQ%2F20200421%2Fap-south-1%2Fs3%2Faws4_request&X-Amz-Date=20200421T024629Z&X-Amz-Expires=1800&X-Amz-Signature=81d593329c96b318f2924b876854e534bf80aef1f10ca80083d74188b46e69de&X-Amz-SignedHeaders=host",
      * "payload": {
-     * "sourcePath": "qrcode/T9R6Y8/T9R6Y8.png"
+     * "sourcePath": "T9R6Y8/T9R6Y8.png"
      * },
      * "cloudStorage": "AWS"
      * }
@@ -143,7 +142,6 @@ module.exports = class Aws {
       * @method
       * @name preSignedUrls
       * @param  {Request}  req  request body.
-      * @param  {String}  req.body.path
       * @param  {Array}  req.body.fileNames - list of file names
       * @param  {String}  req.body.bucket - name of the bucket  
       * @returns {JSON} Response with status and message.
@@ -156,7 +154,6 @@ module.exports = class Aws {
 
             let signedUrl =
             await filesHelpers.preSignedUrls(
-                 req.body.path, 
                  req.body.fileNames,
                  req.body.bucket,
                  constants.common.AWS_SERVICE
