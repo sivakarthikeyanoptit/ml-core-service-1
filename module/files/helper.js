@@ -28,7 +28,7 @@ module.exports = class FilesHelper {
       * @returns {json} Response consists of links of uploaded file.
     */
 
-    static uploadFile(file, filePathForBucket, bucketName) {
+    static upload(file, filePathForBucket, bucketName) {
         return new Promise(async (resolve, reject) => {
             try {
 

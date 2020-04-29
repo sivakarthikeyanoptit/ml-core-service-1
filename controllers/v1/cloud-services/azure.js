@@ -70,7 +70,7 @@ module.exports = class Azure {
         try {
 
             let uploadResponse =
-            await filesHelpers.uploadFile(
+            await filesHelpers.upload(
                  req.files.file.data,
                  req.body.filePath, 
                  req.body.containerName
