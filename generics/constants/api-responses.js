@@ -18,6 +18,7 @@ module.exports = {
   "DICTIONARY_KEYWORDS_MAPPING_MISSING_ERROR" : "Dictionary keywords mapping is missing.",
   "DICTIONARY_KEYWORDS_UPDATE_SUCCESS" : "Content keywords updated successfully.",
   "ENTITY_NOT_FOUND" : "No entity found",
+  "ENTITY_INFORMATION_FETCHED" : "Entity information fetched successfully",
   "ENTITIES_FETCHED" : "List of entities fetched successfully",
   "BODY_NOT_FOUND" : "Body data not found",
   "QR_CODE_EXISTS" : "Qr code alreasy exists",
