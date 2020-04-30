@@ -12,8 +12,8 @@ module.exports = (req) => {
         generate: function () {
             req.checkBody('contentData').exists().withMessage("required content data");
         },
-        uploadScrom : function () {
-            req.checkQuery('name').exists().withMessage("required content name");
+        uploadScromContent : function () {
+            req.checkQuery('name').exists().withMessage("required content name").not().isEmpty().withMessage("Name should not be empty");
         }
     }
 

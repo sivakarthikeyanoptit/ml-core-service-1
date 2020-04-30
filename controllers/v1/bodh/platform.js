@@ -6,7 +6,7 @@
 */
 
 // Dependencies
-let bodhHelpers = require(ROOT_PATH+"/module/bodh/helper");
+const bodhHelpers = require(ROOT_PATH+"/module/bodh/helper");
 
 module.exports = class Platform {
 

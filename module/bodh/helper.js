@@ -7,12 +7,11 @@
 
 // Dependencies
 const fs = require("fs");
-const uuid = require('uuid/v1');
 const { promisify } = require("util");
 const httpRequest = require(GENERIC_HELPERS_PATH+'/http-request');
 const dictionaryHelper = require(MODULES_BASE_PATH + "/dictionary/helper");
 const elasticSearchHelper = require(GENERIC_HELPERS_PATH + "/elastic-search");
-let filesHelper = require(MODULES_BASE_PATH + "/files/helper");
+const filesHelper = require(MODULES_BASE_PATH + "/files/helper");
 
 // Constants
 const bodhContentIndex = gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_BODH_CONTENT_INDEX");
@@ -970,22 +969,6 @@ module.exports = class BodhHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let contentCreateData = {
-                    code : uuid(),
-                    contentType : constants.common.BODH_CONTENT_TYPE,
-                    name : name,
-                    mimeType : constants.common.BODH_MIME_TYPE,
-                    createdBy : userId
-                };
-
-
-                let contentCreationData = await this.createContent(
-                    contentCreateData,
-                    token
-                );
-
-                let contentId = contentCreationData.result.contentId;
-
                 let saveRequestedZipFile = await filesHelper.saveZipFile(
                     file.name,
                     file.data
@@ -998,9 +981,11 @@ module.exports = class BodhHelper {
                     }
                 }
 
+                let zipPathName = `${ROOT_PATH}${process.env.ZIP_PATH}`
+
                 let unZipFile = await filesHelper.unzip(
-                    `${ROOT_PATH}${process.env.ZIP_PATH}/${file.name}`,
-                    `${ROOT_PATH}/public/zip`,
+                    `${zipPathName}/${file.name}`,
+                    `${zipPathName}`,
                     true
                 );
 
@@ -1015,8 +1000,8 @@ module.exports = class BodhHelper {
 
                 let renameFile = 
                 await filesHelper.rename(
-                    `${ROOT_PATH}${process.env.ZIP_PATH}/${fileName}/story.html`,
-                    `${ROOT_PATH}${process.env.ZIP_PATH}/${fileName}/index.html`
+                    `${zipPathName}/${fileName}/story.html`,
+                    `${zipPathName}/${fileName}/index.html`
                 );
 
                 if( !renameFile.success ) {
@@ -1028,12 +1013,12 @@ module.exports = class BodhHelper {
 
                 let zipFile = 
                 await filesHelper.zip(
-                    `${ROOT_PATH}${process.env.ZIP_PATH}/${fileName}`,
-                    `${ROOT_PATH}${process.env.ZIP_PATH}/${file.name}`
+                    `${zipPathName}/${fileName}`,
+                    `${zipPathName}/${file.name}`
                 );
 
                 filesHelper.removeFolder(
-                    `${ROOT_PATH}${process.env.ZIP_PATH}/${fileName}`
+                    `${zipPathName}/${fileName}`
                 );
 
                 if ( !zipFile.success ) {
@@ -1043,11 +1028,27 @@ module.exports = class BodhHelper {
                     })
                 } 
 
+                let contentCreateData = {
+                    code : gen.utils.generateUniqueId(),
+                    contentType : constants.common.BODH_CONTENT_TYPE,
+                    name : name,
+                    mimeType : constants.common.BODH_MIME_TYPE,
+                    createdBy : userId
+                };
+
+                let contentCreationData = await this.createContent(
+                    contentCreateData,
+                    token
+                );
+
+                let contentId = contentCreationData.result.contentId;
+
                 let uploadedContentData = await sunbirdService.uploadContent(
-                    `${ROOT_PATH}${process.env.ZIP_PATH}/${file.name}`,
+                    `${zipPathName}/${file.name}`,
                     contentId,
                     token,
-                    constants.common.FORM_DATA_CONTENT_TYPE
+                    constants.common.FORM_DATA_CONTENT_TYPE,
+                    constants.common.BODH_MIME_TYPE
                 );
 
                 if( uploadedContentData.responseCode !== constants.common.OK ) {
@@ -1063,7 +1064,7 @@ module.exports = class BodhHelper {
                     }
                 }
 
-                fs.unlinkSync(`${ROOT_PATH}${process.env.ZIP_PATH}/${file.name}`);
+                fs.unlinkSync(`${zipPathName}/${file.name}`);
 
                 return resolve({
                     message :  constants.apiResponses.CONTENT_UPLOADED_SUCCESSFULLY,
@@ -1074,6 +1075,7 @@ module.exports = class BodhHelper {
                 });
 
             } catch (error) {
+                filesHelper.removeFolder(`${ROOT_PATH}${process.env.ZIP_PATH}`)
                 return reject(error);
             }
         })

@@ -113,7 +113,6 @@ module.exports = class Gcp {
      * @apiHeader {String} X-authenticated-user-token Authenticity token
      * @apiParamExample {json} Request:
      * {
-     * "path" : "qrcode/",
      * "fileNames" : [
      * "R2I3A5/R2I3A5.png"
      * ],
@@ -131,7 +130,7 @@ module.exports = class Gcp {
      * "fileNames": "R2I3A5/R2I3A5.png",
      * "url": "https://storage.googleapis.com/sl-dev-storage/qrcode/R2I3A5/R2I3A5.png?GoogleAccessId=sl-dev-storage%40shikshalokam.iam.gserviceaccount.com&Expires=1587437414&Signature=N7yg1ixFXPG14vOxw7zPxMSm98qDoeY7IYtB8iRnSQRYTNwWRfAT7MqvLT3HW9iXexABEhhWPEDhVQt0J42BzY1it3mFMV1C9xgCl8Q%2BhuMVY746GIdapGEJEhicMGIeEVRy%2FItfuNg9UxcZyk1M3TU%2FEabQLCjAgMthnUvQ8tCqiH%2B1t%2FcJDODAvLv96sQVbO%2Fg4aW%2Bz3GGmtx39Kq%2FRTWVgxLBWu5wPs5PuDq7Xg6HSiD9peQylb7wRStkkuRP%2FMyjIhOuQTtgzPdNFV26I5WZu2Eu2EM5Hx6vDAYjXTOHuOry8fX6od5gcHMSjo9J645nNcN8tb97BIuG%2BgKOcg%3D%3D",
      * "payload": {
-     * "sourcePath": "qrcode/R2I3A5/R2I3A5.png"
+     * "sourcePath": "R2I3A5/R2I3A5.png"
      * },
      * "cloudStorage": "GC"
      * }
@@ -143,7 +142,6 @@ module.exports = class Gcp {
       * @method
       * @name preSignedUrls
       * @param  {Request}  req  request body.
-      * @param  {String}  req.body.path
       * @param  {Array}  req.body.fileNames - list of file names
       * @param  {String}  req.body.bucket - name of the bucket 
       * @returns {JSON} Response with status and message.
@@ -156,7 +154,6 @@ module.exports = class Gcp {
 
             let signedUrl =
             await filesHelpers.preSignedUrls(
-                 req.body.path, 
                  req.body.fileNames,
                  req.body.bucket,
                  constants.common.GOOGLE_CLOUD_SERVICE

@@ -5,6 +5,9 @@
  * Description : All utility functions.
  */
 
+// Dependencies
+const uuid = require('uuid/v4');
+
  /**
   * convert string to camelCaseToTitleCase.
   * @function
@@ -129,6 +132,17 @@ function convertStringToObjectId(id) {
   return id;
 }
 
+/**
+   * Generate unique id.s
+   * @method
+   * @name generateUniqueId
+   * @returns {String} - unique id 
+  */
+
+function generateUniqueId() {
+  return uuid();
+}
+
 module.exports = {
   camelCaseToTitleCase : camelCaseToTitleCase,
   lowerCase : lowerCase,
@@ -136,5 +150,6 @@ module.exports = {
   checkIfEnvDataExistsOrNot : checkIfEnvDataExistsOrNot,
   hyphenCaseToCamelCase : hyphenCaseToCamelCase,
   isValidMongoId : isValidMongoId,
-  convertStringToObjectId : convertStringToObjectId
+  convertStringToObjectId : convertStringToObjectId,
+  generateUniqueId : generateUniqueId
 };

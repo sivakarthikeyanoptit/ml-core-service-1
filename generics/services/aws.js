@@ -90,17 +90,16 @@ let getDownloadableUrl = function( filePath,bucketName ) {
      * Get aws s3 cloud signed url.
      * @method
      * @name getS3SignedUrl
-     * @param {String} [folderPath = ""] - link to the folder path.
-     * @param {Array} [fileName = ""] - fileName.
-     * @param {Array} bucketName - name of the bucket.  
+     * @param {String} fileName - fileName.
+     * @param {String} bucketName - name of the bucket.  
      * @returns {Object} - signed url and s3 file name. 
      */
 
-let signedUrl = (folderPath = "", fileName = "",bucketName) =>{
+let signedUrl = ( fileName ,bucketName ) =>{
     return new Promise(async (resolve, reject) => {
         try {
             
-            if(folderPath == "" || fileName == "") {
+            if( fileName == "" ) {
                 throw new Error(httpStatusCode.bad_request.status);
             }
 
@@ -110,9 +109,9 @@ let signedUrl = (folderPath = "", fileName = "",bucketName) =>{
             try {
                 
                 const url = await s3.getSignedUrl('putObject', {
-                    Bucket: bucketName,
-                    Key: folderPath + fileName,
-                    Expires: expiry
+                    Bucket : bucketName,
+                    Key : fileName,
+                    Expires : expiry
                 });
                 
                 let result = {
@@ -122,7 +121,7 @@ let signedUrl = (folderPath = "", fileName = "",bucketName) =>{
 
                 if(url && url != "") {
 
-                    result["name"] = folderPath + fileName;
+                    result["name"] = fileName;
 
                 } else {
 

@@ -7,12 +7,11 @@
  */
 
 // Dependencies
-var zipFolder = require('zip-folder');
-const unzip = require("unzip");
+const Zip = require("adm-zip");
 const fs = require("fs");
-let awsServices = require(ROOT_PATH + "/generics/services/aws");
-let googleCloudServices = require(ROOT_PATH + "/generics/services/google-cloud");
-let azureService = require(ROOT_PATH + "/generics/services/azure");
+const awsServices = require(ROOT_PATH + "/generics/services/aws");
+const googleCloudServices = require(ROOT_PATH + "/generics/services/google-cloud");
+const azureService = require(ROOT_PATH + "/generics/services/azure");
 
 /**
     * FilesHelper
@@ -31,7 +30,7 @@ module.exports = class FilesHelper {
       * @returns {json} Response consists of links of uploaded file.
     */
 
-    static uploadFile(file, filePathForBucket, bucketName) {
+    static upload(file, filePathForBucket, bucketName) {
         return new Promise(async (resolve, reject) => {
             try {
 
@@ -131,19 +130,15 @@ module.exports = class FilesHelper {
    * Get all signed urls.
    * @method
    * @name preSignedUrls
-   * @param {String} [folderPath] - link to the folder path.
    * @param {Array} [fileNames] - fileNames.
+   * @param {String} bucket - name of the bucket
    * @param {Array} [storageName] - Storage name if provided.  
    * @returns {Array} - consists of all signed urls files. 
    */
 
-  static preSignedUrls( path, fileNames,bucket,storageName = "" ) {
+  static preSignedUrls( fileNames,bucket,storageName = "" ) {
     return new Promise(async (resolve, reject) => {
         try {
-
-            if( !path ) {
-                throw new Error("File base url not given.");
-            }
 
             if(!Array.isArray(fileNames) || fileNames.length < 1) {
                 throw new Error("File names not given.");
@@ -167,8 +162,7 @@ module.exports = class FilesHelper {
                 
                 if( cloudStorage === constants.common.GOOGLE_CLOUD_SERVICE ) {
                     signedUrlResponse = 
-                    await googleCloudServices.signedUrl(
-                        path, 
+                    await googleCloudServices.signedUrl( 
                         file,
                         bucket
                     );
@@ -176,15 +170,13 @@ module.exports = class FilesHelper {
                 } else if ( cloudStorage === constants.common.AWS_SERVICE ) {
                     signedUrlResponse = 
                     await awsServices.signedUrl(
-                        path, 
                         file,
                         bucket
                     );
 
                 } else if ( cloudStorage === constants.common.AZURE_SERVICE ) {
                     signedUrlResponse = 
-                    await azureService.signedUrl(
-                        path, 
+                    await azureService.signedUrl( 
                         file,
                         bucket
                     );
@@ -239,29 +231,22 @@ module.exports = class FilesHelper {
                     fs.mkdirSync(`${ROOT_PATH}${process.env.ZIP_PATH}`);
                 }
 
-                const fileContents = fs.createReadStream(zipFilePath);
+                const zip = new Zip(zipFilePath);
 
-                fileContents
-                .pipe(unzip.Extract({ path : folderToUnZip }))
-                .on('close',(err)=>{
-                    if(err) {
-                        return resolve({
-                            success : false
-                        })
-                    } else {
-                        
-                        if( deleteExistingZipFile ) {
-                            fs.unlinkSync(zipFilePath)
-                        }
+                zip.extractAllTo(folderToUnZip,true);
 
-                        return resolve({
-                            success : true
-                        })
-                    }
-                });
+                if( deleteExistingZipFile ) {
+                    fs.unlinkSync(zipFilePath)
+                }
+
+                return resolve({
+                    success : true
+                })
 
             } catch (error) {
-                return reject(error);
+                return resolve({
+                    success : false
+                })
             }
         })
     }
@@ -278,20 +263,15 @@ module.exports = class FilesHelper {
     static zip( existing, newFolder ) {
         return new Promise(async (resolve, reject) => {
             try {
-                
-                await zipFolder(existing, newFolder,function(err) {
-                    if (err) {
 
-                        return resolve({
-                            success : false
-                        })
-                    } else {
+                const zip = new Zip();
 
-                        return resolve({
-                            success : true
-                        })
-                    }
-                });
+                zip.addLocalFolder(existing);
+                zip.writeZip(newFolder);
+
+                return resolve({
+                    success : true
+                })
                   
             } catch (error) {
                 return resolve({

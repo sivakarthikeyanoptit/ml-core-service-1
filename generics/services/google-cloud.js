@@ -74,19 +74,18 @@ let getDownloadableUrl = ( filename,bucketName) =>{
  * Get google cloud signed url.
  * @method
  * @name signedUrl
- * @param {String} [folderPath = ""] - link to the folder path.
- * @param {Array} [fileName = ""] - name of the file.
- * @param {Array} bucketName - name of the bucket.  
+ * @param {String} fileName  - name of the file.
+ * @param {String} bucketName - name of the bucket.  
  * @returns {Object} - signed url and gcp file name. 
  */
 
-let signedUrl = ( folderPath = "", fileName = "", bucketName ) => {
+let signedUrl = ( fileName , bucketName ) => {
   return new Promise(async (resolve, reject) => {
     try {
 
       var myBucket = storage.bucket(bucketName);
       
-      if(folderPath == "" || fileName == "") {
+      if( fileName == "" ) {
         throw new Error(httpStatusCode.bad_request.status);
       }
       
@@ -99,7 +98,7 @@ let signedUrl = ( folderPath = "", fileName = "", bucketName ) => {
         contentType: 'multipart/form-data'
       };
       
-      let gcpFile = myBucket.file(folderPath + fileName);
+      let gcpFile = myBucket.file( fileName );
       const signedUrl = await gcpFile.getSignedUrl(config);
 
       let result = {

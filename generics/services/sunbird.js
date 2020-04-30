@@ -9,7 +9,7 @@
 
 const request = require('request');
 const shikshalokamService = require(ROOT_PATH+"/generics/helpers/shikshalokam");
-let fs = require("fs");
+const fs = require("fs");
 
 /**
   * Generate Dial codes
@@ -344,7 +344,7 @@ var createContent = async function ( contentData,token ) {
 
     return new Promise(async (resolve,reject)=>{
         
-        let options = {
+        const options = {
             "headers" : {
                 "content-type": "application/json",
                 "authorization" : process.env.AUTHORIZATION,
@@ -376,18 +376,20 @@ var createContent = async function ( contentData,token ) {
   * @name uploadContent
   * @param file - Upload file data.
   * @param contentId - content id.
-  * @param token - Logged in user token.
+  * @param token - logged in token.
+  * @param contentType - content type.
+  * @param mimeType - mime type.
   * @returns {Promise}
 */
 
-var uploadContent = async function ( file,contentId,token,contentType ) {
+var uploadContent = async function ( file,contentId,token,contentType,mimeType ) {
 
     const contentUrl = 
     process.env.sunbird_url+constants.endpoints.SUNBIRD_UPLOAD_CONTENT + `/${contentId}`;
 
     return new Promise(async (resolve,reject)=>{
         
-        let options = {
+        const options = {
             "headers" : {
                 "content-type" : contentType,
                 "authorization" : process.env.AUTHORIZATION,
@@ -398,7 +400,7 @@ var uploadContent = async function ( file,contentId,token,contentType ) {
                 "fileName" : {
                     "value" : fs.createReadStream(file),
                     "options" : {
-                        contentType : 'application/vnd.ekstep.html-archive'
+                        contentType : mimeType
                     }
                 }
             }
