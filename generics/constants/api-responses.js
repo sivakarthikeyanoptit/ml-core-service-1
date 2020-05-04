@@ -62,5 +62,14 @@ module.exports = {
   "COULD_NOT_SYNCED_INDEX" : "Could not synced users index",
   "SIGNED_URL_FETCHED" : "Successfully fetched signed urls",
   "URL_GENERATED" : "Url generated successfully",
-  "FAILED_PRE_SIGNED_URL" : "Failed to generate signed url"
+  "FAILED_PRE_SIGNED_URL" : "Failed to generate signed url",
+  "FAILED_TO_CREATE_CONTENT" : "Failed to create content in bodh",
+  "CREATED_BODH_CONTENT" : "Successfully created bodh content data",
+  "CONTENT_FILE_REQUIRED" : "Required content file name",
+  "CONTENT_UPLOADED_SUCCESSFULLY" : "Successfully uploaded content",
+  "COULD_NOT_UPLOAD_CONTENT" : "Could not upload content",
+  "COULD_NOT_UNZIP_FOLDER" : "Unable to unzip folder",
+  "COULD_NOT_RENAME_FILE" : "Could not rename a file",
+  "COULD_NOT_ZIP_FOLDER" : "Unable to zip folder",
+  "COULD_NOT_SAVE_ZIP_FILE" : "Could not save zip file"
 };
