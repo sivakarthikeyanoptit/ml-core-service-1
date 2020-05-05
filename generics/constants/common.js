@@ -29,5 +29,10 @@ module.exports = {
   "POST_METHOD" : "POST",
   "AWS_SERVICE": "AWS",
   "GOOGLE_CLOUD_SERVICE": "GC",
-  "AZURE_SERVICE": "AZURE"
+  "AZURE_SERVICE": "AZURE",
+  "NO_OF_MINUTES" : 30,
+  "NO_OF_EXPIRY_TIME" : 60,
+  "BODH_CONTENT_TYPE" : "Resource",
+  "BODH_MIME_TYPE" : "application/vnd.ekstep.html-archive",
+  "FORM_DATA_CONTENT_TYPE" : "application/x-www-form-urlencoded"
 };

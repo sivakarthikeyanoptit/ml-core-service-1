@@ -102,9 +102,66 @@ let getDownloadableUrl = function (filePath, containerName) {
   });
 }
 
+ /**
+  * Get azure cloud signed url.
+  * @method
+  * @name signedUrl
+  * @param {String} fileName  - fileName.
+  * @param {String} containerName - name of the container.  
+  * @return {Object} - signed url and azure file name. 
+*/
 
+let signedUrl = ( fileName ,containerName ) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      
+      if( fileName == "" ) {
+        throw new Error(httpStatusCode.bad_request.status);
+      }
+      
+      let startDate = new Date();
+      startDate.setMinutes(startDate.getMinutes() - 5);
+      let expiryDate = new Date(startDate);
+      expiryDate.setMinutes(startDate.getMinutes() + constants.common.NO_OF_EXPIRY_TIME);
+
+      let sasToken = generateBlobSASQueryParameters({
+        containerName : containerName,
+        blobName : fileName,
+        permissions: BlobSASPermissions.parse("w"),
+        startsOn: startDate,
+        expiresOn: expiryDate,
+      },blobServiceClient.credential
+      ).toString();
+
+    let url = containerClient.url + "/" + fileName + "?" + sasToken;
+    let result = {
+      success : true,
+      url : url
+    };
+    
+    if(url && url != "") {
+
+      result["name"] = fileName;
+      
+    } else {
+
+      result.success = false;
+    }
+
+    return resolve(result);
+
+  } catch (error) {
+    return resolve({
+      success : false,
+      message : error.message,
+      response : error
+    });
+  } 
+})
+}
 
 module.exports = {
   uploadFile: uploadFile,
-  getDownloadableUrl: getDownloadableUrl
+  getDownloadableUrl: getDownloadableUrl,
+  signedUrl : signedUrl
 };

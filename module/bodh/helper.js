@@ -11,6 +11,7 @@ const { promisify } = require("util");
 const httpRequest = require(GENERIC_HELPERS_PATH+'/http-request');
 const dictionaryHelper = require(MODULES_BASE_PATH + "/dictionary/helper");
 const elasticSearchHelper = require(GENERIC_HELPERS_PATH + "/elastic-search");
+const filesHelper = require(MODULES_BASE_PATH + "/files/helper");
 
 // Constants
 const bodhContentIndex = gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_BODH_CONTENT_INDEX");
@@ -903,6 +904,178 @@ module.exports = class BodhHelper {
                 });
 
             } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+    /**
+      * Create content for platform
+      * @method
+      * @name createContent
+      * @param {String} requestedData
+      * @param {String} token 
+      * @returns {Object} Return content id. 
+     */
+
+    static createContent( requestedData,token ) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let contentData = {
+                    "request" : {
+                        "content" : requestedData
+                    }
+                };
+
+                let createdContentData = 
+                await sunbirdService.createContent(
+                    contentData,
+                    token
+                );
+
+                if( createdContentData.responseCode !== constants.common.OK ) {
+                    
+                    throw {
+                        status : httpStatusCode.bad_request.status,
+                        message : createdContentData.result.messages[0]
+                    }
+                }
+
+                return resolve({
+                    message :  constants.apiResponses.CREATED_BODH_CONTENT,
+                    result : {
+                        contentId : createdContentData.result.content_id
+                    }
+                });
+
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+     /**
+      * Upload scrom content for platform
+      * @method
+      * @name uploadScromContent
+      * @param {String} file - required file
+      * @param {String} contentId - content id
+      * @param {String} token 
+      * @returns {Object} - Return content url.  
+     */
+
+    static uploadScromContent( file,name,token,userId ) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let saveRequestedZipFile = await filesHelper.saveZipFile(
+                    file.name,
+                    file.data
+                ); 
+
+                if( !saveRequestedZipFile.success ) {
+                    throw {
+                        status : httpStatusCode.bad_request.status,
+                        message : constants.apiResponses.COULD_NOT_SAVE_ZIP_FILE
+                    }
+                }
+
+                let zipPathName = `${ROOT_PATH}${process.env.ZIP_PATH}`
+
+                let unZipFile = await filesHelper.unzip(
+                    `${zipPathName}/${file.name}`,
+                    `${zipPathName}`,
+                    true
+                );
+
+                if( !unZipFile.success ) {
+                    return resolve({
+                        status : httpStatusCode.bad_request.status,
+                        message : constants.apiResponses.COULD_NOT_UNZIP_FOLDER
+                    })
+                }
+
+                let fileName = file.name.replace('.zip','');
+
+                let renameFile = 
+                await filesHelper.rename(
+                    `${zipPathName}/${fileName}/story.html`,
+                    `${zipPathName}/${fileName}/index.html`
+                );
+
+                if( !renameFile.success ) {
+                    return resolve({
+                        status : httpStatusCode.bad_request.status,
+                        message : constants.apiResponses.COULD_NOT_RENAME_FILE
+                    })
+                }
+
+                let zipFile = 
+                await filesHelper.zip(
+                    `${zipPathName}/${fileName}`,
+                    `${zipPathName}/${file.name}`
+                );
+
+                filesHelper.removeFolder(
+                    `${zipPathName}/${fileName}`
+                );
+
+                if ( !zipFile.success ) {
+                    return resolve({
+                        status : httpStatusCode.bad_request.status,
+                        message : constants.apiResponses.COULD_NOT_ZIP_FOLDER
+                    })
+                } 
+
+                let contentCreateData = {
+                    code : gen.utils.generateUniqueId(),
+                    contentType : constants.common.BODH_CONTENT_TYPE,
+                    name : name,
+                    mimeType : constants.common.BODH_MIME_TYPE,
+                    createdBy : userId
+                };
+
+                let contentCreationData = await this.createContent(
+                    contentCreateData,
+                    token
+                );
+
+                let contentId = contentCreationData.result.contentId;
+
+                let uploadedContentData = await sunbirdService.uploadContent(
+                    `${zipPathName}/${file.name}`,
+                    contentId,
+                    token,
+                    constants.common.FORM_DATA_CONTENT_TYPE,
+                    constants.common.BODH_MIME_TYPE
+                );
+
+                if( uploadedContentData.responseCode !== constants.common.OK ) {
+                    
+                    throw {
+                        status : httpStatusCode.bad_request.status,
+                        
+                        message :
+                        uploadedContentData.result && 
+                        uploadedContentData.result.messages && 
+                        uploadedContentData.result.messages[0] ? 
+                        uploadedContentData.result.messages[0] : uploadedContentData.responseCode
+                    }
+                }
+
+                fs.unlinkSync(`${zipPathName}/${file.name}`);
+
+                return resolve({
+                    message :  constants.apiResponses.CONTENT_UPLOADED_SUCCESSFULLY,
+                    result : {
+                        contentId : contentId,
+                        contentUrl : uploadedContentData.result.content_url
+                    }
+                });
+
+            } catch (error) {
+                filesHelper.removeFolder(`${ROOT_PATH}${process.env.ZIP_PATH}`)
                 return reject(error);
             }
         })
