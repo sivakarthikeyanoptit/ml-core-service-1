@@ -327,6 +327,45 @@ var indexSync = async function ( syncData,token ) {
     
 }
 
+/**
+  * Lists of organisations
+  * @function
+  * @name organisationList
+  * @param requestData - requested data
+  * @returns {Promise}
+*/
+
+var organisationList = async function (requestData) {
+
+    const organisationUrl = 
+    process.env.sunbird_url+constants.endpoints.SUNBIRD_ORGANISATION_LISTS;
+
+    return new Promise(async (resolve,reject)=>{
+        
+        let options = {
+            "headers" : {
+                "content-type": "application/json",
+                "authorization" :  process.env.AUTHORIZATION
+            },
+            json : requestData
+        };
+        
+        request.post(organisationUrl,options,callback);
+        
+        function callback(err,data){
+            if( err ) {
+                return reject({
+                    message : constants.apiResponses.SUNBIRD_SERVICE_DOWN
+                });
+            } else {
+                let listOfOrganisations = data.body;
+                return resolve(listOfOrganisations);
+            }
+        }
+    })
+    
+}
+
 module.exports = {
     generateCodes : generateCodes,
     publishCode : publishCode,
@@ -334,5 +373,6 @@ module.exports = {
     linkContent : linkContent,
     publishContent : publishContent,
     getUserProfile : getUserProfile,
-    indexSync : indexSync
+    indexSync : indexSync,
+    organisationList : organisationList
 };

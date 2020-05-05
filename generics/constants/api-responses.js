@@ -58,5 +58,7 @@ module.exports = {
   "AP_USER_ALLOWED" : "Check if user belongs to AP organisation",
   "USER_NOT_FOUND" : "User is not found",
   "BATCH_ENROLL_FETCHED" : "Courses enrolled by users",
-  "COULD_NOT_SYNCED_INDEX" : "Could not synced users index"
+  "COULD_NOT_SYNCED_INDEX" : "Could not synced users index",
+  "ERROR_IN_ORGANISATIONS_LIST" : "Could not fetched organisations lists",
+  "ORGANISATIONS_LIST_FETCHED" : "Fetched organisations lists successfully"
 };
