@@ -29,5 +29,10 @@ module.exports = {
   "POST_METHOD" : "POST",
   "AWS_SERVICE": "AWS",
   "GOOGLE_CLOUD_SERVICE": "GC",
-  "AZURE_SERVICE": "AZURE"
+  "AZURE_SERVICE": "AZURE",
+  
+  // Sunbird common messages
+  "ORGANISATION_LIMIT" : 1000,
+  "ORGANISATIONS_OFFSET" : 0,
+  "ORGANISATION_LISTS" : "organisation-lists"
 };
