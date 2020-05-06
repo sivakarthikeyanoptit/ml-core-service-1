@@ -34,5 +34,8 @@ module.exports = {
   "NO_OF_EXPIRY_TIME" : 60,
   "BODH_CONTENT_TYPE" : "Resource",
   "BODH_MIME_TYPE" : "application/vnd.ekstep.html-archive",
-  "FORM_DATA_CONTENT_TYPE" : "application/x-www-form-urlencoded"
+  "FORM_DATA_CONTENT_TYPE" : "application/x-www-form-urlencoded",
+  "ORGANISATION_LIMIT" : 1000,
+  "ORGANISATIONS_OFFSET" : 0,
+  "ORGANISATION_LISTS" : "organisation-lists"
 };
