@@ -112,7 +112,7 @@ module.exports = class Search {
                     // Check if original query yielded any result and parse that content if yes.
                     if(!getBodhServiceResponse.data) {
                         throw { message: constants.apiResponses.BODH_SEARCH_MIDDLEWARE_FAILURE }
-                    } else if (getBodhServiceResponse.data.data.result.count > 0) {
+                    } else if (getBodhServiceResponse.data.data.result && getBodhServiceResponse.data.data.result.count > 0) {
                         bodhHelper.parseContentForKeywords(getBodhServiceResponse.data.data.result.content);
                     }
                 }

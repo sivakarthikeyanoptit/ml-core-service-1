@@ -835,12 +835,17 @@ module.exports = class BodhHelper {
                 }
 
                 return resolve({
+                    success : true,
                     message : constants.apiResponses.USER_ALLOWED,
-                    result: result
+                    data: result
                 })
                 
             } catch (error) {
-                return reject(error);
+                return reject({
+                    success : true,
+                    message : error.message,
+                    data : false
+                });
             }
         })
     }

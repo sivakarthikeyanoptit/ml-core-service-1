@@ -70,8 +70,8 @@ module.exports = class Abhyasa {
                 );
                 
                 abhyasaUser.message = constants.apiResponses.AP_USER_ALLOWED;
-                if(!abhyasaUser.result.isAllowed) {
-                    abhyasaUser.result.validationMessage  = "You are not authorized to access the app. Please re-login with valid user credentials.";
+                if(!abhyasaUser.data || !abhyasaUser.data.isAllowed) {
+                    abhyasaUser.data.validationMessage  = "You are not authorized to access the app. Please re-login with valid user credentials.";
                 }
                 
                 return resolve(abhyasaUser);
