@@ -118,7 +118,7 @@ module.exports = class Search {
                 }
 
                 // Add did you mean if user query is different from searched query.
-                if(queryString != userQueryString) {
+                if(queryString.trim().toLowerCase() != userQueryString.trim().toLowerCase()) {
                     getBodhServiceResponse.data[constants.apiResponses.BODH_SEARCH_MIDDLEWARE_DID_YOU_MEAN_KEY] = `${queryString}`
                 }
 

@@ -152,15 +152,22 @@ module.exports = class BodhHelper {
                         
                         const eachContent = content[pointerToContentData];
 
-                        let suggestContent = {
-                            input : [
-                                eachContent.name.trim().toLowerCase(),
-                                eachContent.description.trim().toLowerCase()
-                            ],
-                            contexts : {
-                                isACourse : isACourse
+                        let suggestContent = [
+                            {
+                                input : eachContent.name.trim().toLowerCase(),
+                                weight : 3,
+                                contexts : {
+                                    isACourse : isACourse
+                                }
+                            },
+                            {
+                                input : eachContent.description.trim().toLowerCase(),
+                                weight : 1,
+                                contexts : {
+                                    isACourse : isACourse
+                                }
                             }
-                        }
+                        ]
 
                         const addCourseToAutocomplete = await elasticSearchHelper.createOrUpdateDocumentInIndex(
                             bodhContentIndex,
