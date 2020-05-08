@@ -74,7 +74,10 @@ module.exports = class Abhyasa {
                     abhyasaUser.data.validationMessage  = "You are not authorized to access the app. Please re-login with valid user credentials.";
                 }
                 
-                return resolve(abhyasaUser);
+                return resolve({
+                    message : abhyasaUser.message,
+                    result : abhyasaUser.data
+                });
 
             } catch (error) {
 
