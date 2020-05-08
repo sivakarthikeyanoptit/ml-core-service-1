@@ -101,7 +101,7 @@ module.exports = class Search {
                 }
 
                 // Parse content from Bodh for latest keywords and update ES
-                if(getBodhServiceResponse.data.data.result.count > 0) {
+                if(getBodhServiceResponse.data.data.result && getBodhServiceResponse.data.data.result.count > 0) {
                     bodhHelper.parseContentForKeywords(getBodhServiceResponse.data.data.result.content);
                 } else if(queryString != userQueryString) { // Auto-correct didn't yield any result
                     queryString = request.body.request.query = userQueryString;
@@ -123,12 +123,12 @@ module.exports = class Search {
                 }
 
                 // Parse content from Bodh for updating auto complete
-                if(getBodhServiceResponse.data.data.result.count > 0) {
+                if(getBodhServiceResponse.data.data.result && getBodhServiceResponse.data.data.result.count > 0) {
                     bodhHelper.parseContentForAutocomplete(getBodhServiceResponse.data.data.result.content, isRequestForACourse);
                 }
 
                 // Log query miss from ES and Bodh
-                if(getBodhServiceResponse.data.data.result.count == 0 && spellcheckFromESMiss) {
+                if(getBodhServiceResponse.data.data.result && getBodhServiceResponse.data.data.result.count == 0 && spellcheckFromESMiss) {
                     bodhHelper.logQueryMissFromESAndBodh(queryString, request.url);
                 }
                 
