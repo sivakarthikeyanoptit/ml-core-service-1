@@ -841,7 +841,7 @@ module.exports = class BodhHelper {
                 })
                 
             } catch (error) {
-                return reject({
+                return resolve({
                     success : true,
                     message : error.message,
                     data : false

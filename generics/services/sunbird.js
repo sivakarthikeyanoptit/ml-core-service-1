@@ -274,7 +274,7 @@ var getUserProfile = async function ( token,userId ) {
                 } else {
                     if(data.statusCode != 200) {
                         return resolve({
-                            responseCode : "SERVER_ERROR"
+                            responseCode : "SUNBIRD_SERVICE_ERROR"
                         })
                     } else {
                         let userProfileInformationData = data.body;
