@@ -266,7 +266,7 @@ var getUserProfile = async function ( token,userId ) {
             request.get(userProfileUrl,options,callback);
             
             function callback(err,data) {
-                if( err || data.body.responseCode !== constants.common.OK) {
+                if( err ) {
                     throw {
                         message : 
                         constants.apiResponses.SUNBIRD_SERVICE_DOWN
