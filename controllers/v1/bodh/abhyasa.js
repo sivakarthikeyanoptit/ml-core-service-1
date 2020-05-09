@@ -69,10 +69,15 @@ module.exports = class Abhyasa {
                     process.env.AP_USERS_ORGANISATION_ID
                 );
                 
+                if(!abhyasaUser.data) {
+                    throw new Error(abhyasaUser.message)
+                }
+
                 abhyasaUser.message = constants.apiResponses.AP_USER_ALLOWED;
-                if(!abhyasaUser.data || !abhyasaUser.data.isAllowed) {
+                if(!abhyasaUser.data.isAllowed) {
                     abhyasaUser.data.validationMessage  = "You are not authorized to access the app. Please re-login with valid user credentials.";
                 }
+
                 
                 return resolve({
                     message : abhyasaUser.message,
