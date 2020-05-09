@@ -805,13 +805,13 @@ module.exports = class BodhHelper {
     static userIsAllowed( token,userId,organisationId ) {
         return new Promise(async (resolve, reject) => {
             try {
-                console.log("Before sunbird ------------",userId)
+
                 let userProfileInformation = 
                 await sunbirdService.getUserProfile(
                     token,
                     userId
                 );
-                console.log("After sunbird ------------",userProfileInformation.result.response.id)
+
                 if( userProfileInformation.responseCode !== constants.common.OK ) {
                     
                     throw {
@@ -841,12 +841,6 @@ module.exports = class BodhHelper {
                 })
                 
             } catch (error) {
-                console.log("In error ------------",userId)
-                console.log({
-                    success : true,
-                    message : error.message,
-                    data : false
-                })
                 return reject({
                     success : true,
                     message : error.message,
