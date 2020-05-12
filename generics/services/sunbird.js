@@ -266,14 +266,20 @@ var getUserProfile = async function ( token,userId ) {
             request.get(userProfileUrl,options,callback);
             
             function callback(err,data) {
-                if( err ) {
+                if( err) {
                     throw {
                         message : 
                         constants.apiResponses.SUNBIRD_SERVICE_DOWN
                     };
                 } else {
-                    let userProfileInformationData = data.body;
-                    return resolve(JSON.parse(userProfileInformationData))
+                    if(data.statusCode != 200) {
+                        return resolve({
+                            responseCode : "SUNBIRD_SERVICE_ERROR"
+                        })
+                    } else {
+                        let userProfileInformationData = data.body;
+                        return resolve(JSON.parse(userProfileInformationData))
+                    }
                 }
             }
         } catch(err) {
