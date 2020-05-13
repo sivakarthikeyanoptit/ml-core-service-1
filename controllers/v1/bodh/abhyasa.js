@@ -69,12 +69,20 @@ module.exports = class Abhyasa {
                     process.env.AP_USERS_ORGANISATION_ID
                 );
                 
-                abhyasaUser.message = constants.apiResponses.AP_USER_ALLOWED;
-                if(!abhyasaUser.result.isAllowed) {
-                    abhyasaUser.result.validationMessage  = "You are not authorized to access the app. Please re-login with valid user credentials.";
+                if(!abhyasaUser.data) {
+                    throw new Error(abhyasaUser.message)
                 }
+
+                abhyasaUser.message = constants.apiResponses.AP_USER_ALLOWED;
+                if(!abhyasaUser.data.isAllowed) {
+                    abhyasaUser.data.validationMessage  = "You are not authorized to access the app. Please re-login with valid user credentials.";
+                }
+
                 
-                return resolve(abhyasaUser);
+                return resolve({
+                    message : abhyasaUser.message,
+                    result : abhyasaUser.data
+                });
 
             } catch (error) {
 
