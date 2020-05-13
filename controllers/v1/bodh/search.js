@@ -101,7 +101,7 @@ module.exports = class Search {
                 }
 
                 // Parse content from Bodh for latest keywords and update ES
-                if(getBodhServiceResponse.data.data.result.count > 0) {
+                if(getBodhServiceResponse.data.data.result && getBodhServiceResponse.data.data.result.count > 0) {
                     bodhHelper.parseContentForKeywords(getBodhServiceResponse.data.data.result.content);
                 } else if(queryString != userQueryString) { // Auto-correct didn't yield any result
                     queryString = request.body.request.query = userQueryString;
@@ -112,23 +112,23 @@ module.exports = class Search {
                     // Check if original query yielded any result and parse that content if yes.
                     if(!getBodhServiceResponse.data) {
                         throw { message: constants.apiResponses.BODH_SEARCH_MIDDLEWARE_FAILURE }
-                    } else if (getBodhServiceResponse.data.data.result.count > 0) {
+                    } else if (getBodhServiceResponse.data.data.result && getBodhServiceResponse.data.data.result.count > 0) {
                         bodhHelper.parseContentForKeywords(getBodhServiceResponse.data.data.result.content);
                     }
                 }
 
                 // Add did you mean if user query is different from searched query.
-                if(queryString != userQueryString) {
+                if(queryString.trim().toLowerCase() != userQueryString.trim().toLowerCase()) {
                     getBodhServiceResponse.data[constants.apiResponses.BODH_SEARCH_MIDDLEWARE_DID_YOU_MEAN_KEY] = `${queryString}`
                 }
 
                 // Parse content from Bodh for updating auto complete
-                if(getBodhServiceResponse.data.data.result.count > 0) {
+                if(getBodhServiceResponse.data.data.result && getBodhServiceResponse.data.data.result.count > 0) {
                     bodhHelper.parseContentForAutocomplete(getBodhServiceResponse.data.data.result.content, isRequestForACourse);
                 }
 
                 // Log query miss from ES and Bodh
-                if(getBodhServiceResponse.data.data.result.count == 0 && spellcheckFromESMiss) {
+                if(getBodhServiceResponse.data.data.result && getBodhServiceResponse.data.data.result.count == 0 && spellcheckFromESMiss) {
                     bodhHelper.logQueryMissFromESAndBodh(queryString, request.url);
                 }
                 
