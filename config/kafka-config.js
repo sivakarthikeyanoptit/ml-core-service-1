@@ -25,8 +25,9 @@ var connect = function (config) {
 
   let kafkaProducer = kafka.Producer;
   let keyedMessage = kafka.KeyedMessage;
+  
   let client = new kafka.KafkaClient({
-    kafkaHost: config.host
+    kafkaHost : config.host
   });
 
   client.on('error', function (error) {
@@ -44,10 +45,25 @@ var connect = function (config) {
   })
 
   
-  _sendToKafkaConsumers(config.topics["notificationsTopic"],client, true);
-  _sendToKafkaConsumers(config.topics["languagesTopic"],client,true);
-  _sendToKafkaConsumers(config.topics["emailTopic"],client, false);
-  _sendToKafkaConsumers(config.topics["appConfigTopic"],client, true);
+  _sendToKafkaConsumers(
+    config.topics["notificationsTopic"],
+    config.host
+  );
+
+  _sendToKafkaConsumers(
+    config.topics["languagesTopic"],
+    config.host
+  );
+
+  _sendToKafkaConsumers(
+    config.topics["emailTopic"],
+    config.host
+  );
+
+  _sendToKafkaConsumers(
+    config.topics["appConfigTopic"],
+    config.host
+  );
 
   return {
     kafkaProducer: producer,
@@ -63,23 +79,21 @@ var connect = function (config) {
   * @function
   * @name _sendToKafkaConsumers
   * @param {String} topic - name of kafka topic.
-  * @param {Boolean} [commit = false] - kafka commit. By default set to false.
+  * @param {String} host - kafka host
 */
 
-var _sendToKafkaConsumers = function (topic,client, commit = false) {
+var _sendToKafkaConsumers = function (topic,host) {
 
-  let kafkaConsumer = kafka.Consumer;
   if (topic && topic != "") {
 
-    let consumer = new kafkaConsumer(
-      client,
-      [
-        { topic: topic, offset: 0, partition: 0 }
-      ],
+    let consumer = new kafka.ConsumerGroup(
       {
-        autoCommit: commit
-      }
-    );
+          kafkaHost : host,
+          groupId : process.env.KAFKA_GROUP_ID,
+          autoCommit : true
+      },
+      topic
+      );  
 
     consumer.on('message', async function (message) {
 
