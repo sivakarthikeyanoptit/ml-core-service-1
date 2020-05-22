@@ -37,5 +37,6 @@ module.exports = {
   "FORM_DATA_CONTENT_TYPE" : "application/x-www-form-urlencoded",
   "ORGANISATION_LIMIT" : 1000,
   "ORGANISATIONS_OFFSET" : 0,
-  "ORGANISATION_LISTS" : "organisation-lists"
+  "ORGANISATION_LISTS" : "organisation-lists",
+  "UPLOAD_FOLDER_PATH" : "/public/upload"
 };
