@@ -129,6 +129,18 @@ function convertStringToObjectId(id) {
   return id;
 }
 
+ /**
+  * check whether the url is a valid sunbird API
+  * @function
+  * @name checkIfURLIsSunbirdAPI
+  * @param {String} url 
+  * @returns {Boolean} returns whether url is valid sunbird API or not.  
+*/
+
+function checkIfURLIsSunbirdAPI(url) {
+  return (url.startsWith(process.env.sunbird_url)) ? true : false;
+}
+
 module.exports = {
   camelCaseToTitleCase : camelCaseToTitleCase,
   lowerCase : lowerCase,
@@ -136,5 +148,6 @@ module.exports = {
   checkIfEnvDataExistsOrNot : checkIfEnvDataExistsOrNot,
   hyphenCaseToCamelCase : hyphenCaseToCamelCase,
   isValidMongoId : isValidMongoId,
-  convertStringToObjectId : convertStringToObjectId
+  convertStringToObjectId : convertStringToObjectId,
+  checkIfURLIsSunbirdAPI : checkIfURLIsSunbirdAPI
 };
