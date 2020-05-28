@@ -9,6 +9,7 @@
 
 const request = require('request');
 const shikshalokamService = require(ROOT_PATH+"/generics/helpers/shikshalokam");
+const fs = require("fs");
 
 /**
   * Generate Dial codes
@@ -334,6 +335,48 @@ var indexSync = async function ( syncData,token ) {
 }
 
 /**
+  * Create content data
+  * @function
+  * @name createContent
+  * @param contentData - content data.
+  * @param token - Logged in user token.
+  * @returns {Promise}
+*/
+
+var createContent = async function ( contentData,token ) {
+
+    const contentUrl = 
+    process.env.sunbird_url+constants.endpoints.SUNBIRD_CREATE_CONTENT;
+
+    return new Promise(async (resolve,reject)=>{
+        
+        const options = {
+            "headers" : {
+                "content-type": "application/json",
+                "authorization" : process.env.AUTHORIZATION,
+                "x-authenticated-user-token" : token,
+                "x-channel-id" : process.env.SUNBIRD_ORGANISATION_ID 
+            },
+            json : contentData
+        };
+        
+        request.post(contentUrl,options,callback);
+        
+        function callback(err,data){
+            if( err ) {
+                return reject({
+                    message : constants.apiResponses.SUNBIRD_SERVICE_DOWN
+                });
+            } else {
+                let contentData = data.body;
+                return resolve(contentData);
+            }
+        }
+    })
+    
+}
+
+/**
   * Lists of organisations
   * @function
   * @name organisationList
@@ -364,8 +407,60 @@ var organisationList = async function (requestData) {
                     message : constants.apiResponses.SUNBIRD_SERVICE_DOWN
                 });
             } else {
-                let listOfOrganisations = data.body;
-                return resolve(listOfOrganisations);
+                let contentData = data.body;
+                return resolve(contentData);
+            }
+        }
+    })
+    
+}
+
+/**
+  * Upload content data
+  * @function
+  * @name uploadContent
+  * @param file - Upload file data.
+  * @param contentId - content id.
+  * @param token - logged in token.
+  * @param contentType - content type.
+  * @param mimeType - mime type.
+  * @returns {Promise}
+*/
+
+var uploadContent = async function ( file,contentId,token,contentType,mimeType ) {
+
+    const contentUrl = 
+    process.env.sunbird_url+constants.endpoints.SUNBIRD_UPLOAD_CONTENT + `/${contentId}`;
+
+    return new Promise(async (resolve,reject)=>{
+        
+        const options = {
+            "headers" : {
+                "content-type" : contentType,
+                "authorization" : process.env.AUTHORIZATION,
+                "x-authenticated-user-token" : token,
+                "x-channel-id" : process.env.SUNBIRD_ORGANISATION_ID 
+            },
+            formData : {
+                "fileName" : {
+                    "value" : fs.createReadStream(file),
+                    "options" : {
+                        contentType : mimeType
+                    }
+                }
+            }
+        };
+        
+        request.post(contentUrl,options,callback);
+        
+        function callback(err,data){
+            if( err ) {
+                return reject({
+                    message : constants.apiResponses.SUNBIRD_SERVICE_DOWN
+                });
+            } else {
+                let contentData = data.body;
+                return resolve(JSON.parse(contentData));
             }
         }
     })
@@ -380,5 +475,7 @@ module.exports = {
     publishContent : publishContent,
     getUserProfile : getUserProfile,
     indexSync : indexSync,
+    createContent : createContent,
+    uploadContent : uploadContent,
     organisationList : organisationList
 };

@@ -5,6 +5,9 @@
  * Description : All utility functions.
  */
 
+// Dependencies
+const uuid = require('uuid/v4');
+
  /**
   * convert string to camelCaseToTitleCase.
   * @function
@@ -129,6 +132,17 @@ function convertStringToObjectId(id) {
   return id;
 }
 
+/**
+   * Generate unique id.s
+   * @method
+   * @name generateUniqueId
+   * @returns {String} - unique id 
+  */
+
+function generateUniqueId() {
+  return uuid();
+}
+
  /**
   * check whether the url is a valid sunbird API
   * @function
@@ -149,5 +163,6 @@ module.exports = {
   hyphenCaseToCamelCase : hyphenCaseToCamelCase,
   isValidMongoId : isValidMongoId,
   convertStringToObjectId : convertStringToObjectId,
+  generateUniqueId : generateUniqueId,
   checkIfURLIsSunbirdAPI : checkIfURLIsSunbirdAPI
 };

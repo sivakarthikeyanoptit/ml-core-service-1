@@ -1,10 +1,13 @@
 module.exports = (req) => {
     let entityValidator = {
         listByEntityType : function () {
-            req.checkParams('_id').exists().withMessage("required Entity type")
+            req.checkParams('_id').exists().withMessage("required Entity type");
         },
         immediateEntities : function () {
-            req.checkParams('_id').exists().withMessage("required Entity id")
+            req.checkParams('_id').exists().withMessage("required Entity id");
+        },
+        details : function () {
+            req.checkParams('_id').exists().withMessage("required Entity id");
         }
     }
 
