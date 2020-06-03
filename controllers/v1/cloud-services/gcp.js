@@ -180,5 +180,94 @@ module.exports = class Gcp {
     })
    }
 
+
+       /**
+     * @api {post} /kendra/api/v1/cloud-services/gcp/uploadFile  
+     * Upload file to GCP
+     * @apiVersion 1.0.0
+     * @apiGroup Gcp
+     * @apiHeader {String} X-authenticated-user-token Authenticity token
+     * @apiParamExample {fromData} Request:
+     * {
+     * "filePath" : "1230981723091723/sample.csv"
+     * "bucketName":"sl-dev-storage",
+     * "storage": "GC"
+     *  
+     * }
+     * @apiSampleRequest /kendra/api/v1/cloud-services/gcp/uploadFile
+     * @apiUse successBody
+     * @apiUse errorBody
+     * @apiParamExample {json} Response:
+     * {
+     * "status": 200,
+     * "message":"File uploaded successfully",
+     *  "result": {
+     *   "kind": "storage#object",
+     *   "id": "sl-dev-storage/my.csv/1590132715837085",
+     *   "selfLink": "https://www.googleapis.com/storage/v1/b/sl-dev-storage/o/my.csv",
+     *   "mediaLink": "https://storage.googleapis.com/download/storage/v1/b/sl-dev-storage/o/my.csv?generation=1590132715837085&alt=media",
+     *   "name": "my.csv",
+     *   "bucket": "sl-dev-storage",
+     *   "generation": "1590132715837085",
+     *   "metageneration": "1",
+     *   "contentType": "text/csv; charset=utf-8",
+     *   "storageClass": "REGIONAL",
+     *   "size": "137",
+     *   "md5Hash": "edPW+5pdDV6cbSl1TkVwLA==",
+     *   "contentEncoding": "gzip",
+     *   "crc32c": "56+5+A==",
+     *   "etag": "CJ2tsf35xukCEAE=",
+     *   "timeCreated": "2020-05-22T07:31:55.836Z",
+     *   "updated": "2020-05-22T07:31:55.836Z",
+     *   "timeStorageClassUpdated": "2020-05-22T07:31:55.836Z"
+     *    }
+     * }
+     */
+
+    /**
+      * Upload file to GCP 
+      * @method
+      * @name uploadFile
+      * @param  {Request}  req  request body.
+      * @param  {files}  req.files.file -actual file to upload
+      * @param  {String}  req.body.bucketName - bucket name
+      * @param  {String}  req.body.filePath - file path of where to store
+      * @returns {JSON} Response with status and message.
+    */
+   async uploadFile(req) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (req.files && req.body.filePath && req.body.bucketName) {
+                let response  = await filesHelpers.upload(
+                    req.files.file,
+                    req.body.filePath,
+                    req.body.bucketName,
+                    constants.common.GOOGLE_CLOUD_SERVICE
+                );
+                return resolve({ result:response });
+            } else {
+                return reject({
+                    status:
+                        httpStatusCode["bad_request"].status,
+                        message:httpStatusCode["bad_request"].message
+
+                });
+            }
+        } catch (error) {
+            return reject({
+                status:
+                    error.status ||
+                    httpStatusCode["internal_server_error"].status,
+
+                message:
+                    error.message
+                    || httpStatusCode["internal_server_error"].message,
+
+                errorObject: error
+            })
+        }
+    })
+   }
+
 };
 
