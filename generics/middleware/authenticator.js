@@ -98,14 +98,15 @@ module.exports = async function (req, res, next) {
     return
   }
 
-  let internalAccessApiPaths = ["keywords", "/aws/uploadFile", "/gcp/uploadFile", "/azure/uploadFile"];
+  let internalAccessApiPaths = ["keywords", "/cloud-services/"];
   let performInternalAccessTokenCheck = false;
   await Promise.all(internalAccessApiPaths.map(async function (path) {
     if (req.path.includes(path)) {
       performInternalAccessTokenCheck = true;
     }
   }));
-  if (performInternalAccessTokenCheck) {
+
+  if ( !token && performInternalAccessTokenCheck) {
     if (req.headers["internal-access-token"] !== process.env.INTERNAL_ACCESS_TOKEN) {
       rspObj.errCode = reqMsg.TOKEN.MISSING_CODE;
       rspObj.errMsg = reqMsg.TOKEN.MISSING_MESSAGE;
@@ -116,7 +117,6 @@ module.exports = async function (req, res, next) {
       return;
     }
   }
-
 
   if (!token) {
     rspObj.errCode = reqMsg.TOKEN.MISSING_CODE;
