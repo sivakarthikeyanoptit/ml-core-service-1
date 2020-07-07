@@ -98,7 +98,7 @@ module.exports = async function (req, res, next) {
     return
   }
 
-  let internalAccessApiPaths = ["keywords", "/cloud-services/"];
+  let internalAccessApiPaths = ["/cloud-services/"];
   let performInternalAccessTokenCheck = false;
   await Promise.all(internalAccessApiPaths.map(async function (path) {
     if (req.path.includes(path)) {
@@ -115,6 +115,20 @@ module.exports = async function (req, res, next) {
     } else {
       next();
       return;
+    }
+  }
+
+  let mandatoryInternalAccessApiPaths = ["keywords"];
+
+  for(let path = 0; path < mandatoryInternalAccessApiPaths.length ; path++ ) {
+    if( 
+      req.path.includes(mandatoryInternalAccessApiPaths[path]) && 
+      req.headers["internal-access-token"] !== process.env.INTERNAL_ACCESS_TOKEN
+    ) {
+      rspObj.errCode = reqMsg.TOKEN.MISSING_CODE;
+      rspObj.errMsg = reqMsg.TOKEN.MISSING_MESSAGE;
+      rspObj.responseCode = responseCode.unauthorized;
+      return res.status(httpStatusCode["unauthorized"].status).send(respUtil(rspObj));
     }
   }
 
