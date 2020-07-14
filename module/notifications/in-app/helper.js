@@ -220,10 +220,10 @@ module.exports = class InAppNotificationsHelper {
                           if (observation) {
                             result.payload["observation_id"] = 
                             pendingData[pointerToPendingData].observationId;
-                        } else {
-                            result.payload["program_id"] = 
-                            pendingData[pointerToPendingData].programId;
                         }
+
+                        result.payload["program_id"] = 
+                        pendingData[pointerToPendingData].programId;
 
                         let pushAssessmentsOrObservationsToKafka = 
                         await kafkaCommunication.pushNotificationsDataToKafka(result);
