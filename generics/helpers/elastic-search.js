@@ -745,7 +745,8 @@ var getLanguageData = function (languageId = "") {
 
       const languageDocument = await getData(languageId, {
         index: COMMON_LANGUAGE_INDEX,
-        type: COMMON_LANGUGAE_TYPE
+        type: COMMON_LANGUGAE_TYPE,
+        
       });
 
       return resolve(languageDocument);
@@ -828,7 +829,8 @@ var getData = function (data) {
       const result = await elasticsearch.client.get({
         id: data.id,
         index: data.index,
-        type: data.type
+        type: data.type,
+        include_type_name : true
       }, {
           ignore: [httpStatusCode["not_found"].status],
           maxRetries: 3
@@ -883,6 +885,7 @@ var createOrUpdateDocumentInIndex = function (index = "", type = "", id = "", da
           doc : data,
           doc_as_upsert : true,
         },
+        include_type_name : true,
         refresh : true
       }
 
@@ -933,14 +936,16 @@ var _createOrUpdateData = function (data, update = false) {
           id: data.id,
           index: data.index,
           type: data.type,
-          body: data.body
+          body: data.body,
+          include_type_name : true
         });
       } else {
         result = await elasticsearch.client.create({
           id: data.id,
           index: data.index,
           type: data.type,
-          body: data.body
+          body: data.body,
+          include_type_name : true
         });
       }
 
@@ -1005,7 +1010,8 @@ var _typeExistsOrNot = function (index, type) {
 
       let result = await elasticsearch.client.indices.existsType({
         index: index,
-        type: type
+        type: type,
+        include_type_name : true
       });
 
       return resolve(result);
@@ -1043,7 +1049,7 @@ var _indexTypeMappingExistOrNot = function (index, type) {
       let result = await elasticsearch.client.indices.getMapping({
         index: index,
         type: type,
-        // include_type_name : true - Commented as it is not required in 6.8
+        include_type_name : true
       });
 
       return resolve(result);
@@ -1079,7 +1085,8 @@ var _searchForAllData = function (index, type) {
       const result = await elasticsearch.client.search({
         index: index,
         type: type,
-        size: 1000
+        size: 1000,
+        include_type_name : true
       });
 
       let response = [];
@@ -1133,7 +1140,8 @@ var searchDocumentFromIndex = function (index = "", type = "", queryObject = "",
         index: index,
         type: type,
         body: queryObject,
-        size : size
+        size : size,
+        include_type_name : true
       }
 
       let result = await elasticsearch.client.search(documentObject);
@@ -1196,6 +1204,7 @@ var deleteDocumentFromIndex = function (index = "", type = "", id = "", queryObj
           id: id,
           index: index,
           type: type,
+          include_type_name : true,
           refresh : true
         });
       } else if(Object.keys(queryObject).length > 0) {
@@ -1441,8 +1450,8 @@ var setIndexTypeMapping = function (index = "", type = "", mapping) {
     const putMapping = await elasticsearch.client.indices.putMapping({
       index: index,
       type: type,
-      body: mapping
-      // include_type_name : true - Commented as it is not required in 6.8
+      body: mapping,
+      include_type_name : true
     });
 
     if(putMapping.statusCode != 200) {

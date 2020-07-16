@@ -49,7 +49,7 @@ module.exports = {
             }
         }
       },
-      // include_type_name : true - Commented as it is not required in 6.8
+      include_type_name : true
     });
 
     if(putMapping.statusCode != 200) {

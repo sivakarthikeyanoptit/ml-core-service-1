@@ -18,6 +18,7 @@ module.exports = {
             lastreadcontentid :"text",
             lastreadcontentstatus : "int",
             leafnodescount : "int",
+            processingstatus : "text",
             progress : "int",
             status : "int",
             tocurl :"text",
