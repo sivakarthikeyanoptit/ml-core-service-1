@@ -64,6 +64,9 @@ let getDownloadableUrl = ( filename,bucketName) =>{
       let fileMetaData = await gcpBucket.file(filename).getMetadata();
       let url = new URL(fileMetaData[0].mediaLink);
       let urlParams = (new URL(fileMetaData[0].mediaLink)).searchParams;
+      console.log(url)
+      console.log(urlParams)
+      console.log(`${url.origin}${url.pathname}?alt=${urlParams.get('alt')}`)
       return resolve(`${url.origin}${url.pathname}?alt=${urlParams.get('alt')}`);
       
     } catch(err){
