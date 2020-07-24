@@ -61,8 +61,10 @@ let getDownloadableUrl = ( filename,bucketName) =>{
 
       let bucket = bucketName ? bucketName : process.env.DEFAULT_BUCKET_NAME;
       let gcpBucket = storage.bucket(bucket);
-      let downloadableUrl = await gcpBucket.file(filename).getMetadata();
-      return resolve(downloadableUrl[0].mediaLink);
+      let fileMetaData = await gcpBucket.file(filename).getMetadata();
+      let url = new URL(fileMetaData[0].mediaLink);
+      let urlParams = (new URL(fileMetaData[0].mediaLink)).searchParams;
+      return resolve(`${url.origin}${url.pathname}?alt=${urlParams.get('alt')}`);
       
     } catch(err){
       return reject(err);
