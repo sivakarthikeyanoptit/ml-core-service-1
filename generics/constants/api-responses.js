@@ -73,5 +73,7 @@ module.exports = {
   "COULD_NOT_ZIP_FOLDER" : "Unable to zip folder",
   "COULD_NOT_SAVE_ZIP_FILE" : "Could not save zip file",
   "ERROR_IN_ORGANISATIONS_LIST" : "Could not fetched organisations lists",
-  "ORGANISATIONS_LIST_FETCHED" : "Fetched organisations lists successfully"
+  "ORGANISATIONS_LIST_FETCHED" : "Fetched organisations lists successfully",
+  "FILE_UPLOADED" : "File uploaded successfully",
+  "FAILED_TO_UPLOAD": "Failed to upload file"
 };
