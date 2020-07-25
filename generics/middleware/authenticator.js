@@ -37,14 +37,14 @@ var respUtil = function (resp) {
 var tokenAuthenticationFailureMessageToSlack = function (req, token, msg) {
   let jwtInfomration = jwtDecode(token)
   jwtInfomration["x-authenticated-user-token"] = token
-  const tokenByPassAllowedLog = { 
-    method: req.method, 
-    url: req.url, 
-    headers: req.headers, 
+  const tokenByPassAllowedLog = {
+    method: req.method,
+    url: req.url,
+    headers: req.headers,
     body: req.body,
-    errorMsg: msg, 
-    customFields: 
-    jwtInfomration, 
+    errorMsg: msg,
+    customFields:
+      jwtInfomration,
     slackErrorName: process.env.SLACK_ERROR_NAME,
     color: process.env.SLACK_ERROR_MESSAGE_COLOR
   }
@@ -93,13 +93,21 @@ module.exports = async function (req, res, next) {
   }
 
   // Allow search endpoints for non-logged in users.
-  if ( req.path.includes("bodh/search") || req.path.includes("bodh/request") ) {
+  if (req.path.includes("bodh/search") || req.path.includes("bodh/request")) {
     next();
     return
   }
 
-  if (req.path.includes("keywords")) {
-    if(req.headers["internal-access-token"] !== process.env.INTERNAL_ACCESS_TOKEN) {
+  let internalAccessApiPaths = ["/cloud-services/"];
+  let performInternalAccessTokenCheck = false;
+  await Promise.all(internalAccessApiPaths.map(async function (path) {
+    if (req.path.includes(path)) {
+      performInternalAccessTokenCheck = true;
+    }
+  }));
+
+  if ( !token && performInternalAccessTokenCheck) {
+    if (req.headers["internal-access-token"] !== process.env.INTERNAL_ACCESS_TOKEN) {
       rspObj.errCode = reqMsg.TOKEN.MISSING_CODE;
       rspObj.errMsg = reqMsg.TOKEN.MISSING_MESSAGE;
       rspObj.responseCode = responseCode.unauthorized;
@@ -107,6 +115,20 @@ module.exports = async function (req, res, next) {
     } else {
       next();
       return;
+    }
+  }
+
+  let mandatoryInternalAccessApiPaths = ["keywords"];
+
+  for(let path = 0; path < mandatoryInternalAccessApiPaths.length ; path++ ) {
+    if( 
+      req.path.includes(mandatoryInternalAccessApiPaths[path]) && 
+      req.headers["internal-access-token"] !== process.env.INTERNAL_ACCESS_TOKEN
+    ) {
+      rspObj.errCode = reqMsg.TOKEN.MISSING_CODE;
+      rspObj.errMsg = reqMsg.TOKEN.MISSING_MESSAGE;
+      rspObj.responseCode = responseCode.unauthorized;
+      return res.status(httpStatusCode["unauthorized"].status).send(respUtil(rspObj));
     }
   }
 
@@ -123,7 +145,7 @@ module.exports = async function (req, res, next) {
       rspObj.errCode = reqMsg.TOKEN.INVALID_CODE;
       rspObj.errMsg = reqMsg.TOKEN.INVALID_MESSAGE;
       rspObj.responseCode = responseCode.UNAUTHORIZED_ACCESS;
-      
+
       tokenAuthenticationFailureMessageToSlack(
         req,
         token, "TOKEN VERIFICATION WITH KEYCLOAK FAILED"
@@ -147,8 +169,8 @@ module.exports = async function (req, res, next) {
             next();
           } else {
             tokenAuthenticationFailureMessageToSlack(
-              req, 
-              token, 
+              req,
+              token,
               "TOKEN VERIFICATION - FAILED TO GET USER DETAIL FROM Kendra SERVICE"
             );
 
@@ -160,8 +182,8 @@ module.exports = async function (req, res, next) {
         })
         .catch(error => {
           tokenAuthenticationFailureMessageToSlack(
-            req, 
-            token, 
+            req,
+            token,
             "TOKEN VERIFICATION - ERROR FETCHING USER DETAIL FROM Kendra SERVICE"
           );
 
