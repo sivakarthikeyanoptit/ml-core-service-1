@@ -61,53 +61,80 @@ module.exports = class Search {
 
                 let queryString = userQueryString = (request.body.request && request.body.request.query && request.body.request.query != "") ? request.body.request.query : "";
 
+                let skipAutoCorrect = (req.query.skipAutoCorrect > 0) ? true : false;
+
                 let spellcheckFromESMiss = false;
 
-                if(queryString != "") {
+                if(queryString != "" && !skipAutoCorrect) {
                     let queryWords = queryString.split(" ");
                     for (let pointerTOQueryWords = 0; pointerTOQueryWords < queryWords.length; pointerTOQueryWords++) {
                         const word = queryWords[pointerTOQueryWords];
-                        const correctWord = await dictionaryHelper
+                        if(word != "") { // Spell correct word only if it is not blank
+                            const correctWord = await dictionaryHelper
                             .spellcheck(word);
-                        if(correctWord.data) {
-                            queryWords[pointerTOQueryWords] = correctWord.data;
-                        } else {
-                            spellcheckFromESMiss = true;
+                            if(correctWord.data) {
+                                queryWords[pointerTOQueryWords] = correctWord.data;
+                            } else {
+                                spellcheckFromESMiss = true;
+                            }
                         }
                     }
                     queryString = request.body.request.query = queryWords.join(" ");
                 }
 
-                const getBodhServiceResponse = await bodhHelper
+                let getBodhServiceResponse = await bodhHelper
                 .getSearchResults(request);
                 
                 if(!getBodhServiceResponse.data) {
-                    throw { message: messageConstants.apiResponses.BODH_SEARCH_MIDDLEWARE_FAILURE }
+                    throw { message: constants.apiResponses.BODH_SEARCH_MIDDLEWARE_FAILURE }
                 }
 
-                // Add did you mean if user query is different from searched query.
-                if(queryString != userQueryString) {
-                    getBodhServiceResponse.data[messageConstants.apiResponses.BODH_SEARCH_MIDDLEWARE_DID_YOU_MEAN_KEY] = `${queryString}`
+                let isRequestForACourse = false;
+                if(request.url.includes("course")) {
+                    isRequestForACourse = true;
+                } else if(request.body && request.body.request && request.body.request.filters && request.body.request.filters.contentType) {
+                    if(Array.isArray(request.body.request.filters.contentType) && request.body.request.filters.contentType.length > 0) {
+                        if(request.body.request.filters.contentType.findIndex(type => type.toLowerCase() === "course") >=0) {
+                            isRequestForACourse = true;
+                        }
+                    }
                 }
 
                 // Parse content from Bodh for latest keywords and update ES
-                if(getBodhServiceResponse.data.data.result.count > 0) {
+                if(getBodhServiceResponse.data.data.result && getBodhServiceResponse.data.data.result.count > 0) {
                     bodhHelper.parseContentForKeywords(getBodhServiceResponse.data.data.result.content);
+                } else if(queryString != userQueryString) { // Auto-correct didn't yield any result
+                    queryString = request.body.request.query = userQueryString;
+
+                    // Make 2nd call to sunbird with original user query.
+                    getBodhServiceResponse = await bodhHelper.getSearchResults(request);
+
+                    // Check if original query yielded any result and parse that content if yes.
+                    if(!getBodhServiceResponse.data) {
+                        throw { message: constants.apiResponses.BODH_SEARCH_MIDDLEWARE_FAILURE }
+                    } else if (getBodhServiceResponse.data.data.result && getBodhServiceResponse.data.data.result.count > 0) {
+                        bodhHelper.parseContentForKeywords(getBodhServiceResponse.data.data.result.content);
+                    }
+                }
+
+                // Add did you mean if user query is different from searched query.
+                if(queryString.trim().toLowerCase() != userQueryString.trim().toLowerCase()) {
+                    getBodhServiceResponse.data[constants.apiResponses.BODH_SEARCH_MIDDLEWARE_DID_YOU_MEAN_KEY] = `${queryString}`
                 }
 
                 // Parse content from Bodh for updating auto complete
-                if(getBodhServiceResponse.data.data.result.count > 0) {
-                    bodhHelper.parseContentForAutocomplete(getBodhServiceResponse.data.data.result.content);
+                if(getBodhServiceResponse.data.data.result && getBodhServiceResponse.data.data.result.count > 0) {
+                    bodhHelper.parseContentForAutocomplete(getBodhServiceResponse.data.data.result.content, isRequestForACourse);
                 }
 
                 // Log query miss from ES and Bodh
-                if(getBodhServiceResponse.data.data.result.count == 0 && spellcheckFromESMiss) {
+                if(getBodhServiceResponse.data.data.result && getBodhServiceResponse.data.data.result.count == 0 && spellcheckFromESMiss) {
                     bodhHelper.logQueryMissFromESAndBodh(queryString, request.url);
                 }
                 
                 return resolve({
                     result: getBodhServiceResponse.data,
-                    message: messageConstants.apiResponses.BODH_SEARCH_MIDDLEWARE_SUCCESS
+                    message: constants.apiResponses.BODH_SEARCH_MIDDLEWARE_SUCCESS
                 });
 
             } catch (error) {
@@ -162,12 +189,12 @@ module.exports = class Search {
                 .getSearchSuggestions(queryString,filters,size);
                 
                 if(!searchSuggestions.data) {
-                    throw { message: messageConstants.apiResponses.BODH_SEARCH_AUTOCOMPLETE_FAILURE };
+                    throw { message: constants.apiResponses.BODH_SEARCH_AUTOCOMPLETE_FAILURE };
                 }
                 
                 return resolve({
                     result: { suggestions : searchSuggestions.data },
-                    message: messageConstants.apiResponses.BODH_SEARCH_AUTOCOMPLETE_SUCCESS
+                    message: constants.apiResponses.BODH_SEARCH_AUTOCOMPLETE_SUCCESS
                 });
 
             } catch (error) {

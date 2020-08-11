@@ -47,7 +47,6 @@ const APPLICATION_CONFIG_INDEX =
 gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_APPLICATION_CONFIG_INDEX")
 
 
-
 /**
   * Push notification data to elastic search.
   * @function
@@ -57,7 +56,7 @@ gen.utils.checkIfEnvDataExistsOrNot("ELASTICSEARCH_APPLICATION_CONFIG_INDEX")
   * @returns {Promise} returns a promise.
 */
 
-var pushNotificationData = function (userId = "", notificatonData = {}) {
+var pushNotificationData = function (userId = "", notificaton = {}) {
 
   return new Promise(async function (resolve, reject) {
     try {
@@ -66,25 +65,17 @@ var pushNotificationData = function (userId = "", notificatonData = {}) {
         throw "Invalid user id."
       }
 
-      let userNotificationDocument = 
-      await getNotificationData(userId, notificatonData.appType);
+      if( Array.isArray(notificaton.appType) && notificaton.appType.length > 0 ) {
 
-      if (userNotificationDocument.statusCode == httpStatusCode["not_found"].status) {
-
-        await _createInAppNotification(userId, notificatonData);
-
-      } else if (userNotificationDocument.statusCode == httpStatusCode["ok"].status) {
-
-        await _updateInAppNotification(userId, notificatonData, userNotificationDocument);
+        for(let appType = 0; appType < notificaton.appType.length;appType++) {
+          let clonedNotificationData = {...notificaton};
+          clonedNotificationData.appType = notificaton.appType[appType];
+          await _pushNotificationData( userId,clonedNotificationData );
+        }
 
       } else {
-        throw "Something went wrong!";
+        await _pushNotificationData( userId, notificaton );
       }
-
-      return resolve({
-        success: true,
-        message: "Notification successfully pushed to elastic search."
-      });
 
     } catch (error) {
       return reject(error);
@@ -109,7 +100,7 @@ var _getESIndexForNotificationAppType = function (appType = "") {
 
       if (appType === IMPROVEMENT_PROJECT_APPLICATION_APP_TYPE) {
         indexName = IMPROVEMENT_PROJECT_INDEX;
-      } 
+      }
       
       if (indexName == "") {
         throw new Error("No elastic search index found.");
@@ -1017,12 +1008,10 @@ var _typeExistsOrNot = function (index, type) {
         type: type
       });
 
-      console.log("result",result);
       return resolve(result);
 
     } catch (error) {
 
-      console.log("err",error);
       return reject(error);
     }
   })
@@ -1304,14 +1293,11 @@ var pushAppConfigData = function (confgData = {}) {
 
       } else if (configDocument.statusCode == httpStatusCode["ok"].status) {
 
-        // console.log("configDocument",configDocument.body['_source']['config'].version); 
-
+       
         let currentV = configDocument.body['_source']['config'].version;
 
-        // console.log("currentV",currentV)
         let versionChange = currentV.split(".");
 
-        // console.log("versionChange",versionChange);
         if( confgData.updateType && confgData.updateType=='major'){
 
           version = ( parseInt(versionChange[0]) + 1 ) + "."+ parseInt(versionChange[1]) + "." + parseInt(versionChange[2]);
@@ -1391,6 +1377,117 @@ var getIndexTypeMapping = function (indexName = "", typeName = "") {
   })
 };
 
+/**
+  * Helper function for pushing notification data.
+  * @function
+  * @name _pushNotificationData - helper function for pushing notification data.
+  * @returns {Promise} returns a promise.
+*/
+
+var _pushNotificationData = function ( userId, notification) {
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      let notificationData = 
+      await getNotificationData(userId, notification.appType);
+
+      if (notificationData.statusCode == httpStatusCode["not_found"].status) {
+
+        await _createInAppNotification(userId, notification);
+
+      } else if (notificationData.statusCode == httpStatusCode["ok"].status) {
+
+        await _updateInAppNotification(userId, notification, notificationData);
+
+      } else {
+        throw "Something went wrong!";
+      }
+
+      return resolve({
+        success: true,
+        message: "Notification successfully pushed to elastic search."
+      });
+    } catch (error) {
+      return reject(error);
+    }
+  })
+};
+
+
+/**
+  * Set index mapping.
+  * @function
+  * @name setIndexTypeMapping
+  * @param {String} index - name of the index for elastic search.
+  * @param {String} type - type for elastic search. 
+  * @param {Object} mapping - mapping for elastic search. 
+  * @returns {Promise} returns a promise.
+*/
+
+var setIndexTypeMapping = function (index = "", type = "", mapping) {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (index == "") {
+        throw new Error("Index is required");
+      }
+
+      if (type == "") {
+        throw new Error("Type is required");
+      }
+
+
+    const putMapping = await elasticsearch.client.indices.putMapping({
+      index: index,
+      type: type,
+      body: mapping
+      // include_type_name : true - Commented as it is not required in 6.8
+    });
+
+    if(putMapping.statusCode != 200) {
+      throw new Error("Error while updating mapping for index.");
+    }
+    
+    return resolve(putMapping);
+
+    } catch (error) {
+      return reject(error);
+    }
+  })
+};
+
+
+/**
+  * Create index.
+  * @function
+  * @name createIndex
+  * @param {String} index - name of the index for elastic search.
+  * @returns {Promise} returns a promise.
+*/
+
+var createIndex = function (index = "") {
+
+  return new Promise(async function (resolve, reject) {
+    try {
+
+      if (index == "") {
+        throw new Error("Index is required");
+      }
+      
+      const createIndex = await elasticsearch.client.indices.create({ index: index});
+
+      if(createIndex.statusCode != 200) {
+        throw new Error("Error while creating bodh content index.")
+      }
+    
+      return resolve(createIndex);
+
+    } catch (error) {
+      return reject(error);
+    }
+  })
+};
 
 module.exports = {
   pushNotificationData : pushNotificationData,
@@ -1409,5 +1506,7 @@ module.exports = {
   getIndexTypeMapping : getIndexTypeMapping,
   deleteDocumentFromIndex : deleteDocumentFromIndex,
   createOrUpdateDocumentInIndex : createOrUpdateDocumentInIndex,
-  searchDocumentFromIndex : searchDocumentFromIndex
+  searchDocumentFromIndex : searchDocumentFromIndex,
+  createIndex : createIndex,
+  setIndexTypeMapping : setIndexTypeMapping
 };

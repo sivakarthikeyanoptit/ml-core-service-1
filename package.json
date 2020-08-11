@@ -18,7 +18,11 @@
   "author": "Shikshalokam <info@shikshalokam.com>",
   "license": "ISC",
   "dependencies": {
+    "@azure/storage-blob": "^12.1.1",
     "@elastic/elasticsearch": "^6.7.1",
+    "@google-cloud/storage": "^4.3.1",
+    "adm-zip": "^0.4.14",
+    "aws-sdk": "^2.624.0",
     "body-parser": "^1.18.2",
     "bunyan": "^1.8.12",
     "bunyan-format": "^0.2.1",
@@ -30,7 +34,9 @@
     "cors": "^2.8.4",
     "csvtojson": "^2.0.10",
     "dotenv": "^6.2.0",
+    "ejs": "^3.0.1",
     "express": "^4.16.3",
+    "express-cassandra": "^2.3.2",
     "express-fileupload": "^0.4.0",
     "express-validator": "^5.3.1",
     "fcm-notification": "^2.0.0",
@@ -60,6 +66,7 @@
     "path": "^0.12.7",
     "request": "^2.88.0",
     "require-all": "^2.2.0",
+    "uuid": "^3.3.2",
     "xml-js": "^1.6.11"
   },
   "devDependencies": {

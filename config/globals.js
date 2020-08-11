@@ -117,16 +117,15 @@ module.exports = function () {
     }
   });
 
-
   // Load all message constants
-  global.messageConstants = new Array
-  fs.readdirSync(ROOT_PATH + "/generics/message-constants")
+  global.constants = new Array
+  fs.readdirSync(ROOT_PATH + "/generics/constants")
   .forEach(function (file) {
     if (file.match(/\.js$/) !== null) {
       let name = file.replace('.js', '');
       name = gen.utils.hyphenCaseToCamelCase(name);
-      global.messageConstants[name] = 
-      require(ROOT_PATH + "/generics/message-constants/" + file);
+      global.constants[name] = 
+      require(ROOT_PATH + "/generics/constants/" + file);
     }
   });
 
@@ -143,6 +142,44 @@ module.exports = function () {
       period: "1d", // daily rotation
       count: 3 // keep 3 back copies
     }]
+  });
+
+  global.sessions = {};
+
+  let versions = new Promise(async function(resolve, reject) {
+    
+    let versions = await database.models.appReleases.find({
+      status:"active"
+    }).lean();
+
+    resolve(versions);
+
+  });
+  
+  versions.then(function( versionData ) {
+    
+    if( versionData.length > 0 ) {
+      versionData.forEach(value=>{
+        
+        global.sessions[`allAppVersion-${value.appName}-${value.os}`] = {
+          is_read : false,
+          internal : true,
+          action : "versionUpdate",
+          appName : value.appName,
+          text : value.text,
+          title : value.title,
+          type : "Information",
+          payload : {
+              appVersion : value.version,
+              updateType : value.releaseType,
+              type : "appUpdate",
+              os : value.os,
+              releaseNotes : value.releaseNotes
+          },
+          appType : value.appType
+        };
+      })
+    }
   });
 
 };

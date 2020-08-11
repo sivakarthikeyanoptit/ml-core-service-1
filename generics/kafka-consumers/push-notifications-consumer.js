@@ -29,7 +29,8 @@ var messageReceived = function (message) {
 
       if ( 
         parsedMessage.action !== "deletion" && 
-        parsedMessage.action !== "versionUpdate"
+        parsedMessage.action !== "versionUpdate" &&
+        parsedMessage.action !== "Update" 
       ) {
 
         let userId = parsedMessage.user_id;

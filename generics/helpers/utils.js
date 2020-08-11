@@ -5,6 +5,9 @@
  * Description : All utility functions.
  */
 
+// Dependencies
+const uuid = require('uuid/v4');
+
  /**
   * convert string to camelCaseToTitleCase.
   * @function
@@ -99,10 +102,67 @@ function checkIfEnvDataExistsOrNot(data){
   return value;
 }
 
+ /**
+  * check whether the id is mongodbId or not.
+  * @function
+  * @name isValidMongoId
+  * @param {String} id 
+  * @returns {Boolean} returns whether id is valid mongodb id or not.  
+*/
+
+function isValidMongoId(id) {
+  return ObjectId.isValid(id) && new ObjectId(id).toString() === id;
+}
+
+  /**
+   * Convert string to mongodb object id.
+   * @method
+   * @name convertStringToObjectId
+   * @param id - string id
+   * @returns {ObjectId} - returns objectId 
+  */
+
+function convertStringToObjectId(id) {
+    
+  let checkWhetherIdIsValidMongoId = gen.utils.isValidMongoId(id);
+  if(checkWhetherIdIsValidMongoId) {
+      id = ObjectId(id);
+  }
+
+  return id;
+}
+
+/**
+   * Generate unique id.s
+   * @method
+   * @name generateUniqueId
+   * @returns {String} - unique id 
+  */
+
+function generateUniqueId() {
+  return uuid();
+}
+
+ /**
+  * check whether the url is a valid sunbird API
+  * @function
+  * @name checkIfURLIsSunbirdAPI
+  * @param {String} url 
+  * @returns {Boolean} returns whether url is valid sunbird API or not.  
+*/
+
+function checkIfURLIsSunbirdAPI(url) {
+  return (url.startsWith(process.env.sunbird_url)) ? true : false;
+}
+
 module.exports = {
   camelCaseToTitleCase : camelCaseToTitleCase,
   lowerCase : lowerCase,
   checkIfStringIsUrl : checkIfStringIsUrl,
   checkIfEnvDataExistsOrNot : checkIfEnvDataExistsOrNot,
-  hyphenCaseToCamelCase : hyphenCaseToCamelCase
+  hyphenCaseToCamelCase : hyphenCaseToCamelCase,
+  isValidMongoId : isValidMongoId,
+  convertStringToObjectId : convertStringToObjectId,
+  generateUniqueId : generateUniqueId,
+  checkIfURLIsSunbirdAPI : checkIfURLIsSunbirdAPI
 };
