@@ -88,9 +88,9 @@ let getDownloadableUrl = function (filePath, containerName) {
         blobName: filePath,
         permissions: BlobSASPermissions.parse("rw"),
         startsOn: new Date(),
-        expiresOn: new Date(new Date().valueOf() + process.env.AZURE_LINK_EXPIRY_TIME)
+        expiresOn: new Date(new Date().setSeconds(new Date().getSeconds() + parseInt(process.env.AZURE_LINK_EXPIRY_TIME)))
       },
-        blobServiceClient.credential
+      blobServiceClient.credential
       ).toString();
 
       return resolve(containerClient.url + "/" + filePath + "?" + sasToken);
