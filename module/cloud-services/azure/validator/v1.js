@@ -10,12 +10,12 @@ module.exports = (req) => {
     let azureInputValidator = {
         upload: function () {
             req.checkBody('filePath').exists().withMessage("required filePath field");
-            req.checkBody('containerName').exists().withMessage("required containerName field");
+            req.checkBody('bucketName').exists().withMessage("required bucketName field");
         },
         
         getDownloadableUrl: function () {
             req.checkBody('filePaths').exists().withMessage("required filePaths field");
-            req.checkBody('containerName').exists().withMessage("required containerName field");
+            req.checkBody('bucketName').exists().withMessage("required bucketName field");
         }, 
         getSignedUrls : function() {
             req.checkBody('fileNames').exists().withMessage("required file names");
