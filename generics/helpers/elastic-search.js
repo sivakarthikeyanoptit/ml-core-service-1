@@ -829,6 +829,7 @@ var getData = function (data) {
         id: data.id,
         index: data.index,
         type: data.type
+        // include_type_name : true <- Not required
       }, {
           ignore: [httpStatusCode["not_found"].status],
           maxRetries: 3
@@ -940,7 +941,8 @@ var _createOrUpdateData = function (data, update = false) {
           id: data.id,
           index: data.index,
           type: data.type,
-          body: data.body
+          body: data.body,
+          include_type_name : true
         });
       }
 
@@ -1043,7 +1045,7 @@ var _indexTypeMappingExistOrNot = function (index, type) {
       let result = await elasticsearch.client.indices.getMapping({
         index: index,
         type: type,
-        // include_type_name : true - Commented as it is not required in 6.8
+        include_type_name : true
       });
 
       return resolve(result);
@@ -1441,8 +1443,8 @@ var setIndexTypeMapping = function (index = "", type = "", mapping) {
     const putMapping = await elasticsearch.client.indices.putMapping({
       index: index,
       type: type,
-      body: mapping
-      // include_type_name : true - Commented as it is not required in 6.8
+      body: mapping,
+      include_type_name : true
     });
 
     if(putMapping.statusCode != 200) {
