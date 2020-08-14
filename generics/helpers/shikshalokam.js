@@ -14,9 +14,6 @@ const request = require("request");
 
 var getUserInfo = function (token, userId) {
 
-
-  
-
   if (process.env.DISABLE_LEARNER_SERVICE_ON_OFF && 
     process.env.DISABLE_LEARNER_SERVICE_ON_OFF == "ON") {
       
@@ -52,8 +49,8 @@ var getUserInfo = function (token, userId) {
               firstName: jwtInfo.name,
               gender: null,
               grade: new Array,
-              id: jwtInfo.sub,
-              identifier: jwtInfo.sub,
+              id: jwtInfo.sub.split(":").pop(),
+              identifier: jwtInfo.sub.split(":").pop(),
               isDeleted: false,
               jobProfile: new Array,
               language: new Array,
@@ -73,7 +70,7 @@ var getUserInfo = function (token, userId) {
                   organisationId: "0125747659358699520",
                   orgJoinDate: "2018-10-24 16:50:05:242+0000",
                   roles: ["LEAD_ASSESSOR", "ASSESSOR"],
-                  userId: jwtInfo.sub
+                  userId: jwtInfo.sub.split(":").pop()
                 }
               ],
               phone: "******0000",
@@ -132,7 +129,7 @@ var getUserInfo = function (token, userId) {
               thumbnail: null,
               updatedBy: null,
               updatedDate: null,
-              userId: jwtInfo.sub,
+              userId: jwtInfo.sub.split(":").pop(),
               userName: (jwtInfo.email && jwtInfo.email != "") ? 
               jwtInfo.email.split("@").shift() : (jwtInfo.preferred_username && jwtInfo.preferred_username != "") ? 
               jwtInfo.preferred_username.split("@").shift() : "",
