@@ -36,31 +36,38 @@ module.exports = class Azure {
 
     /**
      * @api {post} /kendra/api/v1/cloud-services/azure/upload  
-     * Upload
+     * Upload file to azure
      * @apiVersion 1.0.0
      * @apiGroup Azure
      * @apiHeader {String} X-authenticated-user-token Authenticity token
-     * @apiParamExample {json} Request:
+     * @apiParamExample {fromData} Request:
      * {
-     * "file": "",
-     * "filePath": "",
-     * "bucketName": ""
+     * "filePath": "static/library/drafts.png",
+     * "bucketName": "samiksha"
      }
      * @apiSampleRequest /kendra/api/v1/cloud-services/azure/upload
      * @apiUse successBody
      * @apiUse errorBody
      * @apiParamExample {json} Response:
      * {
-     *  "status": "",
-     *  "result": ""
+     *  "status": 200,
+     *  "message": "File uploaded successfully",
+     *  "result": {
+     *    "name": "static/library/drafts.png",
+     *    "containerName": "samiksha",
+     *    "location": "466d6f62-a01e-000b-3f01-72ce0f000000"
+     *  }
      * }
      */
 
     /**
-      * Get Downloadable URL from azure.
+      * Upload file to azure.
       * @method
       * @name upload
       * @param  {Request}  req  request body.
+      * @param  {files}  req.files.file - file to upload
+      * @param  {String}  req.body.filePath - file path of where to store
+      * @param  {String}  req.body.bucketName - bucket name
       * @returns {JSON} Response with status and message.
     */
 
@@ -69,16 +76,27 @@ module.exports = class Azure {
 
         try {
 
-            let uploadResponse =
-            await filesHelpers.upload(
-                 req.files.file.data,
-                 req.body.filePath, 
-                 req.body.containerName
-            );
+            if (req.files) {
 
-            return resolve({
-                result: uploadResponse
-            })
+                let uploadResponse =
+                    await filesHelpers.upload(
+                        req.files.file.data,
+                        req.body.filePath,
+                        req.body.bucketName
+                    );
+
+                return resolve({
+                    message: constants.apiResponses.FILE_UPLOADED,
+                    result: uploadResponse
+                })
+
+            } else {
+                return reject({
+                    status: httpStatusCode["bad_request"].status,
+                    message: httpStatusCode["bad_request"].message
+
+                });
+            }
 
         } catch (error) {
 
@@ -104,10 +122,10 @@ module.exports = class Azure {
      * @apiVersion 1.0.0
      * @apiGroup Azure
      * @apiHeader {String} X-authenticated-user-token Authenticity token
-     * @apiParamExample {json} Request:
+     * @apiParamExample {json} Request: 
      * {
-     * "filePaths": [],
-     * "bucketName": ""
+        "filePaths": ["static/library/drafts.png"],
+        "bucketName": "samiksha"
      * }
      * @apiSampleRequest /kendra/api/v1/cloud-services/azure/getDownloadableUrl
      * @apiUse successBody
@@ -117,8 +135,8 @@ module.exports = class Azure {
      *  "status": 200,
      *  "message": "Url's generated successfully",
      *  "result": [{
-     *  "filePath": "5bee56b30cd752559fd13012/f:a8ac51b2-2f8c-4911-b3f3-5f67aa28c644:2b655fd1-201d-4d2a-a1b7-9048a25c0afa/23-Oct-2018-8AM-image121.jpg",
-     *  "url": "https://samikshaprod.blob.core.windows.net/samiksha/5bee56b30cd752559fd13012/f:a8ac51b2-2f8c-4911-b3f3-5f67aa28c644:2b655fd1-201d-4d2a-a1b7-9048a25c0afa/23-Oct-2018-8AM-image121.jpg?sv=2019-07-07&st=2020-04-06T11%3A37%3A23Z&se=2020-04-06T11%3A38%3A50Z&sr=b&sp=rw&sig=dcgL4SahoIMtI881bTj2ahii1QhQQhGewDR40sPBL88%3D"
+     *    "filePath": "static/library/drafts.png",
+     *    "url": "https://samikshaprod.blob.core.windows.net/samiksha/static/library/drafts.png?sv=2019-07-07&st=2020-08-14T06%3A17%3A13Z&se=2020-08-15T06%3A17%3A13Z&sr=b&sp=rw&sig=m%2BGXgFLG117hAdLQ%2F0hP%2BAXCp04RLruQflcDHEN2MGk%3D"
      * }]
      * }
      */
@@ -128,7 +146,9 @@ module.exports = class Azure {
       * @method
       * @name getDownloadableUrl
       * @param  {Request}  req  request body.
-      * @returns {JSON} Response with status and message.
+      * @param  {Array}  req.body.filePaths - file paths
+      * @param  {String} req.body.bucketName - bucket name
+      * @returns {JSON} - Downloadable url's
     */
 
     async getDownloadableUrl(req) {
@@ -139,7 +159,7 @@ module.exports = class Azure {
                 let downloadableUrl =
                 await filesHelpers.getDownloadableUrl(
                      req.body.filePaths, 
-                     req.body.containerName,
+                     req.body.bucketName,
                      constants.common.AZURE_SERVICE
                 );
 

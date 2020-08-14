@@ -35,8 +35,9 @@ let containerClient;
   * Upload file in azure.
   * @function
   * @name uploadFile
-  * @param file - file to upload.
-  * @param filePath - file path
+  * @param {file} file - file to upload.
+  * @param {String} filePath - file path
+  * @param {String} containerName - name of the container
   * @returns {Object} - upload file information
 */
 
@@ -52,7 +53,7 @@ let uploadFile = async function (file, fileName, containerName) {
 
     if (!uploadBlobResponse['requestId']) {
       return reject({
-        message: "Could not upload file in azure"
+        message: constants.apiResponses.FAILED_TO_UPLOAD
       });
     } else {
 
@@ -73,8 +74,9 @@ let uploadFile = async function (file, fileName, containerName) {
   * Get downloadable url.
   * @function
   * @name getDownloadableUrl
-  * @param filePath - file path
-  * @returns {String} - Get downloadable url link
+  * @param {Array} filePath - file path
+  * @param {String} containerName - name of the container
+  * @returns {String} - downloadable url's
 */
 
 let getDownloadableUrl = function (filePath, containerName) {
