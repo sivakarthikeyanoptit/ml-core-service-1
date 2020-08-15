@@ -69,14 +69,7 @@ module.exports = class PushNotifications {
                     appType = req.headers.apptype.trim().toLowerCase();
                 }
 
-                let appName = "";
-                if(req.headers.app && req.headers.app != "") {
-                    appName = req.headers.app.trim().toLowerCase();
-                }
-                
-                if (req.headers.appname && req.headers.appname != "") {
-                    appName = req.headers.appname.trim().toLowerCase();
-                }
+                let appName = req.headers.appname.trim().toLowerCase();
 
                 let deviceData = {
                     deviceId: req.body.deviceId,
