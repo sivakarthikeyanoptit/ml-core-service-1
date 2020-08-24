@@ -135,7 +135,7 @@ module.exports = class InAppNotificationsHelper {
                 }
 
                 let versionData = await database.models.appReleases.findOne({
-                    appName : appname,
+                    appName : gen.utils.lowerCase(appname),
                     os : os,
                     status : constants.common.ACTIVE
                 }).lean();

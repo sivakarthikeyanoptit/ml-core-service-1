@@ -173,7 +173,7 @@ module.exports = class VersionHelper {
                 
                 await database.models.appReleases.findOneAndUpdate({
                     _id : { $ne : currentAppVersion[0]._id },
-                    appName : currentAppVersion[0].appName,
+                    appName : gen.utils.lowerCase(currentAppVersion[0].appName),
                     os : currentAppVersion[0].os
                 },{
                     $set : { 
