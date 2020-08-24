@@ -146,40 +146,42 @@ module.exports = function () {
 
   global.sessions = {};
 
-  let versions = new Promise(async function(resolve, reject) {
+  // <- Dirty fix. Not required currently.
+   
+  // let versions = new Promise(async function(resolve, reject) {
     
-    let versions = await database.models.appReleases.find({
-      status:"active"
-    }).lean();
+  //   let versions = await database.models.appReleases.find({
+  //     status:"active"
+  //   }).lean();
 
-    resolve(versions);
+  //   resolve(versions);
 
-  });
+  // });
   
-  versions.then(function( versionData ) {
+  // versions.then(function( versionData ) {
     
-    if( versionData.length > 0 ) {
-      versionData.forEach(value=>{
+  //   if( versionData.length > 0 ) {
+  //     versionData.forEach(value=>{
         
-        global.sessions[`allAppVersion-${value.appName}-${value.os}`] = {
-          is_read : false,
-          internal : true,
-          action : "versionUpdate",
-          appName : value.appName,
-          text : value.text,
-          title : value.title,
-          type : "Information",
-          payload : {
-              appVersion : value.version,
-              updateType : value.releaseType,
-              type : "appUpdate",
-              os : value.os,
-              releaseNotes : value.releaseNotes
-          },
-          appType : value.appType
-        };
-      })
-    }
-  });
+  //       global.sessions[`allAppVersion-${value.appName}-${value.os}`] = {
+  //         is_read : false,
+  //         internal : true,
+  //         action : "versionUpdate",
+  //         appName : value.appName,
+  //         text : value.text,
+  //         title : value.title,
+  //         type : "Information",
+  //         payload : {
+  //             appVersion : value.version,
+  //             updateType : value.releaseType,
+  //             type : "appUpdate",
+  //             os : value.os,
+  //             releaseNotes : value.releaseNotes
+  //         },
+  //         appType : value.appType
+  //       };
+  //     })
+  //   }
+  // });
 
 };
