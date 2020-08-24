@@ -95,8 +95,8 @@ module.exports = class VersionHelper {
         return new Promise( async (resolve,reject)=>{
             try {
                 
-                let sessionPath = 
-                `${constants.common.ALL_APP_VERSION}-${gen.utils.lowerCase(data.appName)}-${gen.utils.lowerCase(data.os)}`;
+                // let sessionPath = 
+                // `${constants.common.ALL_APP_VERSION}-${gen.utils.lowerCase(data.appName)}-${gen.utils.lowerCase(data.os)}`;
 
                 data.appName = gen.utils.lowerCase(data.appName);
                 data.os = gen.utils.lowerCase(data.os);
@@ -124,8 +124,8 @@ module.exports = class VersionHelper {
                             }
                         );
                         
-                        let versionData = _versionPayload(data);
-                        sessionHelpers.set(sessionPath,versionData);
+                        // let versionData = _versionPayload(data);
+                        // sessionHelpers.set(sessionPath,versionData);
                     }
                     data.message = constants.apiResponses.APP_VERSION_UPDATED;
                 } else {
@@ -164,8 +164,10 @@ module.exports = class VersionHelper {
                 })
             }
 
-            let sessionPath = 
-            `${constants.common.ALL_APP_VERSION}-${gen.utils.lowerCase(currentAppVersion[0].appName)}-${gen.utils.lowerCase(currentAppVersion[0].os)}`;
+            // <- Dirty fix.Currently not required.
+
+            // let sessionPath = 
+            // `${constants.common.ALL_APP_VERSION}-${gen.utils.lowerCase(currentAppVersion[0].appName)}-${gen.utils.lowerCase(currentAppVersion[0].os)}`;
 
             if( updateData.status === constants.common.ACTIVE ) {
                 
@@ -194,8 +196,10 @@ module.exports = class VersionHelper {
                 })
             }
             
-            let versionData = _versionPayload(updateAppReleaseData);
-            sessionHelpers.set(sessionPath,versionData);
+            // <- Dirty fix.Currently not required.
+            
+            // let versionData = _versionPayload(updateAppReleaseData);
+            // sessionHelpers.set(sessionPath,versionData);
 
             return resolve({
                 message : constants.apiResponses.APP_VERSION_UPDATED,
