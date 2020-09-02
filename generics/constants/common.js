@@ -38,5 +38,6 @@ module.exports = {
   "ORGANISATION_LIMIT" : 1000,
   "ORGANISATIONS_OFFSET" : 0,
   "ORGANISATION_LISTS" : "organisation-lists",
-  "UPLOAD_FOLDER_PATH" : "/public/upload"
+  "UPLOAD_FOLDER_PATH" : "/public/upload",
+  "APPS_UPLOAD_FILE_PATH" : "static/apps/"
 };

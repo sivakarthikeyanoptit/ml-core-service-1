@@ -75,5 +75,16 @@ module.exports = {
   "ERROR_IN_ORGANISATIONS_LIST" : "Could not fetched organisations lists",
   "ORGANISATIONS_LIST_FETCHED" : "Fetched organisations lists successfully",
   "FILE_UPLOADED" : "File uploaded successfully",
-  "FAILED_TO_UPLOAD": "Failed to upload file"
+  "FAILED_TO_UPLOAD": "Failed to upload file",
+  "NAME_FIELD_REQUIRED" : " App name field is required",
+  "APP_DETAILS_FETCHED" : "App details fetched successfully",
+  "APP_DETAILS_NOT_FOUND" : "APP details not found",
+  "APP_DETAILS_REQUIRED" : "App details required",
+  "APP_DETAILS_CREATED" : "App details created successfully",
+  "USER_ID_REQUIRED_CHECK" : "UserId is required",
+  "APP_DETAILS_UPDATED" : "App details updated successfully",
+  "DESCRIPTION_REQUIRED" : "Description is required",
+  "DiSPLAY_NAME_REQUIRED" : "Display name  is required",
+  "PLAYSTORE_LINK_REQUIRED" : "Playstore link is required",
+  "LOGO_REQUIRED" : "Logo is required"
 };
