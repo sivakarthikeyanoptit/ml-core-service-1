@@ -237,10 +237,10 @@ module.exports = class EntitiesHelper {
                 ) {
     
                     let getImmediateEntityTypes =
-                        await entityTypesHelper.list({
+                        await entityTypesHelper.entityTypesDocument({
                             name : entitiesDocument[0].entityType
                         },["immediateChildrenEntityType"]
-                        );
+                    );
     
                     let immediateEntitiesIds;
     
@@ -524,6 +524,35 @@ module.exports = class EntitiesHelper {
             return reject(error);
         }
     })
+  }
+
+   /**
+   * List of Entities
+   * @method
+   * @name list
+   * @param bodyData - Body data.
+   * @returns {Array} List of Entities.
+   */
+  
+  static list( bodyData ) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            
+            const entities = await this.entityDocuments(
+                bodyData.query,
+                bodyData.projection,
+                bodyData.skipFields
+            );
+
+            return resolve({
+                message : constants.apiResponses.ENTITIES_FETCHED,
+                result : entities
+            });
+            
+        } catch (error) {
+            return reject(error);
+        }
+    });
   }
 
 }

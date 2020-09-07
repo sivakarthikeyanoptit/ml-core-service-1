@@ -43,7 +43,8 @@ module.exports = class PushNotificationsHelper {
                     notification: {
                         title: notification.title,
                         body: notification.message
-                    }
+                    },
+                    data: notification.data ? notification.data : {}
                 };
 
                 let pushToTopicData = 

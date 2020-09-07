@@ -467,6 +467,51 @@ var uploadContent = async function ( file,contentId,token,contentType,mimeType )
     
 }
 
+/**
+  * Get user profile.
+  * @function
+  * @name userProfile   
+  * @param userId - logged in user id.
+  * @param token - logged in user token.
+  * @returns {Promise}
+*/
+
+var userProfile = async function ( userId,token ) {
+
+    const userProfileUrl = 
+    process.env.SUNBIRD_SERIVCE_HOST +
+    process.env.SUNBIRD_SERIVCE_BASE_URL +
+    process.env.URL_PREFIX + 
+    constants.endpoints.GET_USER_PROFILE + "/" + userId;
+
+    return new Promise(async (resolve,reject)=>{
+        
+        const options = {
+            "headers" : {
+                "content-type": "application/json",
+                "authorization" : process.env.AUTHORIZATION,
+                "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
+                "x-authenticated-user-token" : token
+            }
+        };
+        
+        request.get(userProfileUrl,options,callback);
+        
+        function callback( err,data ) {
+            if( err ) {
+                console.log(err)
+                return reject({
+                    message : constants.apiResponses.SUNBIRD_SERVICE_DOWN
+                });
+            } else {
+                let profileData = data.body;
+                return resolve(JSON.parse(profileData).result.response);
+            }
+        }
+    })
+    
+}
+
 module.exports = {
     generateCodes : generateCodes,
     publishCode : publishCode,
@@ -477,5 +522,6 @@ module.exports = {
     indexSync : indexSync,
     createContent : createContent,
     uploadContent : uploadContent,
-    organisationList : organisationList
+    organisationList : organisationList,
+    userProfile : userProfile
 };

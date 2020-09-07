@@ -4,22 +4,35 @@ module.exports = class FormHelper {
     /**
      * Form list.
      * @method
-     * @name list
+     * @name formsDocument
      * @param {Object} [queryParameter = "all"] - Filtered query data.
-     * @param {Object} [projection = {}] - Projected data.   
+     * @param {Object} [projection = "all"] - Projected data.
+     * @param {Object} [skipFields = "none"] - Field not to include.      
      * @returns {Object} returns a form data.
     */
 
-   static list(queryParameter = "all", projection = {}) {
+   static formsDocument(filterQuery = "all", fieldsArray = "all", skipFields = "none") {
        return new Promise(async (resolve, reject) => {
            try {
-
-               if( queryParameter === "all" ) {
-                   queryParameter = {};
-               };
+               
+                let queryObject = (filterQuery != "all") ? filterQuery : {};
+                
+                let projection = {}
+                
+                if (fieldsArray != "all") {
+                    fieldsArray.forEach(field => {
+                        projection[field] = 1;
+                    });
+                }
+                
+                if( skipFields !== "none" ) {
+                    skipFields.forEach(field=>{
+                        projection[field] = 0;
+                    })
+                }
 
                let formData = 
-               await database.models.forms.find(queryParameter, projection).lean();
+               await database.models.forms.find(queryObject, projection).lean();
 
                return resolve(formData);
 
@@ -29,4 +42,34 @@ module.exports = class FormHelper {
        })
 
    }
+
+   /**
+   * List of user forms.
+   * @method
+   * @name list
+   * @param bodyData - Body data.
+   * @returns {Array} List of user forms data.
+   */
+  
+  static list( bodyData ) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            
+            const forms = await this.formsDocument(
+                bodyData.query,
+                bodyData.projection,
+                bodyData.skipFields
+            );
+
+            return resolve({
+                message : constants.apiResponses.FORMS_FETCHED,
+                result : forms
+            });
+            
+        } catch (error) {
+            return reject(error);
+        }
+    });
+  }
+  
 }

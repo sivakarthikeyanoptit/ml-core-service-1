@@ -86,5 +86,14 @@ module.exports = {
   "DESCRIPTION_REQUIRED" : "Description is required",
   "DiSPLAY_NAME_REQUIRED" : "Display name  is required",
   "PLAYSTORE_LINK_REQUIRED" : "Playstore link is required",
-  "LOGO_REQUIRED" : "Logo is required"
+  "LOGO_REQUIRED" : "Logo is required",
+  "SOLUTIONS_FETCHED" : "Solutions fetched successfully",
+  "PROGRAMS_FETCHED" : "Programs fetched successfully",
+  "ENTITY_TYPES_FETCHED" : "Entity types fetched successfully",
+  "FORMS_FETCHED" : "Forms fetched successfully",
+  "USER_ORGANISATIONS_FETCHED" : "User organisations fetched successfully",
+  "USER_ORGANISATION_NOT_FOUND" : "User organisation not found.",
+  "SOLUTION_NOT_FOUND" : "No solution found",
+  "SOLUTION_UPDATED" : "Solution updated successfully",
+  "USER_ROLES_FETCHED" : "Successfully fetched user roles"
 };

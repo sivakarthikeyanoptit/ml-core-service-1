@@ -155,6 +155,19 @@ function checkIfURLIsSunbirdAPI(url) {
   return (url.startsWith(process.env.sunbird_url)) ? true : false;
 }
 
+ /**
+  * Get epoch time from current date.
+  * @function
+  * @name epochTime
+  * @returns {Date} returns epoch time.  
+*/
+
+function epochTime() {
+  var currentDate = new Date();
+  currentDate = currentDate.getTime();
+  return currentDate;
+}
+
 module.exports = {
   camelCaseToTitleCase : camelCaseToTitleCase,
   lowerCase : lowerCase,
@@ -164,5 +177,6 @@ module.exports = {
   isValidMongoId : isValidMongoId,
   convertStringToObjectId : convertStringToObjectId,
   generateUniqueId : generateUniqueId,
-  checkIfURLIsSunbirdAPI : checkIfURLIsSunbirdAPI
+  checkIfURLIsSunbirdAPI : checkIfURLIsSunbirdAPI,
+  epochTime : epochTime
 };

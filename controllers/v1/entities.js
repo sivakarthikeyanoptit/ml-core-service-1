@@ -44,7 +44,7 @@ module.exports = class Entities extends Abstract {
      * @api {get} /kendra/api/v1/entities/listByEntityType/:entityType 
      * List of entities based on its type
      * @apiVersion 1.0.0
-     * @apiGroup User
+     * @apiGroup Entities
      * @apiHeader {String} X-authenticated-user-token Authenticity token
      * @apiSampleRequest /kendra/api/v1/entities/listByEntityType/state
      * @apiUse successBody
@@ -119,7 +119,7 @@ module.exports = class Entities extends Abstract {
      * @api {post} /kendra/api/v1/entities/subEntityList/:entityId?type=:type&search=:search&page=:page&limit=:limit
      * Get sub entity list for the given entity. 
      * @apiVersion 1.0.0
-     * @apiGroup User
+     * @apiGroup Entities
      * @apiHeader {String} X-authenticated-user-token Authenticity token
      * @apiSampleRequest /kendra/api/v1/entities/subEntityList/5db173598a8e070bedca6ba1?type=school&search=r&page=1&limit=1
      * @apiUse successBody
@@ -195,7 +195,7 @@ module.exports = class Entities extends Abstract {
      * @api {get} /kendra/api/v1/entities/details/:entityId
      * Get entities details information
      * @apiVersion 1.0.0
-     * @apiGroup User
+     * @apiGroup Entities
      * @apiHeader {String} X-authenticated-user-token Authenticity token
      * @apiSampleRequest /kendra/api/v1/entities/details/5db173598a8e070bedca6ba1
      * @apiUse successBody
@@ -253,5 +253,65 @@ module.exports = class Entities extends Abstract {
       })
     }
 
+     /**
+  * @api {get} /kendra/api/v1/entities/list
+  * List entities.
+  * @apiVersion 1.0.0
+  * @apiName List entities
+  * @apiGroup Entities
+  * @apiSampleRequest /kendra/api/v1/entities/list
+  * @param {json} Request-Body:
+  * {
+  * "query" : {
+        "metaInformation.externalId" : "9999999999"
+    },
+    "projection" : ["_id","entityType"]
+    }
+  * @apiUse successBody
+  * @apiUse errorBody
+  * @apiParamExample {json} Response:
+  * {
+    "message" : "List of entities fetched successfully",
+    "status" : 200,
+    "result" : [
+        {
+            "_id" : "5beaa888af0065f0e0a10515",
+            "entityType": "school"
+        }
+    ]
+  }
+  */
+
+    /**
+   * List of entities.
+   * @method
+   * @name find
+   * @param {Object} req - requested data.
+   * @param {String} req.params._id - requested entity type.         
+   * @returns {JSON} - Array of entities.
+   */
+
+  list(req) {
+    return new Promise(async (resolve, reject) => {
+
+      try {
+
+        const entities = await entitiesHelper.list(req.body);
+        return resolve(entities);
+
+      } catch (error) {
+
+        return reject({
+          status : error.status || httpStatusCode.internal_server_error.status,
+          message : error.message || httpStatusCode.internal_server_error.message,
+          errorObject : error
+        })
+
+      }
+
+
+    })
+  }
+  
 };
 

@@ -193,10 +193,13 @@ module.exports = class UserExtensionHelper {
     return new Promise(async (resolve, reject) => {
         try {
 
-            const entityTypesArray = await entityTypesHelper.list({}, {
-                name: 1,
-                immediateChildrenEntityType: 1
-            });
+            const entityTypesArray = await entityTypesHelper.entityTypesDocument(
+                "all", 
+                [
+                    "name",
+                    "immediateChildrenEntityType"
+                ]
+            );
 
             let enityTypeToImmediateChildrenEntityMap = {};
 
@@ -238,7 +241,8 @@ module.exports = class UserExtensionHelper {
                         "entityDocuments.metaInformation.name": 1,
                         "entityDocuments.groups": 1,
                         "entityDocuments.entityType": 1,
-                        "entityDocuments.entityTypeId": 1
+                        "entityDocuments.entityTypeId": 1,
+                        "ratings" : 1
                     }
                 }
             ];
@@ -385,6 +389,39 @@ module.exports = class UserExtensionHelper {
         }
     })
 }
+
+    /**
+   * Update user profile data.
+   * @method
+   * @name update
+   * @param {Object} updateData - Update user profile data.
+   * @returns {Object} 
+   */
+
+  static update(userId,updateData) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            let updatedData = 
+            await database.models.userExtension.findOneAndUpdate({
+                userId : userId
+            },{
+                $set : updateData
+            },{
+                new : true
+            });
+
+
+            return resolve({
+                message : constants.apiResponses.USER_EXTENSION_FETCHED,
+                result : updatedData
+            });
+            
+        } catch (error) {
+            return reject(error);
+        }
+    })
+  }
 
 };
 
