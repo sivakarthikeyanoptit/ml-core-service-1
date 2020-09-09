@@ -11,6 +11,10 @@ module.exports = (req) => {
         },
         isSystemAdmin: function () {
             req.checkBody('email').exists().withMessage("required email id");
+        },
+        entitiesMappingForm : function () {
+            req.checkParams('_id').exists().withMessage("required Entity id");
+            req.checkQuery('roleId').exists().withMessage("required role id");
         }
 
     }

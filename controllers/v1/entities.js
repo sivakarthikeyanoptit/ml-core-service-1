@@ -44,7 +44,7 @@ module.exports = class Entities extends Abstract {
      * @api {get} /kendra/api/v1/entities/listByEntityType/:entityType 
      * List of entities based on its type
      * @apiVersion 1.0.0
-     * @apiGroup User
+     * @apiGroup Entities
      * @apiHeader {String} X-authenticated-user-token Authenticity token
      * @apiSampleRequest /kendra/api/v1/entities/listByEntityType/state
      * @apiUse successBody
@@ -88,16 +88,12 @@ module.exports = class Entities extends Abstract {
     
           try {
 
-            let requestedData = {
-                entityType : req.params._id,
-                pageSize : req.pageSize,
-                pageNo : req.pageNo
-            }
-
             let entityDocuments = await entitiesHelper.listByEntityType(
-                requestedData
+              req.params._id,
+              req.pageSize,
+              req.pageNo
             );
-    
+
             return resolve(entityDocuments);
     
           } catch (error) {
@@ -119,7 +115,7 @@ module.exports = class Entities extends Abstract {
      * @api {post} /kendra/api/v1/entities/subEntityList/:entityId?type=:type&search=:search&page=:page&limit=:limit
      * Get sub entity list for the given entity. 
      * @apiVersion 1.0.0
-     * @apiGroup User
+     * @apiGroup Entities
      * @apiHeader {String} X-authenticated-user-token Authenticity token
      * @apiSampleRequest /kendra/api/v1/entities/subEntityList/5db173598a8e070bedca6ba1?type=school&search=r&page=1&limit=1
      * @apiUse successBody
@@ -195,7 +191,7 @@ module.exports = class Entities extends Abstract {
      * @api {get} /kendra/api/v1/entities/details/:entityId
      * Get entities details information
      * @apiVersion 1.0.0
-     * @apiGroup User
+     * @apiGroup Entities
      * @apiHeader {String} X-authenticated-user-token Authenticity token
      * @apiSampleRequest /kendra/api/v1/entities/details/5db173598a8e070bedca6ba1
      * @apiUse successBody
@@ -252,6 +248,68 @@ module.exports = class Entities extends Abstract {
         }
       })
     }
+
+    /**
+    * @api {get} /kendra/api/v1/entities/subEntitiesRoles/:entityId
+    * Get roles based on entity type.
+    * @apiVersion 1.0.0
+    * @apiGroup Entities
+    * @apiHeader {String} X-authenticated-user-token Authenticity token
+    * @apiSampleRequest /kendra/api/v1/entities/subEntitiesRoles/5da829874c67d63cca1bd9d0
+    * @apiUse successBody
+    * @apiUse errorBody
+    * @apiParamExample {json} Response:
+    * {
+    "message": "Successfully fetched user roles",
+    "status": 200,
+    "result": [
+        {
+            "_id": "5d6e521066a9a45df3aa891e",
+            "code": "HM",
+            "title": "Headmaster"
+        },
+        {
+            "_id": "5d6e521066a9a45df3aa891f",
+            "code": "CRP",
+            "title": "Cluster Resource Person"
+        },
+        {
+            "_id": "5d6e521066a9a45df3aa8920",
+            "code": "BEO",
+            "title": "Block Education Officer"
+        },
+        {
+            "_id": "5d6e521066a9a45df3aa8921",
+            "code": "DEO",
+            "title": "District Education Officer"
+        }
+    ]
+    }
+    */
+
+  subEntitiesRoles(req) {
+    return new Promise(async (resolve, reject) => {
+
+      try {
+
+        const subEntityRoles = await entitiesHelper.subEntitiesRoles(req.params._id);
+       
+        resolve(subEntityRoles);
+
+      } catch (error) {
+
+        return reject({
+          status:
+            error.status ||
+            httpStatusCode["internal_server_error"].status,
+
+          message:
+            error.message ||
+            httpStatusCode["internal_server_error"].message
+        });
+      }
+    });
+  }
 
 };
 

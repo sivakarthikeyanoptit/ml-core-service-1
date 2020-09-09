@@ -37,6 +37,10 @@ module.exports = {
       userProfileScreenVisitedTrack:{
         type:Object,
         default:null
+      },
+      state : {
+        type : Object,
+        default : {}
       }
     }
-  }
+}
