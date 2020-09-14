@@ -941,8 +941,7 @@ var _createOrUpdateData = function (data, update = false) {
           id: data.id,
           index: data.index,
           type: data.type,
-          body: data.body,
-          include_type_name : true
+          body: data.body
         });
       }
 
