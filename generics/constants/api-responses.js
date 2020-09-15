@@ -86,5 +86,12 @@ module.exports = {
   "DESCRIPTION_REQUIRED" : "Description is required",
   "DiSPLAY_NAME_REQUIRED" : "Display name  is required",
   "PLAYSTORE_LINK_REQUIRED" : "Playstore link is required",
-  "LOGO_REQUIRED" : "Logo is required"
+  "LOGO_REQUIRED" : "Logo is required",
+  "USER_ROLES_FETCHED" : "Successfully fetched user roles",
+  "STATE_NOT_FOUND" : "State could not found",
+  "SUB_ENTITY_NOT_FOUND" : "Could not found sub entity",
+  "USER_ROLES_NOT_FOUND" : "Could not found user roles",
+  "ENTITIES_MAPPING_FORM_FETCHED" : "Entities mapping form fetched successfully",
+  "USER_DATA_EXISTS" : "User data exists",
+  "USER_EXTENSION_UPDATED" : "User extension updated successfully"
 };
