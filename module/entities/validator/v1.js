@@ -8,6 +8,9 @@ module.exports = (req) => {
         },
         details : function () {
             req.checkParams('_id').exists().withMessage("required Entity id");
+        },
+        subEntitiesRoles : function() {
+            req.checkParams('_id').exists().withMessage("required Entity id");
         }
     }
 
