@@ -128,21 +128,53 @@ module.exports = class InAppNotificationsHelper {
                 );
                
                
-
                 if (getNotificationDocument.statusCode === httpStatusCode["ok"].status) {
                     
                     response["count"] = 
                     getNotificationDocument.body._source.notificationUnreadCount;
                 }
 
-                let sessionPath = `${constants.common.ALL_APP_VERSION}-${gen.utils.lowerCase(appname)}-${gen.utils.lowerCase(os)}`;
-                let sessionData = sessionHelpers.get(sessionPath);
+                let versionData = await database.models.appReleases.findOne({
+                    appName : gen.utils.lowerCase(appname),
+                    os : os,
+                    status : constants.common.ACTIVE
+                }).lean();
 
-                if( sessionData !== undefined && sessionData.payload &&
-                    sessionData.payload.appVersion !== currentAppVersion
+                if( 
+                    versionData && versionData.version !== currentAppVersion
                 ) {
-                    response.data.push(sessionData);
+                    
+                    response.data.push({
+                        is_read : false,
+                        internal : true,
+                        action : "versionUpdate",
+                        appName : versionData.appName,
+                        created_at : new Date(),
+                        text : versionData.text,
+                        title : versionData.title,
+                        type : "Information",
+                        payload : {
+                            appVersion : versionData.version,
+                            updateType : versionData.releaseType,
+                            type : "appUpdate",
+                            releaseNotes : versionData.releaseNotes,
+                            os : versionData.os
+                        },
+                        appType : versionData.appType
+                    });
+
                 }
+
+                // <- Dirty fix.Currently not required.
+
+                // let sessionPath = `${constants.common.ALL_APP_VERSION}-${gen.utils.lowerCase(appname)}-${gen.utils.lowerCase(os)}`;
+                // let sessionData = sessionHelpers.get(sessionPath);
+
+                // if( sessionData !== undefined && sessionData.payload &&
+                //     sessionData.payload.appVersion !== currentAppVersion
+                // ) {
+                //     response.data.push(sessionData);
+                // }
 
                 return resolve(response);
 

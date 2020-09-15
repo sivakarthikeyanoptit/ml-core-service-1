@@ -1,10 +1,10 @@
 {
-  "name": "Shikshalokam",
+  "name": "Shikshalokam-Kendra-Service",
   "version": "1.0.0",
   "description": "shikshalokam",
   "main": "app.js",
   "bin": {
-    "migrations": "module/migrations/bin/migrations.js"
+    "kendra-migrations": "module/migrations/bin/migrations.js"
   },
   "scripts": {
     "test": "mocha --timeout 10000",

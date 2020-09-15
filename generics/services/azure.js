@@ -1,7 +1,7 @@
 const { BlobServiceClient, generateBlobSASQueryParameters, BlobSASPermissions, StorageSharedKeyCredential } = require('@azure/storage-blob');
 const AZURE_ACCOUNT_NAME = (process.env.AZURE_ACCOUNT_NAME && process.env.AZURE_ACCOUNT_NAME != "") ? process.env.AZURE_ACCOUNT_NAME : "";
 const AZURE_ACCOUNT_KEY = (process.env.AZURE_ACCOUNT_KEY && process.env.AZURE_ACCOUNT_KEY != "") ? process.env.AZURE_ACCOUNT_KEY : "";
-
+const AZURE_LINK_EXPIRY_TIME = (process.env.AZURE_LINK_EXPIRY_TIME && process.env.AZURE_LINK_EXPIRY_TIME != "") ? process.env.AZURE_LINK_EXPIRY_TIME : 31536600;
 // The name of the container that the files will be uploaded to.
 const AZURE_STORAGE_CONTAINER = (process.env.AZURE_STORAGE_CONTAINER && process.env.AZURE_STORAGE_CONTAINER != "") ? process.env.AZURE_STORAGE_CONTAINER : "sl-dev-storage";
 
@@ -35,8 +35,9 @@ let containerClient;
   * Upload file in azure.
   * @function
   * @name uploadFile
-  * @param file - file to upload.
-  * @param filePath - file path
+  * @param {file} file - file to upload.
+  * @param {String} filePath - file path
+  * @param {String} containerName - name of the container
   * @returns {Object} - upload file information
 */
 
@@ -52,7 +53,7 @@ let uploadFile = async function (file, fileName, containerName) {
 
     if (!uploadBlobResponse['requestId']) {
       return reject({
-        message: "Could not upload file in azure"
+        message: constants.apiResponses.FAILED_TO_UPLOAD
       });
     } else {
 
@@ -73,8 +74,9 @@ let uploadFile = async function (file, fileName, containerName) {
   * Get downloadable url.
   * @function
   * @name getDownloadableUrl
-  * @param filePath - file path
-  * @returns {String} - Get downloadable url link
+  * @param {Array} filePath - file path
+  * @param {String} containerName - name of the container
+  * @returns {String} - downloadable url's
 */
 
 let getDownloadableUrl = function (filePath, containerName) {
@@ -88,9 +90,9 @@ let getDownloadableUrl = function (filePath, containerName) {
         blobName: filePath,
         permissions: BlobSASPermissions.parse("rw"),
         startsOn: new Date(),
-        expiresOn: new Date(new Date().valueOf() + process.env.AZURE_LINK_EXPIRY_TIME)
+        expiresOn: new Date(new Date().setSeconds(new Date().getSeconds() + parseInt(AZURE_LINK_EXPIRY_TIME)))
       },
-        blobServiceClient.credential
+      blobServiceClient.credential
       ).toString();
 
       return resolve(containerClient.url + "/" + filePath + "?" + sasToken);

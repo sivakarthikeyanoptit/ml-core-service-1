@@ -148,5 +148,83 @@ module.exports = class Users extends Abstract {
         })
     }
 
+      /**
+     * @api {get} /kendra/api/v1/users/entitiesMappingForm/:stateId?roleId=:roleId 
+     * Entities mapping form.
+     * @apiVersion 1.0.0
+     * @apiGroup User
+     * @apiHeader {String} X-authenticated-user-token Authenticity token
+     * @apiSampleRequest /kendra/api/v1/users/entitiesMappingForm/5da829874c67d63cca1bd9d0?roleId=5d6e521066a9a45df3aa891e
+     * @apiUse successBody
+     * @apiUse errorBody
+     * @apiParamExample {json} Response:
+     * {
+     "message": "Entities mapping form fetched successfully",
+     "status": 200,
+     "result": [
+        {
+            "field": "district",
+            "label": "Select District",
+            "value": "",
+            "visible": true,
+            "editable": true,
+            "input": "text",
+            "validation": {
+                "required": false
+            }
+        },
+        {
+            "field": "block",
+            "label": "Select Block",
+            "value": "",
+            "visible": true,
+            "editable": true,
+            "input": "text",
+            "validation": {
+                "required": true
+            }
+        }]}
+    */
+
+    /**
+      * Lists of entities mapping form
+      * @method
+      * @name entitiesMappingForm
+      * @param  {Request} req request body.
+      * @returns {JSON} List of entiites mapping form.
+     */
+
+    entitiesMappingForm(req) {
+
+        return new Promise(async (resolve, reject) => {
+
+            try {
+
+                const entitiesMappingData = 
+                await usersHelper.entitiesMappingForm(
+                    req.params._id,
+                    req.query.roleId
+                );
+
+                resolve(entitiesMappingData);
+
+            } catch (error) {
+
+                return reject({
+                    status: 
+                    error.status || 
+                    httpStatusCode["internal_server_error"].status,
+
+                    message: 
+                    error.message || 
+                    httpStatusCode["internal_server_error"].message
+                })
+
+            }
+
+
+        })
+    }
+
 };
 
