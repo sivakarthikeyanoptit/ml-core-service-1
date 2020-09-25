@@ -44,6 +44,13 @@ module.exports = class PushNotificationsHelper {
                         title: notification.title,
                         body: notification.message
                     },
+                    android: {
+                        ttl: 3600 * 1000, // 1 hour in milliseconds
+                        priority: 'high',
+                        notification: {
+                            click_action : "FCM_PLUGIN_ACTIVITY"                       
+                        }
+                    },
                     data: notification.data ? notification.data : {}
                 };
 
@@ -496,14 +503,13 @@ module.exports = class PushNotificationsHelper {
                     },
                     data: notificationData.data ? notificationData.data : {},
                     android: {
-                        ttl: 3600 * 1000, // 1 hour in milliseconds
+                        ttl: 3600 * 1000,
                         priority: 'high',
                         notification: {
                             click_action : "FCM_PLUGIN_ACTIVITY",
                             icon : 'notifications_icon',
                             color: "#A63936"                        
-                        },
-
+                        }
                     },
                     apns: {},
                     token: notificationData.deviceId

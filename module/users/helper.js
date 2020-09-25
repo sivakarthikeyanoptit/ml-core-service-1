@@ -10,6 +10,12 @@ const programsHelper = require(MODULES_BASE_PATH + "/programs/helper");
 const solutionsHelper = require(MODULES_BASE_PATH + "/solutions/helper");
 const sunbirdService = require(ROOT_PATH+"/generics/services/sunbird");
 
+
+// Dependencies 
+
+const userRolesHelper = require(MODULES_BASE_PATH + "/user-roles/helper");
+const entitiesHelper = require(MODULES_BASE_PATH + "/entities/helper");
+
 /**
     * UsersHelper
     * @class
@@ -141,7 +147,7 @@ module.exports = class UsersHelper {
     return new Promise(async (resolve, reject) => {
         try {
 
-            let userPrivateProgram = "";
+            let userPrivateProgram = {};
             let dateFormat = gen.utils.epochTime();
 
             const organisationAndRootOrganisations = 
@@ -151,9 +157,9 @@ module.exports = class UsersHelper {
 
                 userPrivateProgram =  await programsHelper.programDocuments(
                     {
-                        _id : data.programId
-                    },
-                    ["externalId","name","description"]
+                        _id : data.programId,
+                        createdBy : userId
+                    }
                 );
 
                 if( !userPrivateProgram.length > 0 ) {
@@ -182,8 +188,8 @@ module.exports = class UsersHelper {
                     userId : userId
                 }
 
-                programData.createdFor =  organisationAndRootOrganisations.createdFor;
-                programData.rootOrganisations = organisationAndRootOrganisations.rootOrganisations;
+                programData.createdFor =  organisationAndRootOrganisations.result.createdFor;
+                programData.rootOrganisations = organisationAndRootOrganisations.result.rootOrganisations;
 
                 userPrivateProgram = 
                 await programsHelper.create(
@@ -192,26 +198,35 @@ module.exports = class UsersHelper {
             }
 
             let solutionData = {
-                name : data.solutionName,
-                externalId : 
-                data.solutionExternalId ? 
-                data.solutionExternalId : 
-                data.solutionName+ "-" + dateFormat,
-                description : 
-                data.solutionDescription ? 
-                data.solutionDescription : data.solutionName,
                 programId : userPrivateProgram._id,
                 programExternalId : userPrivateProgram.externalId,
                 programName : userPrivateProgram.name,
-                programDescription : userPrivateProgram.description
+                programDescription : userPrivateProgram.description,
+                type : data.type ? data.type : constants.common.ASSESSMENT,
+                subType : data.subType ? data.subType : constants.common.INSTITUTIONAL
             }
 
-            solutionData.entities = 
-            solutionData.entities && solutionData.entities.length > 0 ? 
-            solutionData.entities : [];
+            if( data.entities ) {
+                solutionData["entities"] = data.entities;
+            }
+
+            if( data.solutionName ) {
+                solutionData["name"] = data.solutionName;
+                solutionData["externalId"] = 
+                data.solutionExternalId ? 
+                data.solutionExternalId : data.solutionName+ "-" + dateFormat;
+                solutionData["description"] = 
+                data.solutionDescription ? data.solutionDescription : data.solutionName;
+            } else {
+                solutionData["name"] = userPrivateProgram.programName,
+                solutionData["externalId"] = userId + "-" + dateFormat;
+                solutionData["description"] = userPrivateProgram.programDescription;
+            }
+
+            solutionData.entities = data.entities;
             
-            solutionData.createdFor =  organisationAndRootOrganisations.createdFor;
-            solutionData.rootOrganisations = organisationAndRootOrganisations.rootOrganisations;
+            solutionData.createdFor =  organisationAndRootOrganisations.result.createdFor;
+            solutionData.rootOrganisations = organisationAndRootOrganisations.result.rootOrganisations;
 
             const solution = await solutionsHelper.create(solutionData);
 
@@ -229,7 +244,7 @@ module.exports = class UsersHelper {
                     program : userPrivateProgram,
                     solution : solution
                 }
-            })
+            });
 
         } catch (error) {
             return reject(error);
@@ -263,8 +278,11 @@ module.exports = class UsersHelper {
             const rootOrganisations = [userProfileData.rootOrgId];
 
             return resolve({
-                createdFor : createdFor,
-                rootOrganisations : rootOrganisations
+                message : constants.apiResponses.USER_ORGANISATIONS_FETCHED,
+                result : {
+                    createdFor : createdFor,
+                    rootOrganisations : rootOrganisations
+                }
             });
 
         } catch(error) {
@@ -272,5 +290,94 @@ module.exports = class UsersHelper {
         }
     })
   }
+    /**
+      * Entities mapping form data.
+      * @method
+      * @name entitiesMappingForm
+      * @param {String} stateId - state id.
+      * @param {String} roleId - role id.
+      * @returns {Object} returns a list of entitiesMappingForm.
+     */
+
+    static entitiesMappingForm(stateId,roleId) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                const rolesData = await userRolesHelper.roleDocuments({
+                    _id : roleId
+                },["entityTypes.entityType"]);
+
+                if( !rolesData.length > 0 ) {
+                    return resolve({
+                        message : constants.apiResponses.USER_ROLES_NOT_FOUND,
+                        result : []
+                    })
+                }
+
+                const entitiesData = await entitiesHelper.entityDocuments(
+                    {
+                        _id : stateId,
+                    },["childHierarchyPath"]
+                );
+
+                if( !entitiesData.length > 0 ) {
+                    return resolve({
+                        message : constants.apiResponses.ENTITY_NOT_FOUND,
+                        result : []
+                    })
+                }
+
+                let roleEntityType = "";
+
+                rolesData[0].entityTypes.forEach(roleData=>{
+                    if(entitiesData[0].childHierarchyPath.includes(roleData.entityType)) {
+                        roleEntityType = roleData.entityType;
+                    }
+                })
+
+                let entityTypeIndex = 
+                entitiesData[0].childHierarchyPath.findIndex(path => path === roleEntityType);
+
+                let form = {
+                    "field" : "",
+                    "label" : "",
+                    "value" : "",
+                    "visible" : true,
+                    "editable" : true,
+                    "input" : "text",
+                    "validation" : {
+                        "required" : false
+                    }
+                };
+
+                let forms = [];
+                
+                for( 
+                    let pointerToChildHierarchy = 0; 
+                    pointerToChildHierarchy < entityTypeIndex + 1; 
+                    pointerToChildHierarchy ++
+                ) {
+                    let cloneForm = JSON.parse(JSON.stringify(form));
+                    let entityType = entitiesData[0].childHierarchyPath[pointerToChildHierarchy];
+                    cloneForm["field"] = entityType;
+                    cloneForm["label"] = `Select ${gen.utils.camelCaseToTitleCase(entityType)}`;
+
+                    if( roleEntityType === entityType ) {
+                        cloneForm.validation.required = true;
+                    }
+
+                    forms.push(cloneForm);
+                }
+
+                return resolve({
+                    message : constants.apiResponses.ENTITIES_MAPPING_FORM_FETCHED,
+                    result : forms
+                });
+                
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
 
 };
