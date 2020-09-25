@@ -1,4 +1,5 @@
-let entityTypesHelper = require(MODULES_BASE_PATH + "/entityTypes/helper");
+const entityTypesHelper = require(MODULES_BASE_PATH + "/entityTypes/helper");
+const userRolesHelper = require(MODULES_BASE_PATH + "/user-roles/helper");
 
 module.exports = class EntitiesHelper {
 
@@ -15,6 +16,7 @@ module.exports = class EntitiesHelper {
    * @param {Number} [skippingValue = ""] - total data to skip.
    * @returns {Array} - returns an array of entities data.
    */
+
   static entityDocuments(
     findQuery = "all", 
     fields = "all",
@@ -146,55 +148,69 @@ module.exports = class EntitiesHelper {
     /**
      * List all entities based on type.
      * @method
-     * @name listByEntityType
-     * @param {Object} data 
-     * @param {String} data.entityType - entity type
-     * @param {Number} data.pageSize - total page size.
-     * @param {Number} data.pageNo - page number.
+     * @name listByEntityType 
+     * @param {String} entityType - entity type
+     * @param {Number} pageSize - total page size.
+     * @param {Number} pageNo - page number.
+     * @param {String} searchText - text to search.
      * @returns {Array} - List of all entities based on type.
      */
 
-    static listByEntityType(data) {
+    static listByEntityType( entityType,pageSize,pageNo,searchText = "",version = constants.common.VERSION_1 ) {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let entityName = constants.schema.METAINFORMATION + "." +
-                    constants.schema.NAME;
 
-                let entityExternalId = constants.schema.METAINFORMATION + "." +
-                    constants.schema.EXTERNALID;
-
-                let projection = [entityName, entityExternalId];
-
-                let skippingValue = data.pageSize * (data.pageNo - 1);
-
-                let entityDocuments = await this.entityDocuments({
-                    entityType: data.entityType
-                },
-                    projection,
-                    "none",
-                    data.pageSize,
-                    skippingValue,
-                    {
-                        [entityName]: 1
+                let queryObject = {
+                    $match : {
+                        entityType : entityType
                     }
-                );
-
-                if (entityDocuments.length < 1) {
-                    throw {
-                        status: httpStatusCode.not_found.status,
-                        message: constants.apiResponses.ENTITY_NOT_FOUND
-                    };
+                };
+    
+                if( searchText !== "") {
+                    queryObject["$match"]["$or"] = [
+                        { "metaInformation.name": new RegExp(searchText, 'i') },
+                        { "metaInformation.externalId": new RegExp("^" + searchText, 'm') },
+                        { "metaInformation.addressLine1": new RegExp(searchText, 'i') },
+                        { "metaInformation.addressLine2": new RegExp(searchText, 'i') }
+                    ];
                 }
 
-                entityDocuments = entityDocuments.map(entityDocument => {
-                    return {
-                        externalId: entityDocument.metaInformation.externalId,
-                        name: entityDocument.metaInformation.name,
-                        _id: entityDocument._id
+                let aggregationData = [
+                    queryObject,
+                    {
+                        $project: {
+                            name: "$metaInformation.name",
+                            externalId: "$metaInformation.externalId"
+                        }
                     }
-                });
+                ];
 
+                if( version === constants.common.VERSION_2 ) {
+                    
+                    aggregationData.push({
+                        $facet: {
+                            "totalCount": [
+                                { "$count": "count" }
+                            ],
+                            "data": [
+                                { $skip: pageSize * (pageNo - 1) },
+                                { $limit: pageSize }
+                            ],
+                        }
+                    },{
+                        $project: {
+                            "data": 1,
+                            "count": {
+                                $arrayElemAt: ["$totalCount.count", 0]
+                            }
+                        }
+                    });
+                }
+    
+                let entityDocuments = 
+                await database.models.entities.aggregate(aggregationData);
+                
                 return resolve({
                     message: constants.apiResponses.ENTITIES_FETCHED,
                     result: entityDocuments
@@ -554,5 +570,93 @@ module.exports = class EntitiesHelper {
         }
     });
   }
+
+  /** 
+   * List roles by entity type.
+   * @method
+   * @name subEntitiesRoles
+   * @param entityId - entity id.
+   * @returns {Object} List of roles by entity id.
+  */
+
+   static subEntitiesRoles( entityId ) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+             const entityDocuments = await this.entityDocuments({
+                 _id : entityId
+             },["childHierarchyPath"]);
+
+             if( !entityDocuments.length > 0 ) {
+                 return resolve({
+                     message : constants.apiResponses.STATE_NOT_FOUND,
+                     result : []
+                 })
+             }
+
+             if( !entityDocuments[0].childHierarchyPath || !entityDocuments[0].childHierarchyPath.length > 0 ) {
+                 return resolve({
+                     message : constants.apiResponses.SUB_ENTITY_NOT_FOUND,
+                     result : []
+                 })
+             }
+            
+            const rolesData = await userRolesHelper.roleDocuments({
+                "entityTypes.entityType" : { $in : entityDocuments[0].childHierarchyPath }
+            },["code","title"]);
+
+            if( !rolesData.length > 0 ) {
+             return resolve({
+                 message : constants.apiResponses.USER_ROLES_NOT_FOUND,
+                 result : []
+             })
+            }
+
+            return resolve({
+                message : constants.apiResponses.USER_ROLES_FETCHED,
+                result : rolesData
+             });
+
+        } catch (error) {
+            return reject(error);
+        }
+    })
+
+}
+
+     /** 
+   * Entities child hierarchy path.
+   * @method
+   * @name childHierarchyPath
+   * @param entityId - entity id.
+   * @returns {Array} Child hierarchy path data.
+  */
+
+   static childHierarchyPath( entityId ) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+             const entityDocuments = await this.entityDocuments({
+                 _id : entityId
+             },["childHierarchyPath"]);
+
+             if( !entityDocuments.length > 0 ) {
+                 return resolve({
+                     message : constants.apiResponses.ENTITY_NOT_FOUND,
+                     result : []
+                 })
+             }
+             
+             return resolve({
+                 message : constants.apiResponses.ENTITIES_CHILD_HIERACHY_PATH,
+                 result : entityDocuments[0].childHierarchyPath
+             });
+
+        } catch (error) {
+            return reject(error);
+        }
+    })
+
+   }
 
 }
