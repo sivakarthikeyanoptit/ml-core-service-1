@@ -32,7 +32,6 @@ module.exports = class FcmHelper {
             try {
 
                 let pushNotificationRelatedInformation = {
-                    topic: element.topicName,
                     notification: {
                         title: element.title,
                         body: element.message
@@ -41,8 +40,8 @@ module.exports = class FcmHelper {
 
                 let pushToTopicData = 
                 await firebaseHelper.sendToTopic(
-                    pushNotificationRelatedInformation.topic, 
-                    pushNotificationRelatedInformation.notification
+                    element.topicName, 
+                    pushNotificationRelatedInformation
                 );
 
                 return resolve(pushToTopicData);

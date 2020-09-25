@@ -41,6 +41,14 @@ module.exports = {
       ratings : {
         type : Array,
         default : []
+      },
+      state : {
+        type : Object,
+        default : {}
+      },
+      metaInformation : {
+        type : Object,
+        default : {}
       }
     }
-  }
+}

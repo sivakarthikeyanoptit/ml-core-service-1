@@ -95,5 +95,12 @@ module.exports = {
   "USER_ORGANISATION_NOT_FOUND" : "User organisation not found.",
   "SOLUTION_NOT_FOUND" : "No solution found",
   "SOLUTION_UPDATED" : "Solution updated successfully",
-  "USER_ROLES_FETCHED" : "Successfully fetched user roles"
+  "USER_ROLES_FETCHED" : "Successfully fetched user roles",
+  "STATE_NOT_FOUND" : "State could not found",
+  "SUB_ENTITY_NOT_FOUND" : "Could not found sub entity",
+  "USER_ROLES_NOT_FOUND" : "Could not found user roles",
+  "ENTITIES_MAPPING_FORM_FETCHED" : "Entities mapping form fetched successfully",
+  "USER_DATA_EXISTS" : "User data exists",
+  "USER_EXTENSION_UPDATED" : "User extension updated successfully",
+  "ENTITIES_CHILD_HIERACHY_PATH" : "Entities child hierarchy path fetched successfully"
 };
