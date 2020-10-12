@@ -37,7 +37,6 @@ ApiInterceptor.prototype.validateToken = function (token, callback) {
     let cert = "";
     let path = keyCloakPublicKeyPath + kid + '.pem';
     
-
     if (fs.existsSync(path)) {
       cert = fs.readFileSync(path);
       jwt.verify(token, cert, { algorithm: 'RS256' }, function (err, decode) {
