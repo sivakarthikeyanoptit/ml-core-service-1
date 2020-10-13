@@ -95,26 +95,7 @@ ApiInterceptor.prototype.validateToken = function (token, callback) {
         return callback(null, tokenData);
       }
     });
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
+  } 
 };
 
 module.exports = ApiInterceptor;
