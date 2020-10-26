@@ -20,10 +20,10 @@ const FCM = admin.initializeApp({
 const ASSESSMENT_KEY_PATH = gen.utils.checkIfEnvDataExistsOrNot("ASSESSMENT_FCM_KEY_PATH");
 const assessment_fcm_token_path = require(ROOT_PATH + ASSESSMENT_KEY_PATH);
 const assessment_fcm_path = ROOT_PATH + ASSESSMENT_KEY_PATH;
-var ASSESSMENT_FCM ="";
+let ASSESSMENT_APP_FCM = false;
 
 if (fs.statSync(assessment_fcm_path)) {
-  var ASSESSMENT_FCM = admin.initializeApp({
+  ASSESSMENT_APP_FCM = admin.initializeApp({
     credential: admin.credential.cert(assessment_fcm_token_path),
     projectId : assessment_fcm_token_path.project_id},'assessment'
   );
@@ -32,10 +32,10 @@ if (fs.statSync(assessment_fcm_path)) {
 const IMPROVEMENT_KEY_PATH = gen.utils.checkIfEnvDataExistsOrNot("IMPROVEMENT_FCM_KEY_PATH");
 const improvement_fcm_token_path = require(ROOT_PATH + IMPROVEMENT_KEY_PATH);
 const improvement_fcm_path = ROOT_PATH + IMPROVEMENT_KEY_PATH;
-var IMPROVEMENT_FCM ="";
+let IMPROVEMENT_APP_FCM = false;
 
 if (fs.statSync(improvement_fcm_path)) {
-  const IMPROVEMENT_FCM = admin.initializeApp({
+  const IMPROVEMENT_APP_FCM = admin.initializeApp({
     credential: admin.credential.cert(improvement_fcm_token_path),
     projectId : improvement_fcm_token_path.project_id},'improvement'
   );
@@ -47,8 +47,8 @@ const NODE_ENV = gen.utils.checkIfEnvDataExistsOrNot("NODE_ENV");
 const slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
 const userExtensionHelper = require(MODULES_BASE_PATH + "/user-extension/helper");
 
-const appTypeAssessment = (process.env.NOTIFICATIONS_APP_TYPE_ASSESSMENT && process.env.NOTIFICATIONS_APP_TYPE_ASSESSMENT != "") ? process.env.NOTIFICATIONS_APP_TYPE_ASSESSMENT : "assessment";
-const appTypeImprovement = (process.env.NOTIFICATIONS_APP_TYPE_IMPROVEMENT && process.env.NOTIFICATIONS_APP_TYPE_IMPROVEMENT != "") ? process.env.NOTIFICATIONS_APP_TYPE_IMPROVEMENT : "improvement";
+const appTypeAssessment = (process.env.ASSESSMENT_APP_TYPE && process.env.ASSESSMENT_APP_TYPE != "") ? process.env.ASSESSMENT_APP_TYPE : "assessment";
+const appTypeImprovement = (process.env.IMPROVEMENT_APP_TYPE && process.env.IMPROVEMENT_APP_TYPE != "") ? process.env.IMPROVEMENT_APP_TYPE : "improvement";
 
 /**
     * PushNotificationsHelper
@@ -77,6 +77,9 @@ module.exports = class PushNotificationsHelper {
                     notification: {
                         title: notification.title,
                         body: notification.message
+                    },
+                    data: {
+                      appType: notification.appType
                     }
                 };
 
@@ -109,27 +112,37 @@ module.exports = class PushNotificationsHelper {
             try {
 
                 let success;
+                let methodToCall = FCM;
+                let appType = subscribeData.appType
+                if(!appType && !appType !== undefined){
+                  if (appType !== undefined && appType === appTypeAssessment && ASSESSMENT_APP_FCM !== false) {
+                      methodToCall = ASSESSMENT_APP_FCM
+                  }
 
-                FCM.subscribeToTopic(subscribeData.deviceId,
-                    NODE_ENV + "-" + subscribeData.topic,
-                    function (err, response) {
-                        if (err) {
-                            success = false;
-                            slackClient.sendMessageToSlack({
-                                "code": err.errorInfo.code,
-                                "message": err.errorInfo.message,
-                                slackErrorName: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_NAME"),
-                                color: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_MESSAGE_COLOR")
-                            });
+                  if (appType !== undefined && appType === appTypeImprovement && IMPROVEMENT_APP_FCM !== false) {
+                      methodToCall = IMPROVEMENT_APP_FCM;
+                  }
+                }
 
-                        } else {
-                            success = true;
-                        }
-
-                        return resolve({
-                            success: success
-                        });
-                    })
+                methodToCall.messaging().subscribeToTopic(subscribeData.deviceId, NODE_ENV + "-" + subscribeData.topic)
+                 .then(function(response) {
+                    success = true;
+                    return resolve({
+                        success: success
+                    });
+                  })
+                  .catch(function(error) {
+                    success = false;
+                    slackClient.sendMessageToSlack({
+                        "code": err.errorInfo.code,
+                        "message": err.errorInfo.message,
+                        slackErrorName: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_NAME"),
+                        color: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_MESSAGE_COLOR")
+                    });
+                    return resolve({
+                        success: success
+                    });
+                });
 
             } catch (error) {
                 return reject(error);
@@ -151,35 +164,43 @@ module.exports = class PushNotificationsHelper {
      */
 
     static unsubscribeFromTopic(unsubscribeData) {
-
+        console.log(unsubscribeData,"unsubscribeData")
         return new Promise(async (resolve, reject) => {
 
             try {
 
                 let success;
+                let methodToCall = FCM;
+                let appType = unsubscribeData.appType
+                if(!appType && !appType !== undefined){
+                  if (appType !== undefined && appType === appTypeAssessment && ASSESSMENT_APP_FCM !== false) {
+                      methodToCall = ASSESSMENT_APP_FCM
+                  }
 
-                FCM.unsubscribeFromTopic(unsubscribeData.deviceId,
-                    NODE_ENV + "-" + unsubscribeData.topic,
-                    function (err, response) {
-                        if (err) {
-                            success = false;
+                  if (appType !== undefined && appType === appTypeImprovement && IMPROVEMENT_APP_FCM !== false) {
+                      methodToCall = IMPROVEMENT_APP_FCM;
+                  }
+                }
 
-                            slackClient.sendMessageToSlack({
-                                "code": err.errorInfo.code,
-                                "message": err.errorInfo.message,
-                                slackErrorName: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_NAME"),
-                                color: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_MESSAGE_COLOR"),
-                            });
-
-                        } else {
-                            success = true;
-                        }
-
-                        return resolve({
-                            success: success
-                        });
-                    })
-
+                methodToCall.messaging().unsubscribeFromTopic(unsubscribeData.deviceId, NODE_ENV + "-" + unsubscribeData.topic)
+                 .then(function(response) {
+                    success = true;
+                    return resolve({
+                        success: success
+                    });
+                  })
+                  .catch(function(error) {
+                    success = false;
+                    slackClient.sendMessageToSlack({
+                        "code": err.errorInfo.code,
+                        "message": err.errorInfo.message,
+                        slackErrorName: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_NAME"),
+                        color: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_MESSAGE_COLOR")
+                    });
+                    return resolve({
+                        success: success
+                    });
+                });
 
             } catch (error) {
                 return reject(error);
@@ -202,6 +223,7 @@ module.exports = class PushNotificationsHelper {
      */
 
     static pushData(allUserData) {
+
         return new Promise(async (resolve, reject) => {
             try {
 
@@ -209,7 +231,11 @@ module.exports = class PushNotificationsHelper {
                     throw "topic name is required"
                 }
 
-                if (allUserData.message && allUserData.title) {
+                if (!allUserData.appType) {
+                    throw "app type is required"
+                }
+
+                if (allUserData.message && allUserData.title && allUserData.appType) {
                     let topicResult = await this.pushToTopic(allUserData);
 
                     if (topicResult !== undefined && topicResult.success) {
@@ -265,7 +291,6 @@ module.exports = class PushNotificationsHelper {
                 } else {
                     deviceStatus = "inactive";
                 }
-
 
                 let subscribedOrUnSubscribed = [];
 
@@ -581,12 +606,12 @@ async function _sendMessage(notificationInformation) {
             let methodToCall = FCM;
             let appType = notificationInformation.data.appType
             if(!appType && !appType !== undefined){
-              if (appType !== undefined && appType === appTypeAssessment && ASSESSMENT_FCM != "") {
-                  methodToCall = ASSESSMENT_FCM
+              if (appType !== undefined && appType === appTypeAssessment && ASSESSMENT_APP_FCM !== false) {
+                  methodToCall = ASSESSMENT_APP_FCM
               }
 
-              if (appType !== undefined && appType === appTypeImprovement && IMPROVEMENT_FCM != "") {
-                  methodToCall = IMPROVEMENT_FCM;
+              if (appType !== undefined && appType === appTypeImprovement && IMPROVEMENT_APP_FCM !== false) {
+                  methodToCall = IMPROVEMENT_APP_FCM;
               }
             }
             
