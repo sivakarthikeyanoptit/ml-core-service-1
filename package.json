@@ -39,7 +39,6 @@
     "express-cassandra": "^2.3.2",
     "express-fileupload": "^0.4.0",
     "express-validator": "^5.3.1",
-    "fcm-notification": "^2.0.0",
     "firebase-admin": "^8.8.0",
     "fn-args": "^4.0.0",
     "form-urlencoded": "^3.0.2",

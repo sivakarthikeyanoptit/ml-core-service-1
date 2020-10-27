@@ -164,7 +164,7 @@ module.exports = class PushNotificationsHelper {
      */
 
     static unsubscribeFromTopic(unsubscribeData) {
-        console.log(unsubscribeData,"unsubscribeData")
+
         return new Promise(async (resolve, reject) => {
 
             try {
