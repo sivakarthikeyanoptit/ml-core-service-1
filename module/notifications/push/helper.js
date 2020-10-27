@@ -112,7 +112,6 @@ module.exports = class PushNotificationsHelper {
             try {
 
                 let success;
-                let methodToCall = FCM;
                 let appType = subscribeData.appType
                 let methodToCall = await this.getFcmMethod(appType);
 
@@ -162,7 +161,6 @@ module.exports = class PushNotificationsHelper {
             try {
 
                 let success;
-                let methodToCall = FCM;
                 let appType = unsubscribeData.appType
                 let methodToCall = await this.getFcmMethod(appType);
 
