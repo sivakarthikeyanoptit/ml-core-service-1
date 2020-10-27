@@ -18,11 +18,11 @@ const FCM = admin.initializeApp({
 
 
 const ASSESSMENT_KEY_PATH = gen.utils.checkIfEnvDataExistsOrNot("ASSESSMENT_FCM_KEY_PATH");
-const assessment_fcm_token_path = require(ROOT_PATH + ASSESSMENT_KEY_PATH);
 const assessment_fcm_path = ROOT_PATH + ASSESSMENT_KEY_PATH;
 let ASSESSMENT_APP_FCM = false;
 
 if (fs.statSync(assessment_fcm_path)) {
+  const assessment_fcm_token_path = require(ROOT_PATH + ASSESSMENT_KEY_PATH);
   ASSESSMENT_APP_FCM = admin.initializeApp({
     credential: admin.credential.cert(assessment_fcm_token_path),
     projectId : assessment_fcm_token_path.project_id},'assessment'
@@ -30,12 +30,12 @@ if (fs.statSync(assessment_fcm_path)) {
 }
 
 const IMPROVEMENT_KEY_PATH = gen.utils.checkIfEnvDataExistsOrNot("IMPROVEMENT_FCM_KEY_PATH");
-const improvement_fcm_token_path = require(ROOT_PATH + IMPROVEMENT_KEY_PATH);
 const improvement_fcm_path = ROOT_PATH + IMPROVEMENT_KEY_PATH;
 let IMPROVEMENT_APP_FCM = false;
 
 if (fs.statSync(improvement_fcm_path)) {
-  const IMPROVEMENT_APP_FCM = admin.initializeApp({
+  const improvement_fcm_token_path = require(ROOT_PATH + IMPROVEMENT_KEY_PATH);
+  IMPROVEMENT_APP_FCM = admin.initializeApp({
     credential: admin.credential.cert(improvement_fcm_token_path),
     projectId : improvement_fcm_token_path.project_id},'improvement'
   );
@@ -48,7 +48,7 @@ const slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications"
 const userExtensionHelper = require(MODULES_BASE_PATH + "/user-extension/helper");
 
 const appTypeAssessment = (process.env.ASSESSMENT_APP_TYPE && process.env.ASSESSMENT_APP_TYPE != "") ? process.env.ASSESSMENT_APP_TYPE : "assessment";
-const appTypeImprovement = (process.env.IMPROVEMENT_APP_TYPE && process.env.IMPROVEMENT_APP_TYPE != "") ? process.env.IMPROVEMENT_APP_TYPE : "improvement";
+const appTypeImprovement = (process.env.IMPROVEMENT_APP_TYPE && process.env.IMPROVEMENT_APP_TYPE != "") ? process.env.IMPROVEMENT_APP_TYPE : "improvement-project";
 
 /**
     * PushNotificationsHelper
@@ -114,15 +114,7 @@ module.exports = class PushNotificationsHelper {
                 let success;
                 let methodToCall = FCM;
                 let appType = subscribeData.appType
-                if(!appType && !appType !== undefined){
-                  if (appType !== undefined && appType === appTypeAssessment && ASSESSMENT_APP_FCM !== false) {
-                      methodToCall = ASSESSMENT_APP_FCM
-                  }
-
-                  if (appType !== undefined && appType === appTypeImprovement && IMPROVEMENT_APP_FCM !== false) {
-                      methodToCall = IMPROVEMENT_APP_FCM;
-                  }
-                }
+                let methodToCall = await this.getFcmMethod(appType);
 
                 methodToCall.messaging().subscribeToTopic(subscribeData.deviceId, NODE_ENV + "-" + subscribeData.topic)
                  .then(function(response) {
@@ -172,15 +164,7 @@ module.exports = class PushNotificationsHelper {
                 let success;
                 let methodToCall = FCM;
                 let appType = unsubscribeData.appType
-                if(!appType && !appType !== undefined){
-                  if (appType !== undefined && appType === appTypeAssessment && ASSESSMENT_APP_FCM !== false) {
-                      methodToCall = ASSESSMENT_APP_FCM
-                  }
-
-                  if (appType !== undefined && appType === appTypeImprovement && IMPROVEMENT_APP_FCM !== false) {
-                      methodToCall = IMPROVEMENT_APP_FCM;
-                  }
-                }
+                let methodToCall = await this.getFcmMethod(appType);
 
                 methodToCall.messaging().unsubscribeFromTopic(unsubscribeData.deviceId, NODE_ENV + "-" + unsubscribeData.topic)
                  .then(function(response) {
@@ -524,6 +508,36 @@ module.exports = class PushNotificationsHelper {
         })
     }
 
+      /**
+   * Get call method FCM.
+   * @method
+   * @name getFcmMethod
+   * @param {String} element.appType - appType
+   * @returns {String} returns a string.
+  */
+
+    static getFcmMethod(appType ="") {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+              let methodToCall = FCM;
+              
+              if (appType != "" && appType !== undefined && appType === appTypeAssessment && ASSESSMENT_APP_FCM !== false) {
+                  methodToCall = ASSESSMENT_APP_FCM;
+              }
+
+              if (appType != "" && appType !== undefined && appType === appTypeImprovement && IMPROVEMENT_APP_FCM !== false) {
+                  methodToCall = IMPROVEMENT_APP_FCM;
+              }
+
+              return methodToCall;
+              
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
 };
 
 
@@ -603,18 +617,9 @@ async function _sendMessage(notificationInformation) {
         try {
 
             let deviceId = notificationInformation.token;
-            let methodToCall = FCM;
-            let appType = notificationInformation.data.appType
-            if(!appType && !appType !== undefined){
-              if (appType !== undefined && appType === appTypeAssessment && ASSESSMENT_APP_FCM !== false) {
-                  methodToCall = ASSESSMENT_APP_FCM
-              }
-
-              if (appType !== undefined && appType === appTypeImprovement && IMPROVEMENT_APP_FCM !== false) {
-                  methodToCall = IMPROVEMENT_APP_FCM;
-              }
-            }
-            
+            let appType = notificationInformation.data.appType;
+            let methodToCall = await this.getFcmMethod(appType);
+        
             let success;
             let message = "";
             methodToCall.messaging().send(notificationInformation)
@@ -655,3 +660,4 @@ async function _sendMessage(notificationInformation) {
     })
 
 }
+
