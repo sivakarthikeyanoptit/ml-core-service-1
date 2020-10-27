@@ -16,7 +16,6 @@ const FCM = admin.initializeApp({
   credential: admin.credential.cert(fcm_token_path)
 });
 
-
 const ASSESSMENT_KEY_PATH = gen.utils.checkIfEnvDataExistsOrNot("ASSESSMENT_FCM_KEY_PATH");
 const assessment_fcm_path = ROOT_PATH + ASSESSMENT_KEY_PATH;
 let ASSESSMENT_APP_FCM = false;
