@@ -519,23 +519,19 @@ module.exports = class PushNotificationsHelper {
             try {
 
               let methodToCall = FCM;
-              let call ="fcm";
               
               if (appType != "" && appType !== undefined && appType === appTypeAssessment && ASSESSMENT_APP_FCM !== false) {
-                call = "ASSESSMENT_APP_FCM";
                   methodToCall = ASSESSMENT_APP_FCM;
               }
 
               if (appType != "" && appType !== undefined && appType === appTypeImprovement && IMPROVEMENT_APP_FCM !== false) {
                   methodToCall = IMPROVEMENT_APP_FCM;
-                  call = "IMPROVEMENT_APP_FCM";
               }
-
-              console.log("methodToCall",call)
 
               return methodToCall;
               
             } catch (error) {
+              console.log(error,"error")
                 return reject(error);
             }
         })
@@ -619,7 +615,6 @@ async function _sendMessage(notificationInformation) {
 
             let deviceId = notificationInformation.token;
             let appType = notificationInformation.data.appType;
-            console.log(appType,"sendMessage")
             let methodToCall = await _getFcmMethod(appType);
         
             let success;
