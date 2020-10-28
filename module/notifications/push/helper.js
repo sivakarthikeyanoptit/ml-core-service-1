@@ -504,8 +504,9 @@ module.exports = class PushNotificationsHelper {
             }
         })
     }
+};
 
-      /**
+   /**
    * Get call method FCM.
    * @method
    * @name getFcmMethod
@@ -513,7 +514,7 @@ module.exports = class PushNotificationsHelper {
    * @returns {String} returns a string.
   */
 
-    static getFcmMethod(appType ="") {
+    async function getFcmMethod(appType ="") {
         return new Promise(async (resolve, reject) => {
             try {
 
@@ -534,8 +535,6 @@ module.exports = class PushNotificationsHelper {
             }
         })
     }
-
-};
 
 
 /**
