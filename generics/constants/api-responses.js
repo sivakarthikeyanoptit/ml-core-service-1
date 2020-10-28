@@ -93,5 +93,8 @@ module.exports = {
   "USER_ROLES_NOT_FOUND" : "Could not found user roles",
   "ENTITIES_MAPPING_FORM_FETCHED" : "Entities mapping form fetched successfully",
   "USER_DATA_EXISTS" : "User data exists",
-  "USER_EXTENSION_UPDATED" : "User extension updated successfully"
+  "USER_EXTENSION_UPDATED" : "User extension updated successfully",
+  "STATIC_LINKS_FETCHED" : "Static Links fetched successfully.",
+  "SOMETHING_WENT_WRONG" : "Something went wrong!",
+  "FILE_DATA_MISSING" : "File or data is missing."
 };
