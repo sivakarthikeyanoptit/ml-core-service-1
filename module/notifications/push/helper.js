@@ -529,7 +529,7 @@ module.exports = class PushNotificationsHelper {
                   methodToCall = IMPROVEMENT_APP_FCM;
               }
               console.log(methodToCall,"methodToCall _getFcmMethod")
-              return methodToCall;
+              return resolve(methodToCall);
               
             } catch (error) {
               console.log(error,"error _getFcmMethod")
