@@ -21,7 +21,6 @@ const assessment_fcm_path = ROOT_PATH + ASSESSMENT_KEY_PATH;
 let ASSESSMENT_APP_FCM = false;
 
 if (fs.statSync(assessment_fcm_path)) {
-  console.log("file exist")
   const assessment_fcm_token_path = require(ROOT_PATH + ASSESSMENT_KEY_PATH);
   ASSESSMENT_APP_FCM = admin.initializeApp({
     credential: admin.credential.cert(assessment_fcm_token_path),
@@ -117,6 +116,7 @@ module.exports = class PushNotificationsHelper {
 
                 methodToCall.messaging().subscribeToTopic(subscribeData.deviceId, NODE_ENV + "-" + subscribeData.topic)
                  .then(function(response) {
+                  console.log(subscribeData,response,"subscribeData,response")
                     success = true;
                     return resolve({
                         success: success
@@ -528,11 +528,10 @@ module.exports = class PushNotificationsHelper {
               if (appType !== "" && appType !== undefined && appType === appTypeImprovement && IMPROVEMENT_APP_FCM !== false) {
                   methodToCall = IMPROVEMENT_APP_FCM;
               }
-              console.log(methodToCall,"methodToCall _getFcmMethod")
+
               return resolve(methodToCall);
               
             } catch (error) {
-              console.log(error,"error _getFcmMethod")
                 return reject(error);
             }
         })
@@ -615,17 +614,14 @@ async function _sendMessage(notificationInformation) {
         try {
 
             let deviceId = notificationInformation.token;
-            console.log(deviceId,"deviceId")
+
             let appType = notificationInformation.data.appType;
             let methodToCall = await _getFcmMethod(appType);
-            console.log(notificationInformation,"notificationInformation")
-            console.log(methodToCall,"_sendMessage methodToCall ")
         
             let success;
             let message = "";
             methodToCall.messaging().send(notificationInformation)
               .then((response) => {
-                console.log("response",response)
                  success = true;
                   return resolve({
                       success: success,
@@ -633,7 +629,6 @@ async function _sendMessage(notificationInformation) {
                   });
               })
               .catch((err) => {
-                console.log(err,"err")
                 if (err.errorInfo && err.errorInfo.message) {
                   if (err.errorInfo.message === "The registration token is not a valid FCM registration token") {
 
