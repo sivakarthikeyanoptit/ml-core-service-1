@@ -519,6 +519,7 @@ module.exports = class PushNotificationsHelper {
             try {
 
               let methodToCall = FCM;
+              console.log(appType,appTypeAssessment,appTypeImprovement,ASSESSMENT_APP_FCM,IMPROVEMENT_APP_FCM,"get data")
               
               if (appType != "" && appType !== undefined && appType === appTypeAssessment && ASSESSMENT_APP_FCM !== false) {
                   methodToCall = ASSESSMENT_APP_FCM;
@@ -527,6 +528,8 @@ module.exports = class PushNotificationsHelper {
               if (appType != "" && appType !== undefined && appType === appTypeImprovement && IMPROVEMENT_APP_FCM !== false) {
                   methodToCall = IMPROVEMENT_APP_FCM;
               }
+
+              console.log("methodToCall",methodToCall)
 
               return methodToCall;
               
