@@ -519,17 +519,19 @@ module.exports = class PushNotificationsHelper {
             try {
 
               let methodToCall = FCM;
-              console.log(appType,appTypeAssessment,appTypeImprovement,ASSESSMENT_APP_FCM,IMPROVEMENT_APP_FCM,"get data")
+              let call ="fcm";
               
               if (appType != "" && appType !== undefined && appType === appTypeAssessment && ASSESSMENT_APP_FCM !== false) {
+                call = "ASSESSMENT_APP_FCM";
                   methodToCall = ASSESSMENT_APP_FCM;
               }
 
               if (appType != "" && appType !== undefined && appType === appTypeImprovement && IMPROVEMENT_APP_FCM !== false) {
                   methodToCall = IMPROVEMENT_APP_FCM;
+                  call = "IMPROVEMENT_APP_FCM";
               }
 
-              console.log("methodToCall",methodToCall)
+              console.log("methodToCall",call)
 
               return methodToCall;
               
@@ -617,12 +619,14 @@ async function _sendMessage(notificationInformation) {
 
             let deviceId = notificationInformation.token;
             let appType = notificationInformation.data.appType;
+            console.log(appType,"sendMessage")
             let methodToCall = await _getFcmMethod(appType);
         
             let success;
             let message = "";
             methodToCall.messaging().send(notificationInformation)
               .then((response) => {
+                console.log("response",response)
                  success = true;
                   return resolve({
                       success: success,
@@ -630,6 +634,7 @@ async function _sendMessage(notificationInformation) {
                   });
               })
               .catch((err) => {
+                console.log(err,"err")
                 if (err.errorInfo && err.errorInfo.message) {
                   if (err.errorInfo.message === "The registration token is not a valid FCM registration token") {
 
