@@ -112,7 +112,7 @@ module.exports = class PushNotificationsHelper {
 
                 let success;
                 let appType = subscribeData.appType
-                let methodToCall = await this.getFcmMethod(appType);
+                let methodToCall = await _getFcmMethod(appType);
 
                 methodToCall.messaging().subscribeToTopic(subscribeData.deviceId, NODE_ENV + "-" + subscribeData.topic)
                  .then(function(response) {
@@ -161,7 +161,7 @@ module.exports = class PushNotificationsHelper {
 
                 let success;
                 let appType = unsubscribeData.appType
-                let methodToCall = await this.getFcmMethod(appType);
+                let methodToCall = await _getFcmMethod(appType);
 
                 methodToCall.messaging().unsubscribeFromTopic(unsubscribeData.deviceId, NODE_ENV + "-" + unsubscribeData.topic)
                  .then(function(response) {
@@ -514,7 +514,7 @@ module.exports = class PushNotificationsHelper {
    * @returns {String} returns a string.
   */
 
-    async function getFcmMethod(appType ="") {
+    async function _getFcmMethod(appType ="") {
         return new Promise(async (resolve, reject) => {
             try {
 
@@ -614,7 +614,7 @@ async function _sendMessage(notificationInformation) {
 
             let deviceId = notificationInformation.token;
             let appType = notificationInformation.data.appType;
-            let methodToCall = await this.getFcmMethod(appType);
+            let methodToCall = await _getFcmMethod(appType);
         
             let success;
             let message = "";
