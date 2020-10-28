@@ -116,7 +116,6 @@ module.exports = class PushNotificationsHelper {
 
                 methodToCall.messaging().subscribeToTopic(subscribeData.deviceId, NODE_ENV + "-" + subscribeData.topic)
                  .then(function(response) {
-                  console.log(subscribeData,response,"subscribeData,response")
                     success = true;
                     return resolve({
                         success: success
