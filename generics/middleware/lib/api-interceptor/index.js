@@ -52,7 +52,7 @@ ApiInterceptor.prototype.validateToken = function (token, callback) {
             return callback('Expired', null);
           }
 
-          return callback(null, { token: token, userId: decode.sub });
+          return callback(null, { token: token, userId: decode.sub.split(":").pop() });
         
         } else {
           return callback("ERR_TOKEN_INVALID", null);
