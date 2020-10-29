@@ -514,18 +514,22 @@ module.exports = class PushNotificationsHelper {
    * @returns {String} returns a string.
   */
 
-    async function _getFcmMethod(appType ="") {
+    async function _getFcmMethod(appType = false) {
         return new Promise(async (resolve, reject) => {
             try {
 
               let methodToCall = FCM;
               
-              if (appType !== "" && appType !== undefined && appType === appTypeAssessment && ASSESSMENT_APP_FCM !== false) {
-                  methodToCall = ASSESSMENT_APP_FCM;
-              }
+              if(appType != false) {
+                
+                  if (appType === appTypeAssessment && ASSESSMENT_APP_FCM !== false) {
+                      methodToCall = ASSESSMENT_APP_FCM;
+                  }
 
-              if (appType !== "" && appType !== undefined && appType === appTypeImprovement && IMPROVEMENT_APP_FCM !== false) {
-                  methodToCall = IMPROVEMENT_APP_FCM;
+                  if (appType === appTypeImprovement && IMPROVEMENT_APP_FCM !== false) {
+                      methodToCall = IMPROVEMENT_APP_FCM;
+                  }
+                
               }
 
               return resolve(methodToCall);
