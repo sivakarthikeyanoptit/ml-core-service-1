@@ -17,27 +17,33 @@ const FCM = admin.initializeApp({
 });
 
 const ASSESSMENT_KEY_PATH = gen.utils.checkIfEnvDataExistsOrNot("ASSESSMENT_FCM_KEY_PATH");
-const assessment_fcm_path = ROOT_PATH + ASSESSMENT_KEY_PATH;
 let ASSESSMENT_APP_FCM = false;
 
-if (fs.statSync(assessment_fcm_path)) {
-  const assessment_fcm_token_path = require(ROOT_PATH + ASSESSMENT_KEY_PATH);
-  ASSESSMENT_APP_FCM = admin.initializeApp({
-    credential: admin.credential.cert(assessment_fcm_token_path),
-    projectId : assessment_fcm_token_path.project_id},'assessment'
-  );
+if(typeof ASSESSMENT_KEY_PATH !== "undefined") {
+    const assessment_fcm_path = ROOT_PATH + ASSESSMENT_KEY_PATH;
+
+    if (fs.statSync(assessment_fcm_path)) {
+        const assessment_fcm_token_path = require(ROOT_PATH + ASSESSMENT_KEY_PATH);
+        ASSESSMENT_APP_FCM = admin.initializeApp({
+            credential: admin.credential.cert(assessment_fcm_token_path),
+            projectId : assessment_fcm_token_path.project_id},'assessment'
+        );
+    }
 }
 
 const IMPROVEMENT_KEY_PATH = gen.utils.checkIfEnvDataExistsOrNot("IMPROVEMENT_FCM_KEY_PATH");
-const improvement_fcm_path = ROOT_PATH + IMPROVEMENT_KEY_PATH;
 let IMPROVEMENT_APP_FCM = false;
 
-if (fs.statSync(improvement_fcm_path)) {
-  const improvement_fcm_token_path = require(ROOT_PATH + IMPROVEMENT_KEY_PATH);
-  IMPROVEMENT_APP_FCM = admin.initializeApp({
-    credential: admin.credential.cert(improvement_fcm_token_path),
-    projectId : improvement_fcm_token_path.project_id},'improvement'
-  );
+if(typeof IMPROVEMENT_KEY_PATH !== "undefined") {
+    const improvement_fcm_path = ROOT_PATH + IMPROVEMENT_KEY_PATH;
+
+    if (fs.statSync(improvement_fcm_path)) {
+        const improvement_fcm_token_path = require(ROOT_PATH + IMPROVEMENT_KEY_PATH);
+        IMPROVEMENT_APP_FCM = admin.initializeApp({
+            credential: admin.credential.cert(improvement_fcm_token_path),
+            projectId : improvement_fcm_token_path.project_id},'improvement'
+        );
+    }
 }
 
 
