@@ -16,31 +16,32 @@ const FCM = admin.initializeApp({
   credential: admin.credential.cert(fcm_token_path)
 });
 
-const ASSESSMENT_KEY_PATH = gen.utils.checkIfEnvDataExistsOrNot("ASSESSMENT_FCM_KEY_PATH");
-const assessment_fcm_path = ROOT_PATH + ASSESSMENT_KEY_PATH;
 let ASSESSMENT_APP_FCM = false;
+let IMPROVEMENT_APP_FCM = false;
 
-if (fs.statSync(assessment_fcm_path)) {
-  const assessment_fcm_token_path = require(ROOT_PATH + ASSESSMENT_KEY_PATH);
-  ASSESSMENT_APP_FCM = admin.initializeApp({
-    credential: admin.credential.cert(assessment_fcm_token_path),
-    projectId : assessment_fcm_token_path.project_id},'assessment'
-  );
+const ASSESSMENT_KEY_PATH = gen.utils.checkIfEnvDataExistsOrNot("ASSESSMENT_FCM_KEY_PATH");
+if(ASSESSMENT_KEY_PATH !== undefined){
+  assessment_fcm_path = ROOT_PATH + ASSESSMENT_KEY_PATH;
+  if (fs.existsSync(assessment_fcm_path)) {
+    const assessment_fcm_token_path = require(ROOT_PATH + ASSESSMENT_KEY_PATH);
+    ASSESSMENT_APP_FCM = admin.initializeApp({
+      credential: admin.credential.cert(assessment_fcm_token_path),
+      projectId : assessment_fcm_token_path.project_id},'assessment'
+    );
+  }
 }
 
 const IMPROVEMENT_KEY_PATH = gen.utils.checkIfEnvDataExistsOrNot("IMPROVEMENT_FCM_KEY_PATH");
-const improvement_fcm_path = ROOT_PATH + IMPROVEMENT_KEY_PATH;
-let IMPROVEMENT_APP_FCM = false;
-
-if (fs.statSync(improvement_fcm_path)) {
-  const improvement_fcm_token_path = require(ROOT_PATH + IMPROVEMENT_KEY_PATH);
-  IMPROVEMENT_APP_FCM = admin.initializeApp({
-    credential: admin.credential.cert(improvement_fcm_token_path),
-    projectId : improvement_fcm_token_path.project_id},'improvement'
-  );
+if(IMPROVEMENT_KEY_PATH !== undefined){
+  improvement_fcm_path = ROOT_PATH + IMPROVEMENT_KEY_PATH;
+  if (fs.existsSync(improvement_fcm_path)) {
+    const improvement_fcm_token_path = require(ROOT_PATH + IMPROVEMENT_KEY_PATH);
+    IMPROVEMENT_APP_FCM = admin.initializeApp({
+      credential: admin.credential.cert(improvement_fcm_token_path),
+      projectId : improvement_fcm_token_path.project_id},'improvement'
+    );
+  }
 }
-
-
 
 const NODE_ENV = gen.utils.checkIfEnvDataExistsOrNot("NODE_ENV");
 const slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
