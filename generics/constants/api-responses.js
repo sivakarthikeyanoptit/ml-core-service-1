@@ -96,5 +96,6 @@ module.exports = {
   "USER_EXTENSION_UPDATED" : "User extension updated successfully",
   "STATIC_LINKS_FETCHED" : "Static Links fetched successfully.",
   "SOMETHING_WENT_WRONG" : "Something went wrong!",
-  "FILE_DATA_MISSING" : "File or data is missing."
+  "FILE_DATA_MISSING" : "File or data is missing.",
+  "LEARNING_RESORCES_NOT_FOUND" : "Learning resources not found"
 };
