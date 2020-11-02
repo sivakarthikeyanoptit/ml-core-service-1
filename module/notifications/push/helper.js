@@ -8,13 +8,52 @@
 
 // dependencies
 
-const fcmNotification = require('fcm-notification');
+var admin = require("firebase-admin");
+const fs = require('fs');
 const FCM_KEY_PATH = gen.utils.checkIfEnvDataExistsOrNot("FCM_KEY_PATH");
 const fcm_token_path = require(ROOT_PATH + FCM_KEY_PATH);
-const FCM = new fcmNotification(fcm_token_path);
-const NODE_ENV = gen.utils.checkIfEnvDataExistsOrNot("NODE_ENV"); 
+const FCM = admin.initializeApp({
+  credential: admin.credential.cert(fcm_token_path)
+});
+
+const ASSESSMENT_KEY_PATH = gen.utils.checkIfEnvDataExistsOrNot("ASSESSMENT_FCM_KEY_PATH");
+let ASSESSMENT_APP_FCM = false;
+
+if(typeof ASSESSMENT_KEY_PATH !== "undefined") {
+    const assessment_fcm_path = ROOT_PATH + ASSESSMENT_KEY_PATH;
+
+    if (fs.statSync(assessment_fcm_path)) {
+        const assessment_fcm_token_path = require(ROOT_PATH + ASSESSMENT_KEY_PATH);
+        ASSESSMENT_APP_FCM = admin.initializeApp({
+            credential: admin.credential.cert(assessment_fcm_token_path),
+            projectId : assessment_fcm_token_path.project_id},'assessment'
+        );
+    }
+}
+
+const IMPROVEMENT_KEY_PATH = gen.utils.checkIfEnvDataExistsOrNot("IMPROVEMENT_FCM_KEY_PATH");
+let IMPROVEMENT_APP_FCM = false;
+
+if(typeof IMPROVEMENT_KEY_PATH !== "undefined") {
+    const improvement_fcm_path = ROOT_PATH + IMPROVEMENT_KEY_PATH;
+
+    if (fs.statSync(improvement_fcm_path)) {
+        const improvement_fcm_token_path = require(ROOT_PATH + IMPROVEMENT_KEY_PATH);
+        IMPROVEMENT_APP_FCM = admin.initializeApp({
+            credential: admin.credential.cert(improvement_fcm_token_path),
+            projectId : improvement_fcm_token_path.project_id},'improvement'
+        );
+    }
+}
+
+
+
+const NODE_ENV = gen.utils.checkIfEnvDataExistsOrNot("NODE_ENV");
 const slackClient = require(ROOT_PATH + "/generics/helpers/slack-communications");
 const userExtensionHelper = require(MODULES_BASE_PATH + "/user-extension/helper");
+
+const appTypeAssessment = (process.env.ASSESSMENT_APP_TYPE && process.env.ASSESSMENT_APP_TYPE != "") ? process.env.ASSESSMENT_APP_TYPE : "assessment";
+const appTypeImprovement = (process.env.IMPROVEMENT_APP_TYPE && process.env.IMPROVEMENT_APP_TYPE != "") ? process.env.IMPROVEMENT_APP_TYPE : "improvement-project";
 
 /**
     * PushNotificationsHelper
@@ -23,16 +62,16 @@ const userExtensionHelper = require(MODULES_BASE_PATH + "/user-extension/helper"
 
 module.exports = class PushNotificationsHelper {
 
-       /**
-      * Push data to topic.
-      * @method
-      * @name pushToTopic
-      * @param {Object} element - element 
-      * @param {String} element.topicName - topicName
-      * @param {String} element.title - title
-      * @param {String} element.message - message
-      * @returns {Promise} returns a promise.
-     */
+    /**
+   * Push data to topic.
+   * @method
+   * @name pushToTopic
+   * @param {Object} element - element 
+   * @param {String} element.topicName - topicName
+   * @param {String} element.title - title
+   * @param {String} element.message - message
+   * @returns {Promise} returns a promise.
+  */
 
     static pushToTopic(notification) {
         return new Promise(async (resolve, reject) => {
@@ -43,11 +82,14 @@ module.exports = class PushNotificationsHelper {
                     notification: {
                         title: notification.title,
                         body: notification.message
+                    },
+                    data: {
+                      appType: notification.appType
                     }
                 };
 
-                let pushToTopicData = 
-                await _sendMessage(pushNotificationRelatedInformation);
+                let pushToTopicData =
+                    await _sendMessage(pushNotificationRelatedInformation);
 
                 return resolve(pushToTopicData);
 
@@ -58,15 +100,15 @@ module.exports = class PushNotificationsHelper {
     }
 
 
-     /**
-      * Subscribe to topic.
-      * @method
-      * @name subscribeToTopic
-      * @param {Object} subscribeData - Subscription data.
-      * @param {String} subscribeData.deviceId - notification device Id.
-      * @param {String} subscribeData.topic - topic of subscription data.                     
-      * @returns {Promise} returns a promise.
-     */
+    /**
+     * Subscribe to topic.
+     * @method
+     * @name subscribeToTopic
+     * @param {Object} subscribeData - Subscription data.
+     * @param {String} subscribeData.deviceId - notification device Id.
+     * @param {String} subscribeData.topic - topic of subscription data.                     
+     * @returns {Promise} returns a promise.
+    */
 
     static subscribeToTopic(subscribeData) {
 
@@ -75,27 +117,28 @@ module.exports = class PushNotificationsHelper {
             try {
 
                 let success;
+                let appType = subscribeData.appType
+                let methodToCall = await _getFcmMethod(appType);
 
-                FCM.subscribeToTopic(subscribeData.deviceId, 
-                    NODE_ENV + "-" + subscribeData.topic, 
-                    function (err, response) {
-                        if (err) {
-                            success = false;
-                            slackClient.sendMessageToSlack({
-                                "code": err.errorInfo.code,
-                                "message": err.errorInfo.message,
-                                slackErrorName: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_NAME"),
-                                color: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_MESSAGE_COLOR")
-                            });
-
-                    } else {
-                        success = true;
-                    }
-
+                methodToCall.messaging().subscribeToTopic(subscribeData.deviceId, NODE_ENV + "-" + subscribeData.topic)
+                 .then(function(response) {
+                    success = true;
                     return resolve({
                         success: success
                     });
-                })
+                  })
+                  .catch(function(error) {
+                    success = false;
+                    slackClient.sendMessageToSlack({
+                        "code": err.errorInfo.code,
+                        "message": err.errorInfo.message,
+                        slackErrorName: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_NAME"),
+                        color: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_MESSAGE_COLOR")
+                    });
+                    return resolve({
+                        success: success
+                    });
+                });
 
             } catch (error) {
                 return reject(error);
@@ -123,29 +166,28 @@ module.exports = class PushNotificationsHelper {
             try {
 
                 let success;
+                let appType = unsubscribeData.appType
+                let methodToCall = await _getFcmMethod(appType);
 
-                FCM.unsubscribeFromTopic(unsubscribeData.deviceId, 
-                    NODE_ENV + "-" + unsubscribeData.topic, 
-                    function (err, response) {
-                        if (err) {
-                            success = false;
-
-                            slackClient.sendMessageToSlack({
-                                "code": err.errorInfo.code,
-                                "message": err.errorInfo.message,
-                                slackErrorName: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_NAME"),
-                                color: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_MESSAGE_COLOR"),
-                            });
-
-                    } else {
-                        success = true;
-                    }
-
+                methodToCall.messaging().unsubscribeFromTopic(unsubscribeData.deviceId, NODE_ENV + "-" + unsubscribeData.topic)
+                 .then(function(response) {
+                    success = true;
                     return resolve({
                         success: success
                     });
-                })
-
+                  })
+                  .catch(function(error) {
+                    success = false;
+                    slackClient.sendMessageToSlack({
+                        "code": err.errorInfo.code,
+                        "message": err.errorInfo.message,
+                        slackErrorName: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_NAME"),
+                        color: gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_MESSAGE_COLOR")
+                    });
+                    return resolve({
+                        success: success
+                    });
+                });
 
             } catch (error) {
                 return reject(error);
@@ -168,6 +210,7 @@ module.exports = class PushNotificationsHelper {
      */
 
     static pushData(allUserData) {
+
         return new Promise(async (resolve, reject) => {
             try {
 
@@ -175,7 +218,11 @@ module.exports = class PushNotificationsHelper {
                     throw "topic name is required"
                 }
 
-                if (allUserData.message && allUserData.title) {
+                if (!allUserData.appType) {
+                    throw "app type is required"
+                }
+
+                if (allUserData.message && allUserData.title && allUserData.appType) {
                     let topicResult = await this.pushToTopic(allUserData);
 
                     if (topicResult !== undefined && topicResult.success) {
@@ -221,8 +268,8 @@ module.exports = class PushNotificationsHelper {
                     status: "active",
                     isDeleted: false
                 }, {
-                        devices: 1
-                    });
+                    devices: 1
+                });
 
                 let deviceStatus;
 
@@ -232,16 +279,15 @@ module.exports = class PushNotificationsHelper {
                     deviceStatus = "inactive";
                 }
 
-
                 let subscribedOrUnSubscribed = [];
 
                 if (userProfile && userProfile.devices.length > 0) {
 
                     let matchedDevices = userProfile.devices.filter(eachUserDevice => {
-                        if (eachUserDevice.app == subscribeOrUnSubscribeData.appName && 
-                            eachUserDevice.os == subscribeOrUnSubscribeData.os && 
+                        if (eachUserDevice.app == subscribeOrUnSubscribeData.appName &&
+                            eachUserDevice.os == subscribeOrUnSubscribeData.os &&
                             eachUserDevice.status === deviceStatus) {
-                              return eachUserDevice;
+                            return eachUserDevice;
                         }
                     })
 
@@ -260,22 +306,22 @@ module.exports = class PushNotificationsHelper {
                             }
 
                             if (result !== undefined && result.success) {
-                                subscribeOrUnSubscribeData.status = subscribeToTopic ? 
-                                "successfully subscribed" : 
-                                "successfully unsubscribed";
+                                subscribeOrUnSubscribeData.status = subscribeToTopic ?
+                                    "successfully subscribed" :
+                                    "successfully unsubscribed";
 
                             } else {
-                                subscribeOrUnSubscribeData.status = subscribeToTopic ? 
-                                "Fail to subscribe" : 
-                                "Fail to unsubscribe";
+                                subscribeOrUnSubscribeData.status = subscribeToTopic ?
+                                    "Fail to subscribe" :
+                                    "Fail to unsubscribe";
                             }
 
                             subscribedOrUnSubscribed.push(subscribeOrUnSubscribeData);
                         }))
 
                     } else {
-                        subscribeOrUnSubscribeData.status = 
-                        "App name could not be found or status is inactive";
+                        subscribeOrUnSubscribeData.status =
+                            "App name could not be found or status is inactive";
 
                         subscribedOrUnSubscribed.push(subscribeOrUnSubscribeData);
                     }
@@ -294,51 +340,51 @@ module.exports = class PushNotificationsHelper {
         })
     }
 
-      /**
-      * Send not
-      * @method
-      * @name sendNotificationsToBodh
-      * @param {Object} notificationData - Notification data to be sent.                                                 
-      * @returns {Promise} returns a promise.
-     */
+    /**
+    * Send not
+    * @method
+    * @name sendNotificationsToBodh
+    * @param {Object} notificationData - Notification data to be sent.                                                 
+    * @returns {Promise} returns a promise.
+   */
 
-    static pushToUsers( notificationsData,devices,userId,topicName = "" ) {
+    static pushToUsers(notificationsData, devices, userId, topicName = "") {
         return new Promise(async (resolve, reject) => {
             try {
 
                 let userInfo = new Array;
 
-                for(let pointerToDevices = 0;
-                    pointerToDevices<devices.length;
+                for (let pointerToDevices = 0;
+                    pointerToDevices < devices.length;
                     pointerToDevices++
                 ) {
                     let userInfoData = {};
 
-                    notificationsData["deviceId"] = 
-                    devices[pointerToDevices].deviceId;
+                    notificationsData["deviceId"] =
+                        devices[pointerToDevices].deviceId;
 
-                    let pushNotificationInAndroid = 
-                    await this.sendNotifications(
-                        notificationsData,
-                        devices,
-                        userId,
-                        devices[pointerToDevices].os
-                    );
+                    let pushNotificationInAndroid =
+                        await this.sendNotifications(
+                            notificationsData,
+                            devices,
+                            userId,
+                            devices[pointerToDevices].os
+                        );
 
-                    userInfoData["deviceId"] = 
-                    devices[pointerToDevices].deviceId;
+                    userInfoData["deviceId"] =
+                        devices[pointerToDevices].deviceId;
 
                     if (!pushNotificationInAndroid.success) {
 
-                        userInfoData["success"] = false; 
+                        userInfoData["success"] = false;
 
                     } else {
                         userInfoData["success"] = true;
-                        
-                        if(topicName !== "") {
+
+                        if (topicName !== "") {
                             let subscribeData = {
-                                deviceId : devices[pointerToDevices].deviceId,
-                                topic : topicName
+                                deviceId: devices[pointerToDevices].deviceId,
+                                topic: topicName
                             }
                             await this.subscribeToTopic(subscribeData)
                         }
@@ -347,7 +393,7 @@ module.exports = class PushNotificationsHelper {
                     userInfo.push(userInfoData);
                 }
 
-                const pushedStatus = userInfo.some(userDevice=>{
+                const pushedStatus = userInfo.some(userDevice => {
                     return userDevice.success
                 });
 
@@ -359,18 +405,18 @@ module.exports = class PushNotificationsHelper {
         })
     }
 
-      /**
-      * Send notifications to android or ios
-      * @method
-      * @name sendNotifications
-      * @param {Object} notificationData - Notification data to be sent.                                                 
-      * @returns {Promise} returns a promise.
-     */
+    /**
+    * Send notifications to android or ios
+    * @method
+    * @name sendNotifications
+    * @param {Object} notificationData - Notification data to be sent.                                                 
+    * @returns {Promise} returns a promise.
+   */
 
-    static sendNotifications(notificationData,devices,userId,os) {
+    static sendNotifications(notificationData, devices, userId, os) {
         return new Promise(async (resolve, reject) => {
             try {
-                
+
                 let response = await _createNotificationInAndroidOrIos(
                     notificationData,
                     devices,
@@ -378,7 +424,7 @@ module.exports = class PushNotificationsHelper {
                 );
 
                 return resolve(response);
-            } catch(error) {
+            } catch (error) {
                 return reject(error);
             }
         })
@@ -406,53 +452,54 @@ module.exports = class PushNotificationsHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let getAllDevices = 
-                await userExtensionHelper.userExtensionDocument({
-                    userId: userId,
-                    status: "active",
-                    devices: {$exists : true},
-                    isDeleted: false
-                }, { devices: 1 });
+                let getAllDevices =
+                    await userExtensionHelper.userExtensionDocument({
+                        userId: userId,
+                        status: "active",
+                        devices: { $exists: true },
+                        isDeleted: false
+                    }, { devices: 1 });
 
                 if (!getAllDevices.devices.length > 0) {
                     throw "No devices found";
                 }
 
-                let activeDevices = 
-                getAllDevices.devices.filter(eachDeviceName => eachDeviceName.appType === notificationMessage.appType
-                    && eachDeviceName.status === "active"
-                );
+                let activeDevices =
+                    getAllDevices.devices.filter(eachDeviceName => eachDeviceName.appType === notificationMessage.appType
+                        && eachDeviceName.status === "active"
+                    );
 
-                if( activeDevices.length > 0 ) {
-                
-                    for (let pointerToDevices = 0; 
-                        pointerToDevices < activeDevices.length; 
+                if (activeDevices.length > 0) {
+
+                    for (let pointerToDevices = 0;
+                        pointerToDevices < activeDevices.length;
                         pointerToDevices++
-                        ) {
-                            
-                            let notificationDataToBeSent = {
-                                deviceId: activeDevices[pointerToDevices].deviceId,
-                                title: notificationMessage.title,
-                                data: {
-                                    "title": notificationMessage.title,
-                                    "text": notificationMessage.text,
-                                    id: "0",
-                                    is_read: JSON.stringify(notificationMessage.is_read),
-                                    payload: JSON.stringify(notificationMessage.payload),
-                                    action: notificationMessage.action,
-                                    internal: JSON.stringify(notificationMessage.internal),
-                                    created_at: notificationMessage.created_at,
-                                    type: notificationMessage.type
-                                },
-                                text: notificationMessage.text
-                            };
+                    ) {
 
-                            await this.sendNotifications(
-                                notificationDataToBeSent,
-                                activeDevices,
-                                userId,
-                                activeDevices[pointerToDevices].os
-                            );
+                        let notificationDataToBeSent = {
+                            deviceId: activeDevices[pointerToDevices].deviceId,
+                            title: notificationMessage.title,
+                            data: {
+                                "title": notificationMessage.title,
+                                "text": notificationMessage.text,
+                                id: "0",
+                                is_read: JSON.stringify(notificationMessage.is_read),
+                                payload: JSON.stringify(notificationMessage.payload),
+                                action: notificationMessage.action,
+                                internal: JSON.stringify(notificationMessage.internal),
+                                created_at: notificationMessage.created_at,
+                                type: notificationMessage.type,
+                                appType: activeDevices[pointerToDevices].appType,
+                            },
+                            text: notificationMessage.text
+                        };
+
+                        await this.sendNotifications(
+                            notificationDataToBeSent,
+                            activeDevices,
+                            userId,
+                            activeDevices[pointerToDevices].os
+                        );
                     }
                 }
 
@@ -463,123 +510,161 @@ module.exports = class PushNotificationsHelper {
             }
         })
     }
-
 };
 
+   /**
+   * Get call method FCM.
+   * @method
+   * @name getFcmMethod
+   * @param {String} element.appType - appType
+   * @returns {String} returns a string.
+  */
 
-    /**
-      * Create notification in android.
-      * @method
-      * @name createNotificationInAndroid
-      * @param {Object} notificationData - Notification that need to a given android.
-      * @param {String} notificationData.data - Consists of Notification data.
-      * @param {String} notificationData.title - title of notification.
-      * @param {String} notificationData.text - text of notification. 
-      * @param {String} notificationData.deviceId - where to sent the notifications.                                           
-      * @returns {Promise} returns a promise.
-     */
-
-    async function _createNotificationInAndroidOrIos(
-        notificationData,
-        devices = [], 
-        userId = ""
-    ) {
+    async function _getFcmMethod(appType = false) {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let pushNotificationRelatedInformation = {
-                    notification : {
-                        title : notificationData.title,
-                        body : notificationData.text ? 
+              let methodToCall = FCM;
+              
+              if(appType != false) {
+                
+                  if (appType === appTypeAssessment && ASSESSMENT_APP_FCM !== false) {
+                      methodToCall = ASSESSMENT_APP_FCM;
+                  }
+
+                  if (appType === appTypeImprovement && IMPROVEMENT_APP_FCM !== false) {
+                      methodToCall = IMPROVEMENT_APP_FCM;
+                  }
+                
+              }
+
+              return resolve(methodToCall);
+              
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+
+/**
+  * Create notification in android.
+  * @method
+  * @name createNotificationInAndroid
+  * @param {Object} notificationData - Notification that need to a given android.
+  * @param {String} notificationData.data - Consists of Notification data.
+  * @param {String} notificationData.title - title of notification.
+  * @param {String} notificationData.text - text of notification. 
+  * @param {String} notificationData.deviceId - where to sent the notifications.                                           
+  * @returns {Promise} returns a promise.
+ */
+
+async function _createNotificationInAndroidOrIos(
+    notificationData,
+    devices = [],
+    userId = ""
+) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            let pushNotificationRelatedInformation = {
+                notification: {
+                    title: notificationData.title,
+                    body: notificationData.text ?
                         notificationData.text : notificationData.message
+                },
+                data: notificationData.data ? notificationData.data : {},
+                android: {
+                    ttl: 3600 * 1000, // 1 hour in milliseconds
+                    priority: 'high',
+                    notification: {
+                        click_action: "FCM_PLUGIN_ACTIVITY",
+                        icon: 'notifications_icon',
+                        color: "#A63936"
                     },
-                    data: notificationData.data ? notificationData.data : {},
-                    android: {
-                        ttl: 3600 * 1000, // 1 hour in milliseconds
-                        priority: 'high',
-                        notification: {
-                            click_action : "FCM_PLUGIN_ACTIVITY",
-                            icon : 'notifications_icon',
-                            color: "#A63936"                        
-                        },
 
-                    },
-                    apns: {},
-                    token: notificationData.deviceId
-                };
+                },
+                apns: {},
+                token: notificationData.deviceId
+            };
 
-                let pushToDevice = 
+            let pushToDevice =
                 await _sendMessage(pushNotificationRelatedInformation);
 
-                if ( !pushToDevice.success && devices.length > 0 && userId !== "" ) { 
+            if (!pushToDevice.success && devices.length > 0 && userId !== "") {
 
-                    await userExtensionHelper.updateDeviceStatus(
-                        notificationData.deviceId, 
-                        devices, 
-                        userId
-                    );
-                }
-
-                return resolve(pushToDevice);
-
-            } catch (error) {
-                return reject(error);
+                await userExtensionHelper.updateDeviceStatus(
+                    notificationData.deviceId,
+                    devices,
+                    userId
+                );
             }
-        })
-    }
+
+            return resolve(pushToDevice);
+
+        } catch (error) {
+            return reject(error);
+        }
+    })
+}
 
 
-    /**
-      * FCM send message functionality.
-      * @method
-      * @name sendMessage
-      * @param {Object} notificationInformation - Notification information.                                      
-      * @returns {Promise} returns a promise.
-     */
+/**
+  * FCM send message functionality.
+  * @method
+  * @name sendMessage
+  * @param {Object} notificationInformation - Notification information.                                      
+  * @returns {Promise} returns a promise.
+ */
 
-    async function _sendMessage(notificationInformation) {
+async function _sendMessage(notificationInformation) {
 
-        return new Promise(async (resolve, reject) => {
-            try {
+    return new Promise(async (resolve, reject) => {
+        try {
 
-                let deviceId = notificationInformation.token;
+            let deviceId = notificationInformation.token;
 
-                FCM.send(notificationInformation, (err, response) => {
+            let appType = notificationInformation.data.appType;
+            let methodToCall = await _getFcmMethod(appType);
+        
+            let success;
+            let message = "";
+            methodToCall.messaging().send(notificationInformation)
+              .then((response) => {
+                 success = true;
+                  return resolve({
+                      success: success,
+                      message: message
+                  });
+              })
+              .catch((err) => {
+                if (err.errorInfo && err.errorInfo.message) {
+                  if (err.errorInfo.message === "The registration token is not a valid FCM registration token") {
 
-                    let success;
-                    let message = "";
-                    if (err) {
-                        if (err.errorInfo && err.errorInfo.message) {
-                            if (err.errorInfo.message === "The registration token is not a valid FCM registration token") {
+                      slackClient.sendMessageToSlack({
+                          "code" : err.errorInfo.code,
+                          "message" : err.errorInfo.message,
+                          slackErrorName: 
+                          gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_NAME"),
+                          color: 
+                          gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_MESSAGE_COLOR")
+                      });
 
-                                slackClient.sendMessageToSlack({
-                                    "code" : err.errorInfo.code,
-                                    "message" : err.errorInfo.message,
-                                    slackErrorName: 
-                                    gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_NAME"),
-                                    color: 
-                                    gen.utils.checkIfEnvDataExistsOrNot("SLACK_ERROR_MESSAGE_COLOR")
-                                });
+                      message = err.errorInfo.message;
+                  }
+              }
 
-                                message = err.errorInfo.message;
-                            }
-                        }
+              success = false;
+              return resolve({
+                success: success,
+                message: message
+              });
+            });
 
-                        success = false;
+        } catch (error) {
+            return reject(error);
+        }
+    })
 
-                    } else {
-                        success = true;
-                    }
+}
 
-                    return resolve({
-                        success: success,
-                        message: message
-                    });
-                });
-
-            } catch (error) {
-                return reject(error);
-            }
-        })
-
-    }
