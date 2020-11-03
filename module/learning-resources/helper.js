@@ -32,11 +32,11 @@ module.exports = class LearningResourcesHelper {
 
   * @returns {json} Response consists of list of learning resources
   */
-  static list(token, pageSize, pageNo, filters) {
+  static list(token, pageSize, pageNo, filters,sortBy) {
     return new Promise(async (resolve, reject) => {
         try {
 
-            let learningResources = await sunbirdService.learningResources(token, pageSize, pageNo, filters, "");
+            let learningResources = await sunbirdService.learningResources(token, pageSize, pageNo, filters, sortBy);
             if (learningResources && learningResources.result && learningResources.result.content) {
              
                resolve({

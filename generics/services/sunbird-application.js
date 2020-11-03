@@ -34,6 +34,7 @@ function callToSunbird(requestType, url, token="", requestBody = "") {
         if(token){
             options['headers']["x-authenticated-user-token"] = token;
         }
+       
 
         if (requestType != "GET") {
             options['json'] = requestBody;
@@ -107,7 +108,7 @@ const learningResources = function (token, pageSize, pageNo, filters, sortBy) {
             let requestBody = {
                 filters: mappedFilterList
             }
-            
+
             let response = await callToSunbird("POST", learningResourceApiUrl, token, requestBody);
             return resolve(response);
         } catch (error) {

@@ -188,9 +188,11 @@ module.exports = class LearningResources {
           req.userDetails.userToken,
           req.pageSize,
           req.pageNo,
-          req.body.filters ? req.body.filters : {}
+          req.body.filters ? req.body.filters : {},
+          req.query.sortBy ? req.query.sortBy : ""
         );
-        return resolve({ result: response.data, message: response.message });
+
+         return resolve({ result: response.data, message: response.message });
 
       } catch (error) {
 
