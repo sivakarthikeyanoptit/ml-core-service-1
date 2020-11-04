@@ -102,5 +102,9 @@ module.exports = {
   "ENTITIES_MAPPING_FORM_FETCHED" : "Entities mapping form fetched successfully",
   "USER_DATA_EXISTS" : "User data exists",
   "USER_EXTENSION_UPDATED" : "User extension updated successfully",
-  "ENTITIES_CHILD_HIERACHY_PATH" : "Entities child hierarchy path fetched successfully"
+  "ENTITIES_CHILD_HIERACHY_PATH" : "Entities child hierarchy path fetched successfully",
+  "STATIC_LINKS_FETCHED" : "Static Links fetched successfully.",
+  "SOMETHING_WENT_WRONG" : "Something went wrong!",
+  "FILE_DATA_MISSING" : "File or data is missing.",
+  "LEARNING_RESORCES_NOT_FOUND" : "Learning resources not found"
 };
