@@ -188,8 +188,8 @@ module.exports = class UsersHelper {
                     userId : userId
                 }
 
-                programData.createdFor =  organisationAndRootOrganisations.createdFor;
-                programData.rootOrganisations = organisationAndRootOrganisations.rootOrganisations;
+                programData.createdFor =  organisationAndRootOrganisations.result.createdFor;
+                programData.rootOrganisations = organisationAndRootOrganisations.result.rootOrganisations;
 
                 userPrivateProgram = 
                 await programsHelper.create(
@@ -201,7 +201,13 @@ module.exports = class UsersHelper {
                 programId : userPrivateProgram._id,
                 programExternalId : userPrivateProgram.externalId,
                 programName : userPrivateProgram.name,
-                programDescription : userPrivateProgram.description
+                programDescription : userPrivateProgram.description,
+                type : data.type ? data.type : constants.common.ASSESSMENT,
+                subType : data.subType ? data.subType : constants.common.INSTITUTIONAL
+            }
+
+            if( data.entities ) {
+                solutionData["entities"] = data.entities;
             }
 
             if( data.solutionName ) {
@@ -219,8 +225,8 @@ module.exports = class UsersHelper {
 
             solutionData.entities = data.entities;
             
-            solutionData.createdFor =  organisationAndRootOrganisations.createdFor;
-            solutionData.rootOrganisations = organisationAndRootOrganisations.rootOrganisations;
+            solutionData.createdFor =  organisationAndRootOrganisations.result.createdFor;
+            solutionData.rootOrganisations = organisationAndRootOrganisations.result.rootOrganisations;
 
             const solution = await solutionsHelper.create(solutionData);
 
@@ -272,8 +278,11 @@ module.exports = class UsersHelper {
             const rootOrganisations = [userProfileData.rootOrgId];
 
             return resolve({
-                createdFor : createdFor,
-                rootOrganisations : rootOrganisations
+                message : constants.apiResponses.USER_ORGANISATIONS_FETCHED,
+                result : {
+                    createdFor : createdFor,
+                    rootOrganisations : rootOrganisations
+                }
             });
 
         } catch(error) {

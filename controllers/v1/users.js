@@ -37,14 +37,14 @@ module.exports = class Users extends Abstract {
 
 
     static get name() {
-        return "user";
+        return "users";
     }
 
     /**
      * @api {post} /kendra/api/v1/users/create 
      * create user
      * @apiVersion 1.0.0
-     * @apiGroup User
+     * @apiGroup Users
      * @apiHeader {String} X-authenticated-user-token Authenticity token
      * @apiSampleRequest /kendra/api/v1/users/create
      * @apiUse successBody
@@ -100,7 +100,7 @@ module.exports = class Users extends Abstract {
      * @api {post} /kendra/api/v1/users/isSystemAdmin 
      * check if user is system admin or not.
      * @apiVersion 1.0.0
-     * @apiGroup User
+     * @apiGroup Users
      * @apiHeader {String} X-authenticated-user-token Authenticity token
      * @apiSampleRequest /kendra/api/v1/users/isSystemAdmin
      * @apiUse successBody
@@ -206,7 +206,7 @@ module.exports = class Users extends Abstract {
      * @api {post} /kendra/api/v1/users/createProgram/:userId?programId=:programId Users created program and solution.
      * @apiVersion 2.0.0
      * @apiName Users created program and solution.
-     * @apiGroup Programs
+     * @apiGroup Users
      * @apiHeader {String} X-authenticated-user-token Authenticity token
      * @apiSampleRequest /kendra/api/v1/users/createProgram/e97b5582-471c-4649-8401-3cc4249359bb?programId=5f44b08cdbe917732246149f
      * @apiParamExample {json} Request-Body:
@@ -316,12 +316,12 @@ module.exports = class Users extends Abstract {
         }
 
     });
-  }
+   }
       /**
      * @api {get} /kendra/api/v1/users/entitiesMappingForm/:stateId?roleId=:roleId 
      * Entities mapping form.
      * @apiVersion 1.0.0
-     * @apiGroup User
+     * @apiGroup Users
      * @apiHeader {String} X-authenticated-user-token Authenticity token
      * @apiSampleRequest /kendra/api/v1/users/entitiesMappingForm/5da829874c67d63cca1bd9d0?roleId=5d6e521066a9a45df3aa891e
      * @apiUse successBody
@@ -376,6 +376,72 @@ module.exports = class Users extends Abstract {
                 );
 
                 resolve(entitiesMappingData);
+
+            } catch (error) {
+
+                return reject({
+                    status: 
+                    error.status || 
+                    httpStatusCode["internal_server_error"].status,
+
+                    message: 
+                    error.message || 
+                    httpStatusCode["internal_server_error"].message
+                })
+
+            }
+
+
+        })
+    }
+
+     /**
+     * @api {get} /kendra/api/v1/users/getUserOrganisationsAndRootOrganisations
+     * Get organisation and root organisation
+     * @apiVersion 1.0.0
+     * @apiGroup Users
+     * @apiHeader {String} X-authenticated-user-token Authenticity token
+     * @apiSampleRequest /kendra/api/v1/users/getUserOrganisationsAndRootOrganisations
+     * @apiUse successBody
+     * @apiUse errorBody
+     * @apiParamExample {json} Response:
+     * {
+    "message": "User organisations fetched successfully",
+    "status": 200,
+    "result": {
+        "createdFor": [
+            "01305447637218918413"
+        ],
+        "rootOrganisations": [
+            "01305447637218918413"
+        ]
+    }
+    }
+    */
+
+    /**
+      * Organisations and root organisations.
+      * @method
+      * @name getUserOrganisationsAndRootOrganisations
+      * @param  {Request} req request body.
+      * @returns {JSON} Organisations and root organisations of user.
+     */
+
+    getUserOrganisationsAndRootOrganisations(req) {
+
+        return new Promise(async (resolve, reject) => {
+
+            try {
+
+                const userOrganisations = 
+                await usersHelper.getUserOrganisationsAndRootOrganisations(
+                    (req.params._id && req.params._id != "") ? 
+                    req.params._id : 
+                    req.userDetails.id,
+                    req.userDetails.userToken
+                );
+
+                resolve(userOrganisations);
 
             } catch (error) {
 
