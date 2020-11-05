@@ -331,4 +331,146 @@ module.exports = class UserExtension extends Abstract {
     })
   }
 
+
+  /**
+  * @api {get} /kendra/api/v1/user-extension/getEntities?entityType=school&page=1&limi=10&search=govt Get user entities.
+  * @apiVersion 1.0.0
+  * @apiName Get user entities.
+  * @apiGroup User Extension
+  * @apiHeader {String} X-authenticated-user-token Authenticity token
+  * @apiSampleRequest /kendra/api/v1/user-extension/getEntities/?entityType=school&page=1&limi=10&search=govt
+  * @apiUse successBody
+  * @apiUse errorBody
+  * @apiParamExample {json} Response:
+  {
+    "message": "User entities fetched successfully.",
+    "status": 200,
+    "result": {
+     "data": [
+        {
+            "_id": "5beaa888af0065f0e0a10515",
+            "name": "Apple School"
+        },
+        {
+            "_id": "5bfe53ea1d0c350d61b78d0a",
+            "name": "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi"
+        },
+        {
+            "_id": "5bfe53ea1d0c350d61b78d0c",
+            "name": "Divyansh Public School, Kh.No.28/20 & 29/16/02 Sangam Vihar, Burari, Delhi"
+        },
+        {
+            "_id": "5de6322c187dca40bbbd0aef",
+            "name": "gsspachelkalan"
+        }
+    ],
+    "count":4
+}
+**/
+ 
+    /**
+   * Get user entities
+   * @method
+   * @name getEntities
+   * @param {Object} req - request data.
+   * @param {String} req.params._id - user id.
+   * @param {string} req.query.entityType - entity type
+   * @returns {JSON} User profile data. 
+   */
+
+  getEntities(req) {
+    return new Promise(async (resolve, reject) => {
+
+      try {
+
+        let result = await userExtensionHelper.getEntities({
+          userId: (req.params._id && req.params._id != "") ? req.params._id : req.userDetails.userId,
+          status: constants.common.ACTIVE,
+          isDeleted: false,
+        }, 
+        req.query.entityType ? req.query.entityType : "",
+        req.pageSize,
+        req.pageNo,
+        req.searchText );
+
+        return resolve({
+          message: constants.apiResponses.USER_ENTITIES_FOUND,
+          result: result
+        });
+
+      } catch (error) {
+
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error
+        })
+
+      }
+
+
+    })
+  }
+
+  /**
+  * @api {get} /kendra/api/v1/user-extension/getEntityTypes Get user entity types.
+  * @apiVersion 1.0.0
+  * @apiName Get user entity types
+  * @apiGroup User Extension
+  * @apiHeader {String} X-authenticated-user-token Authenticity token
+  * @apiSampleRequest /kendra/api/v1/user-extension/getEntityTypes
+  * @apiUse successBody
+  * @apiUse errorBody
+  * @apiParamExample {json} Response:
+  {
+    "message": "User entity types fetched successfully.",
+    "status": 200,
+    "result": [
+        "school",
+        "smc",
+        "district"
+    ]
+}
+**/
+
+
+  /**
+   * Get user entity types.
+   * @method
+   * @name getEntityTypes
+   * @param {Object} req - request data.
+   * @param {String} req.params._id - user id.
+   * @returns {JSON} User profile data. 
+   */
+
+  getEntityTypes(req) {
+    return new Promise(async (resolve, reject) => {
+
+      try {
+
+        let result = await userExtensionHelper.getEntityTypes({
+          userId: (req.params._id && req.params._id != "") ? req.params._id : req.userDetails.userId,
+          status: constants.common.ACTIVE,
+          isDeleted: false,
+        });
+
+        return resolve({
+          message: constants.apiResponses.USER_ENTITY_TYPE_FOUND,
+          result: result
+        });
+
+      } catch (error) {
+
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error
+        })
+
+      }
+
+
+    })
+  }
+
 };
