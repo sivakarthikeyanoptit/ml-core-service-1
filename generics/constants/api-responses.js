@@ -110,5 +110,7 @@ module.exports = {
   "USER_ENTITY_TYPE_FOUND":"User entity types fetched successfully.",
   "USER_ENTITY_TYPE_NOT_FOUND":"User entity types not found.",
   "USER_ENTITIES_FOUND": "User entities fetched successfully.",
-  "USER_ENTITIES_NOT_FOUND" : "User entities not found."
+  "USER_ENTITIES_NOT_FOUND" : "User entities not found.",
+  "LEARNING_RESORCES_FILTERS_FOUND" : "Learning resource form fetched successfully.",
+  "LEARNING_RESORCES_FILTERS_NOT_FOUND" : "Learning resource form not found."
 };

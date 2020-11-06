@@ -42,7 +42,11 @@ module.exports = class LearningResources {
   *     "category": ["SLDEV"],
   *     "subcategory": ["Class 1"],
   *     "topic": ["Science"],
-  *     "language": ["kannada","English"] 
+  *     "language": ["kannada","English"],
+  *     "mimeType": [
+            "application\/pdf",
+            "application\/epub"
+        ]
   *    }
   * }
   * @apiUse successBody
@@ -189,8 +193,92 @@ module.exports = class LearningResources {
           req.pageSize,
           req.pageNo,
           req.body.filters ? req.body.filters : {},
-          req.query.sortBy ? req.query.sortBy : ""
+          req.query.sortBy ? req.query.sortBy : "",
+          req.searchText ? req.searchText : ""
         );
+
+         return resolve({ result: response.data, message: response.message });
+
+      } catch (error) {
+
+        return reject({
+            status: error.status || httpStatusCode.internal_server_error.status,
+            message: error.message || httpStatusCode.internal_server_error.message,
+            errorObject: error
+          });
+
+      }
+    });
+  }
+
+
+  /**
+  * @api {get} /kendra/api/v1/learningResources/getFilters
+  * To get learning resources filters
+  * @apiVersion 1.0.0
+  * @apiGroup Learning Resources
+  * @apiHeader {String} X-authenticated-user-token Authenticity token
+  * @apiSampleRequest /kendra/api/v1/learningResources/getFilters
+  * @apiUse successBody
+  * @apiUse errorBody
+  * @apiParamExample {json} Response:
+  {
+    "message": "Learning resource form fetched successfully.",
+    "status": 200,
+    "result": [
+        {
+            "name": "All",
+            "icon": "documents-outline",
+            "value": []
+        },
+        {
+            "name": "Collections",
+            "icon": "documents-outline",
+            "value": [
+                "application/vnd.ekstep.content-collection"
+            ]
+        },
+        {
+            "name": "Documents",
+            "icon": "document-text-outline",
+            "value": [
+                "application/pdf",
+                "application/epub"
+            ]
+        },
+        {
+            "name": "video",
+            "icon": "play-circle-outline",
+            "value": [
+                "video/mp4",
+                "video/x-youtube",
+                "video/webm"
+            ]
+        },
+        {
+            "name": "interactive",
+            "icon": "play-circle-outline",
+            "value": [
+                "application/vnd.ekstep.ecml-archive",
+                "application/vnd.ekstep.h5p-archive",
+                "application/vnd.ekstep.html-archive"
+            ]
+        }
+    ]
+}
+    /**
+   * To get learning resources filters
+   * @method
+   * @name getFilters
+   * @param  {req}  - requested data.
+   * @returns {json} Response consists of learning resource filters
+  */
+
+ getFilters(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        let response = await learningResourceshelper.getFilters();
 
          return resolve({ result: response.data, message: response.message });
 
