@@ -93,5 +93,6 @@ module.exports = {
   "USER_ROLES_NOT_FOUND" : "Could not found user roles",
   "ENTITIES_MAPPING_FORM_FETCHED" : "Entities mapping form fetched successfully",
   "USER_DATA_EXISTS" : "User data exists",
-  "USER_EXTENSION_UPDATED" : "User extension updated successfully"
+  "USER_EXTENSION_UPDATED" : "User extension updated successfully",
+  "ACTIVITY_LOG_CREATED" : "Activity log created successfully"
 };
