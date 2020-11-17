@@ -94,12 +94,12 @@ module.exports = async function (req, res, next) {
 
 
   // Allow search endpoints for non-logged in users.
-  if (req.path.includes("bodh/search") || req.path.includes("bodh/request") || req.path.includes("apps/details")) {
+  if (req.path.includes("bodh/search") || req.path.includes("bodh/request") || req.path.includes("apps/details") || req.path.includes("activity-logs/create")) {
     next();
     return
   }
 
-  let internalAccessApiPaths = ["/cloud-services/","apps/create","apps/update"];
+  let internalAccessApiPaths = ["/cloud-services/","apps/create","apps/update","activity-logs/create"];
   let performInternalAccessTokenCheck = false;
   await Promise.all(internalAccessApiPaths.map(async function (path) {
     if (req.path.includes(path)) {
