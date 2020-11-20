@@ -106,5 +106,7 @@ module.exports = {
   "STATIC_LINKS_FETCHED" : "Static Links fetched successfully.",
   "SOMETHING_WENT_WRONG" : "Something went wrong!",
   "FILE_DATA_MISSING" : "File or data is missing.",
-  "LEARNING_RESORCES_NOT_FOUND" : "Learning resources not found"
+  "LEARNING_RESORCES_NOT_FOUND" : "Learning resources not found",
+  "LEARNING_RESORCES_FILTERS_FOUND" : "Learning resource form fetched successfully.",
+  "LEARNING_RESORCES_FILTERS_NOT_FOUND" : "Learning resource form not found."
 };
