@@ -6,8 +6,10 @@
 */
 
 // Dependencies
-const sunbirdService = 
-require(ROOT_PATH +"/generics/services/sunbird-application");
+const sunbirdService =
+  require(ROOT_PATH + "/generics/services/sunbird-application");
+const
+  formsHelper = require(MODULES_BASE_PATH + "/forms/helper");
 
 /**
 * Learning resource related information be here.
@@ -32,32 +34,68 @@ module.exports = class LearningResourcesHelper {
 
   * @returns {json} Response consists of list of learning resources
   */
-  static list(token, pageSize, pageNo, filters,sortBy) {
+  static list(token, pageSize, pageNo, filters, sortBy) {
     return new Promise(async (resolve, reject) => {
-        try {
+      try {
 
-            let learningResources = await sunbirdService.learningResources(token, pageSize, pageNo, filters, sortBy);
-            if (learningResources && learningResources.result && learningResources.result.content) {
-             
-               resolve({
-                message: learningResources.message,
-                data: {
-                    count : learningResources.result.count,
-                    content: learningResources.result.content 
-                },
-                success: true
-              });
-            } else {
-              throw new Error(constants.apiResponses.LEARNING_RESORCES_NOT_FOUND);
-            }
-          } catch (error) {
-            resolve({
-              message: error.message,
-              data: false,
-              success: false
-            });
-          }
+        let learningResources = await sunbirdService.learningResources(token, pageSize, pageNo, filters, sortBy);
+        if (learningResources && learningResources.result && learningResources.result.content) {
+
+          resolve({
+            message: learningResources.message,
+            data: {
+              count: learningResources.result.count,
+              content: learningResources.result.content
+            },
+            success: true
+          });
+        } else {
+          throw new Error(constants.apiResponses.LEARNING_RESORCES_NOT_FOUND);
+        }
+      } catch (error) {
+        resolve({
+          message: error.message,
+          data: false,
+          success: false
+        });
+      }
     })
 
+  }
+  /**
+ * Get resource filtrs
+ * @method
+ * @name getFilters
+ * @returns {json} Response consists of learning resource filters
+ */
+
+  static getFilters() {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        let formData = await formsHelper.formsDocument({
+          name: constants.common.LEARNING_RESOURCE_FILTER_FORM_NAME
+        });
+
+        if (!formData[0]) {
+          return reject({
+            message:
+              constants.apiResponses.LEARNING_RESORCES_FILTERS_NOT_FOUND
+          });
+        }
+        resolve({
+          message: constants.apiResponses.LEARNING_RESORCES_FILTERS_FOUND,
+          data: formData[0].value,
+          success: true
+        });
+
+      } catch (error) {
+        resolve({
+          message: error.message,
+          data: false,
+          success: false
+        });
+      }
+    })
   }
 }
