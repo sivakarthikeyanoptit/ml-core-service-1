@@ -79,12 +79,12 @@ function callToSunbird(requestType, url, token="", requestBody = "") {
 * @returns {json} Response consists of list of learning resources
 */
 
-const learningResources = function (token, pageSize, pageNo, filters, sortBy) {
+const learningResources = function (token, pageSize, pageNo, filters, sortBy,searchText) {
     return new Promise(async (resolve, reject) => {
         try {
 
             let learningResourceApiUrl = constants.endpoints.SUNBIRD_LEARNING_RESOURCE_LIST
-            learningResourceApiUrl = learningResourceApiUrl + "?limit=" + pageSize + "&page=" + pageNo + "&sortBy=" + sortBy;
+            learningResourceApiUrl = learningResourceApiUrl + "?limit=" + pageSize + "&page=" + pageNo + "&sortBy=" + sortBy+"&search="+searchText;
             let mappedFilterList = {};
             let filterKeys = Object.keys(filters);
             
@@ -100,6 +100,8 @@ const learningResources = function (token, pageSize, pageNo, filters, sortBy) {
                         mappingType = "medium"
                     } else if (filter == "language") {
                         mappingType = "subject"
+                    }else if(filter == "mimeType"){
+                        mappingType = "mimeType"
                     }
                     mappedFilterList[mappingType] = filters[filter];
                 });

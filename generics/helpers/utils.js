@@ -168,7 +168,7 @@ function epochTime() {
   return currentDate;
 }
 
-  /** 
+/**
   * Parse a single column.
   * @function
   * @name valueParser - Parse value

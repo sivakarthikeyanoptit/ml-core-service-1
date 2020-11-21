@@ -6,15 +6,12 @@
 */
 
 // Dependencies
-const sunbirdService =
-  require(ROOT_PATH + "/generics/services/sunbird-application");
-const
-  formsHelper = require(MODULES_BASE_PATH + "/forms/helper");
+const sunbirdService = require(ROOT_PATH + "/generics/services/sunbird-application");
+const formsHelper = require(MODULES_BASE_PATH + "/forms/helper");
 
 /**
-* Learning resource related information be here.
-* @method
-* @class  LearningResourcesHelper
+    * LearningResourcesHelper
+    * @class
 */
 
 module.exports = class LearningResourcesHelper {
@@ -31,7 +28,7 @@ module.exports = class LearningResourcesHelper {
   * @param {Array} filters.subCategory - subcategories for the learning resource
   * @param {Array} filters.topic - topic's for the learning resource
   * @param {Array} filters.language - language's of the learning resources
-
+  * @param {String} searchText - search text 
   * @returns {json} Response consists of list of learning resources
   */
   static list(token, pageSize, pageNo, filters, sortBy) {
