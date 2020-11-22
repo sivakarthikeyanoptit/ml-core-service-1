@@ -5,6 +5,9 @@
  * Description : Solution related helper functionality.
  */
 
+  // Dependencies
+ const programsHelper = require(MODULES_BASE_PATH + "/programs/helper");
+
 /**
     * SolutionsHelper
     * @class
@@ -158,7 +161,7 @@ module.exports = class SolutionsHelper {
           updateObject["$set"]["updatedBy"] = userId;
   
           await database.models.solutions.findOneAndUpdate({
-            _id: solutionDocument._id
+            _id : solutionDocument[0]._id
           }, updateObject)
   
           return resolve({
@@ -171,5 +174,4 @@ module.exports = class SolutionsHelper {
         }
     });
   }
-
 };

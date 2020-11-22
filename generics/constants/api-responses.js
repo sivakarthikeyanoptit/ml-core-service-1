@@ -112,5 +112,8 @@ module.exports = {
   "USER_ENTITIES_FOUND": "User entities fetched successfully.",
   "USER_ENTITIES_NOT_FOUND" : "User entities not found.",
   "LEARNING_RESORCES_FILTERS_FOUND" : "Learning resource form fetched successfully.",
-  "LEARNING_RESORCES_FILTERS_NOT_FOUND" : "Learning resource form not found."
+  "LEARNING_RESORCES_FILTERS_NOT_FOUND" : "Learning resource form not found.",
+  "OBSERVATION_NOT_FOUND" : "Could not found observation",
+  "OBSERVATION_UPDATED" : "Observation updated successfully",
+  "OBSERVATION_FETCHED" : "Successfully fetched observations"
 };

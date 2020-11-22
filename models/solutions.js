@@ -64,6 +64,8 @@ module.exports = {
       rootOrganisations : {
         type : [String],
         default : []
-      }
+      },
+      projectId : "ObjectId",
+      taskId : String
     }
   };
