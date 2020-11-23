@@ -171,6 +171,14 @@ module.exports = class Entities extends Abstract {
               req.pageNo
             );
             
+            if(entityDocuments.result && entityDocuments.result.data && Array.isArray(entityDocuments.result.data) && entityDocuments.result.data.length > 0) {
+              for (let pointerToEntitiesArray = 0; pointerToEntitiesArray < entityDocuments.result.data.length; pointerToEntitiesArray++) {
+                if(entityDocuments.result.data[pointerToEntitiesArray].entityType == "school") {
+                  entityDocuments.result.data[pointerToEntitiesArray].label += " - " + entityDocuments.result.data[pointerToEntitiesArray].externalId;
+                }
+              }
+            }
+
             return resolve(entityDocuments);
     
           } catch (error) {
