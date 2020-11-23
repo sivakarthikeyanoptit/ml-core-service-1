@@ -99,7 +99,7 @@ module.exports = class PushNotifications {
                     await Promise.all(topicArray.map(async topicName => {
 
                         deviceData.topic = topicName;
-                        let subscribeResult = await pushNotificationsHelper.subscribeToTopic(_.pick(deviceData, ["deviceId", "topic"]));
+                        let subscribeResult = await pushNotificationsHelper.subscribeToTopic(_.pick(deviceData, ["deviceId", "topic","appType"]));
 
                         response["result"][topicName] = subscribeResult.success ? "Subscribed" : "Could not subscribee";
 
@@ -129,7 +129,7 @@ module.exports = class PushNotifications {
     * @apiVersion 1.0.0
     * @apiGroup pushNotifications
     * @apiSampleRequest /kendra/api/v1/notifications/push/pushToTopic
-    * @apiParam {File} pushToTopic Mandatory pushToTopic file of type csv.    
+    * @apiParam {File} pushToTopic Mandatory pushToTopic file of type csv.  
     * @apiUse successBody
     * @apiUse errorBody
     */
@@ -303,7 +303,6 @@ module.exports = class PushNotifications {
 
 
                 await Promise.all(unsubscribersData.map(async unsubscriber => {
-
                     let unSubscribeStatus = 
                     await pushNotificationsHelper.subscribeOrUnSubscribeData(unsubscriber);
 
