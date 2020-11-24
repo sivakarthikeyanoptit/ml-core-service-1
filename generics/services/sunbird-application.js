@@ -84,7 +84,17 @@ const learningResources = function (token, pageSize, pageNo, filters, sortBy,sea
         try {
 
             let learningResourceApiUrl = constants.endpoints.SUNBIRD_LEARNING_RESOURCE_LIST
-            learningResourceApiUrl = learningResourceApiUrl + "?limit=" + pageSize + "&page=" + pageNo + "&sortBy=" + sortBy+"&search="+searchText;
+
+            
+            learningResourceApiUrl = learningResourceApiUrl + "?limit=" + pageSize + "&page=" + pageNo;
+
+            if(searchText){
+                learningResourceApiUrl = learningResourceApiUrl + "&search="+searchText;
+            }
+            if(sortBy){
+                learningResourceApiUrl = learningResourceApiUrl + "&sortBy=" + sortBy;
+            }
+            
             let mappedFilterList = {};
             let filterKeys = Object.keys(filters);
             
