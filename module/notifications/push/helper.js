@@ -624,7 +624,7 @@ async function _sendMessage(notificationInformation) {
 
             let deviceId = notificationInformation.token;
             let appType = false;
-            if(!notificationInformation.data.appType ||notificationInformation.data.appType != undefined){
+            if(notificationInformation.data.appType &&  notificationInformation.data.appType != undefined){
               appType = notificationInformation.data.appType;
             }
 
