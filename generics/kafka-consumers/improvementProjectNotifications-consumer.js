@@ -43,7 +43,8 @@ var messageReceived = function (message) {
           action: parsedMessage.action,
           internal: JSON.stringify(parsedMessage.internal),
           created_at: parsedMessage.created_at,
-          type: parsedMessage.type
+          type: parsedMessage.type,
+          appType: process.env.IMPROVEMENT_APP_TYPE
         }
       };
 
