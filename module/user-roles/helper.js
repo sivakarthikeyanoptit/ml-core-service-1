@@ -15,14 +15,14 @@ module.exports = class UserRolesHelper {
     /**
    * User roles document.
    * @method
-   * @name rolesDocuments
+   * @name roleDocuments
    * @param {Array} [filterQuery = "all"] - solution ids.
    * @param {Array} [fieldsArray = "all"] - projected fields.
    * @param {Array} [skipFields = "none"] - field not to include
    * @returns {Array} List of user roles document. 
    */
   
-  static rolesDocuments(
+  static roleDocuments(
     filterQuery = "all", 
     fieldsArray = "all",
     skipFields = "none"
@@ -71,7 +71,7 @@ module.exports = class UserRolesHelper {
     return new Promise(async (resolve, reject) => {
         try {
             
-            const roles = await this.rolesDocuments(
+            const roles = await this.roleDocuments(
                 bodyData.query,
                 bodyData.projection,
                 bodyData.skipFields
