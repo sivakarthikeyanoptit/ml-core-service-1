@@ -105,6 +105,17 @@ module.exports = class UserExtension extends Abstract {
   * @apiGroup User Extension
   * @apiHeader {String} X-authenticated-user-token Authenticity token
   * @apiSampleRequest /kendra/api/v1/user-extension/update/e97b5582-471c-4649-8401-3cc4249359bb
+  * @apiParamExample {json} Request-Body:
+   * {
+      "roles" : [ 
+        {
+            "roleId" : ObjectId("5d9f31ae84c47946a1f7d35e"),
+            "code" : "CRP"
+        }],
+      "externalId" : "a1@shikshalokam",
+      "status" : "active"
+
+    }
   * @apiUse successBody
   * @apiUse errorBody
   * @apiParamExample {json} Response:

@@ -76,12 +76,20 @@ module.exports = class Solutions extends Abstract {
   }
 
     /**
-  * @api {post} /kendra/api/v1/solutions/updateSolutions?solutionExternalId={solutionExternalId} Update Solutions
+  * @api {post} /kendra/api/v1/solutions/update?solutionExternalId={solutionExternalId} Update Solutions
   * @apiVersion 1.0.0
-  * @apiName updateSolutions Solutions
+  * @apiName update Solutions
   * @apiGroup Solutions
-  * @apiSampleRequest /kendra/api/v1/solutions/updateSolutions
+  * @apiSampleRequest /kendra/api/v1/solutions/update
   * @apiHeader {String} X-authenticated-user-token Authenticity token  
+  * @apiParamExample {json} Request-Body:
+   * {
+    "query" : {
+        "solutionExternalId" : "EF-DCPCR-2018-001"
+    },
+    "name" : "DCPCR Assessment Framework 2018",
+    "description" : "DCPCR Assessment Framework 2018"
+    }
   * @apiUse successBody
   * @apiUse errorBody
   * @apiParamExample {json} Response :
@@ -94,17 +102,17 @@ module.exports = class Solutions extends Abstract {
    /**
    * Update solution.
    * @method
-   * @name updateSolutions
+   * @name update
    * @param {Object} req - requested data.
    * @param {String} req.query.solutionExternalId -  solution external id.
    * @returns {JSON}
    */
 
-  async updateSolutions(req) {
+  async update(req) {
     return new Promise(async (resolve, reject) => {
       try {
 
-        const solutionUpdation = await solutionsHelper.updateSolutions(
+        const solutionUpdation = await solutionsHelper.update(
           req.query.solutionExternalId,
           req.body,
           req.userDetails.userId

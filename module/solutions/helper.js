@@ -123,14 +123,14 @@ module.exports = class SolutionsHelper {
   /**
    * Update solution.
    * @method 
-   * @name updateSolutions
+   * @name update
    * @param {String} solutionExternalId - solution external id.
    * @param {String} userId - Logged in user id.
    * @param {Object} data - solution updation data.
    * @returns {JSON} solution updation data. 
    */
   
-  static updateSolutions(solutionExternalId,data,userId) {
+  static update(solutionExternalId,data,userId) {
     return new Promise(async (resolve, reject) => {
         try {
   

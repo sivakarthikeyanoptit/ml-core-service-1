@@ -53,7 +53,7 @@ module.exports = class EntityTypes extends Abstract {
   /**
    * Lists of entity types.
    * @method
-   * @name find
+   * @name list
    * @param {Object} req - Requested data.
    * @param {Object} req.body.query - Filtered data.
    * @param {Array} req.body.projection - Projected data.

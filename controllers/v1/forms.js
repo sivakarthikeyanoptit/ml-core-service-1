@@ -42,6 +42,7 @@
    * @apiParamExample {json} Response: 
    * {
    * "status": 200,
+    "message": "Forms fetched successfully",
     "result": [
     {
         "field" : "title",
