@@ -1133,8 +1133,11 @@ var searchDocumentFromIndex = function (index = "", type = "", queryObject = "",
       let documentObject = {
         index: index,
         type: type,
-        body: queryObject,
-        size : size
+        body: queryObject
+      }
+
+      if(size != null) {
+        documentObject.size = size
       }
 
       let result = await elasticsearch.client.search(documentObject);
@@ -1152,7 +1155,7 @@ var searchDocumentFromIndex = function (index = "", type = "", queryObject = "",
       } else {
         throw new Error("Failed to get search results from index.")
       }
-
+     
       return resolve(searchDocuments);
 
     } catch (error) {

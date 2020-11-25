@@ -1,5 +1,6 @@
 const entityTypesHelper = require(MODULES_BASE_PATH + "/entityTypes/helper");
 const userRolesHelper = require(MODULES_BASE_PATH + "/user-roles/helper");
+const elasticSearch = require(GENERIC_HELPERS_PATH + "/elastic-search");
 
 module.exports = class EntitiesHelper {
 
@@ -594,5 +595,99 @@ module.exports = class EntitiesHelper {
     })
 
 }
+
+    /**
+   * Get users by entityId and role
+   * @method
+   * @name getUsersByEntityAndRole
+   * @param {Object} requestedData - requested data.
+   * @param {String} req.body.entityId - entity id.
+   * @param {String} req.body.role - role code.
+   * @returns {Array}  - List of userIds and entityIds
+   */
+
+  static getUsersByEntityAndRole( entityId= "", role= "" ) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            if (entityId == "") {
+                throw new Error(constants.apiResponses.ENTITY_ID_REQUIRED);
+            }
+
+            if (role == "") {
+                throw new Error(constants.apiResponses.ROLE_REQUIRED)
+            }
+
+            let userRoles = await userRolesHelper.roleDocuments({
+                code : role
+            },[
+                "entityTypes"
+            ]);
+            
+            if(!userRoles.length) {
+                throw new Error(constants.apiResponses.INVALID_ROLE)
+            }
+            
+            let entityType = userRoles[0].entityTypes[0].entityType;
+
+            let queryObject = {
+                query: {
+                    bool: {
+                        must: [
+                            { match: { "data.entityType": entityType } }
+                        ]
+                    }
+                },
+                _source: [`data.roles.${role}`]
+            }
+            
+            let entityMatch = {match : {}};
+            entityMatch.match[`data.telemetry_entities.${entityType}_id`] = entityId;
+
+            queryObject.query.bool.must.push(entityMatch);
+           
+            let entityDocuments = await elasticSearch.searchDocumentFromIndex
+            (
+                process.env.ELASTICSEARCH_ENTITIES_INDEX,
+                "_doc",
+                queryObject,
+                null,
+                null
+            )
+
+            if (!entityDocuments.length) {
+                throw new Error(constants.apiResponses.USERS_AND_ENTITIES_NOT_FOUND)
+            }
+            
+            let result = [];
+            
+            await Promise.all(entityDocuments.map (entity => {
+                let entityObject = {
+                    entityId: entity.id,
+                    users: []
+                } 
+
+                if (Object.keys(entity.data.roles).length > 0) {
+                    entityObject.users = [...entity.data.roles[role]];
+                }
+
+                result.push(entityObject);
+            }))
+            
+            resolve({
+                success: true,
+                message : constants.apiResponses.USERS_AND_ENTITIES_FETCHED,
+                data : result
+            });
+
+        } catch (error) {
+            return resolve({
+                success: false,
+                message: error.message,
+                data: false
+            });
+        }
+    })
+  }
 
 }

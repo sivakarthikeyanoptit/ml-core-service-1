@@ -319,5 +319,60 @@ module.exports = class Entities extends Abstract {
     });
   }
 
+  /**
+  * @api {post} /kendra/api/v1/entities/getUsersByEntityAndRole.
+  * @apiVersion 1.0.0
+  * @apiName Get users by entityId and role.
+  * @apiGroup Entities
+  * @apiHeader {String} X-authenticated-user-token Authenticity token
+  * @apiSampleRequest /kendra/api/v1/entities/getUsersByEntityAndRole
+  * @apiParamExample {json} Request-body:
+  * {
+    "entityId" : "5da829874c67d63cca1bd9d0",
+    "role" : "HM"
+  }
+  * @apiUse successBody
+  * @apiUse errorBody
+  * @apiParamExample {json} Response:
+  * 
+
+   /**
+   * Get users by entityId and role.
+   * @method
+   * @name getUsersByEntityAndRole
+   * @param {Object} req - request data.
+   * @param {String} req.body.entityId - entity id.
+   * @param {String} req.body.role - role code.
+   * @returns {JSON} Array of entities and users.
+   */
+
+  getUsersByEntityAndRole(req) {
+    return new Promise(async (resolve, reject) => {
+
+      try {
+
+        let result = 
+        await entitiesHelper.getUsersByEntityAndRole(
+          req.body.entityId,
+          req.body.role
+        );
+
+        return resolve({
+          message: result.message,
+          result: result.data
+        });
+
+      } catch (error) {
+
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error
+        })
+      }
+    })
+  }
+
+
 };
 
