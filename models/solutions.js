@@ -65,7 +65,7 @@ module.exports = {
         type : [String],
         default : []
       },
-      projectId : "ObjectId",
-      taskId : String
+      project : Object,
+      referenceFrom : String
     }
   };

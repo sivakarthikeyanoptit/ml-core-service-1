@@ -5,6 +5,7 @@
  * Description : All User related information including sys_admin.
  */
 
+
 // Dependencies
 const programsHelper = require(MODULES_BASE_PATH + "/programs/helper");
 const solutionsHelper = require(MODULES_BASE_PATH + "/solutions/helper");
@@ -204,6 +205,12 @@ module.exports = class UsersHelper {
                 programDescription : userPrivateProgram.description,
                 type : data.type ? data.type : constants.common.ASSESSMENT,
                 subType : data.subType ? data.subType : constants.common.INSTITUTIONAL
+            }
+
+            if( data.project ) {
+                solutionData.project = data.project;
+                solutionData.project._id = ObjectId(solutionData.project._id);
+                solutionData.referenceFrom = constants.common.PROJECT;
             }
 
             if( data.entities ) {

@@ -258,12 +258,12 @@ module.exports = class Entities extends Abstract {
     }
 
      /**
-  * @api {get} /kendra/api/v1/entities/list
+  * @api {get} /kendra/api/v1/entities/listByEntityIds
   * List entities.
   * @apiVersion 1.0.0
   * @apiName List entities
   * @apiGroup Entities
-  * @apiSampleRequest /kendra/api/v1/entities/list
+  * @apiSampleRequest /kendra/api/v1/entities/listByEntityIds
   * @param {json} Request-Body:
   * {
   * "entities" : ["5beaa888af0065f0e0a10515"],
@@ -293,12 +293,12 @@ module.exports = class Entities extends Abstract {
    * @returns {JSON} - Array of entities.
    */
 
-  list(req) {
+  listByEntityIds(req) {
     return new Promise(async (resolve, reject) => {
 
       try {
 
-        const entities = await entitiesHelper.list(req.body);
+        const entities = await entitiesHelper.listByEntityIds(req.body);
         return resolve(entities);
 
       } catch (error) {
