@@ -99,7 +99,16 @@ module.exports = async function (req, res, next) {
     return
   }
 
-  let internalAccessApiPaths = ["/cloud-services/","apps/create","apps/update","list"];
+  let internalAccessApiPaths = [
+    "/cloud-services/",
+    "/entities/list",
+    "/solutions/list",
+    "/entity-types/list",
+    "/user-roles/list",
+    "/forms/list",
+    "/programs/list"
+  ];
+  
   let performInternalAccessTokenCheck = false;
   await Promise.all(internalAccessApiPaths.map(async function (path) {
     if (req.path.includes(path)) {

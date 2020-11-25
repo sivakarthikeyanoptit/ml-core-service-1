@@ -11,6 +11,9 @@ module.exports = (req) => {
         },
         subEntitiesRoles : function() {
             req.checkParams('_id').exists().withMessage("required Entity id");
+        },
+        listByEntityIds : function () {
+            req.checkBody('entities').exists().withMessage("required Entity ids");
         }
     }
 

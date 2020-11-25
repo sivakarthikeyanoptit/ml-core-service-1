@@ -266,10 +266,8 @@ module.exports = class Entities extends Abstract {
   * @apiSampleRequest /kendra/api/v1/entities/list
   * @param {json} Request-Body:
   * {
-  * "query" : {
-        "metaInformation.externalId" : "9999999999"
-    },
-    "projection" : ["_id","entityType"]
+  * "entities" : ["5beaa888af0065f0e0a10515"],
+    "fields" : ["entityType"]
     }
   * @apiUse successBody
   * @apiUse errorBody

@@ -550,14 +550,13 @@ module.exports = class EntitiesHelper {
    * @returns {Array} List of Entities.
    */
   
-  static list( bodyData ) {
+  static listByEntityIds( bodyData ) {
     return new Promise(async (resolve, reject) => {
         try {
             
             const entities = await this.entityDocuments(
-                bodyData.query,
-                bodyData.projection,
-                bodyData.skipFields
+                bodyData.entities,
+                bodyData.fields ? bodyData.fields  : [] 
             );
 
             return resolve({
