@@ -33,8 +33,7 @@ function callToSunbird(requestType, url, token="", requestBody = "") {
         };
         if(token){
             options['headers']["x-authenticated-user-token"] = token;
-        }
-       
+        }  
 
         if (requestType != "GET") {
             options['json'] = requestBody;
@@ -53,7 +52,7 @@ function callToSunbird(requestType, url, token="", requestBody = "") {
 
             if (err) {
                  return reject({
-                    message: CONSTANTS.apiResponses.SUNBIRD_SERVICE_DOWN
+                    message: constants.apiResponses.SUNBIRD_SERVICE_DOWN
                 });
             } else {
                 return resolve(data.body);
@@ -83,18 +82,15 @@ const learningResources = function (token, pageSize, pageNo, filters, sortBy,sea
     return new Promise(async (resolve, reject) => {
         try {
 
-            let learningResourceApiUrl = constants.endpoints.SUNBIRD_LEARNING_RESOURCE_LIST
-
-            
+            let learningResourceApiUrl = constants.endpoints.SUNBIRD_LEARNING_RESOURCE_LIST;
             learningResourceApiUrl = learningResourceApiUrl + "?limit=" + pageSize + "&page=" + pageNo;
-
             if(searchText){
                 learningResourceApiUrl = learningResourceApiUrl + "&search="+searchText;
             }
             if(sortBy){
                 learningResourceApiUrl = learningResourceApiUrl + "&sortBy=" + sortBy;
             }
-            
+         
             let mappedFilterList = {};
             let filterKeys = Object.keys(filters);
             
