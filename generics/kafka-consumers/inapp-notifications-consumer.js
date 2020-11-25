@@ -28,6 +28,8 @@ var messageReceived = function (message) {
       
       let parsedMessage = JSON.parse(message.value);
 
+      if (parsedMessage.push == true || !parsedMessage.push) {
+
       if (parsedMessage.action === "deletion") {
 
         await elasticSearchHelper.deleteReadOrUnReadNotificationData(parsedMessage.users, parsedMessage);
@@ -78,7 +80,13 @@ var messageReceived = function (message) {
         }
       }
 
-      return resolve("Message Received");
+       return resolve("Message Received");
+
+      }
+      else {
+        return resolve("Push notification off");
+      }
+
     } catch (error) {
       return reject(error);
     }
