@@ -59,14 +59,15 @@ module.exports = class LearningResourcesHelper {
     })
 
   }
+  
   /**
  * Get resource filtrs
  * @method
- * @name getFilters
+ * @name filters
  * @returns {json} Response consists of learning resource filters
  */
 
-  static getFilters() {
+  static filters() {
     return new Promise(async (resolve, reject) => {
       try {
 
