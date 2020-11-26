@@ -28,7 +28,7 @@ var messageReceived = function (message) {
       
       let parsedMessage = JSON.parse(message.value);
 
-      if (parsedMessage.push == true || !parsedMessage.push) {
+      if ( parsedMessage.inApp == true || !parsedMessage.inApp ) {
 
       if (parsedMessage.action === "deletion") {
 
