@@ -1,4 +1,3 @@
-
 module.exports = class FormHelper {
 
     /**
@@ -44,26 +43,33 @@ module.exports = class FormHelper {
    }
 
    /**
-   * List of user forms.
+   * Form details.
    * @method
-   * @name list
-   * @param bodyData - Body data.
-   * @returns {Array} List of user forms data.
+   * @name details
+   * @param formName - form name.
+   * @returns {Array} Details of form.
    */
   
-  static list( bodyData ) {
+  static details( formName ) {
     return new Promise(async (resolve, reject) => {
         try {
             
             const forms = await this.formsDocument(
-                bodyData.query,
-                bodyData.projection,
-                bodyData.skipFields
+                {
+                    name : formName
+                },["value"]
             );
+
+            if( !forms.length > 0 ) {
+                throw {
+                    message : constants.apiResponses.FORM_NOT_FOUND,
+                    status : httpStatusCode['bad_request'].status
+                }
+            }
 
             return resolve({
                 message : constants.apiResponses.FORMS_FETCHED,
-                result : forms
+                result : forms[0].value
             });
             
         } catch (error) {

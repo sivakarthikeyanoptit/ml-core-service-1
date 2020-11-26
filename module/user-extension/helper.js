@@ -481,7 +481,7 @@ module.exports = class UserExtensionHelper {
                 ) {
 
                     const rolesData =
-                        await userRolesHelper.roleDocuments(
+                    await userRolesHelper.roleDocuments(
                             {
                                 _id: requestedData.roles[pointerToRole]._id
                             }, [

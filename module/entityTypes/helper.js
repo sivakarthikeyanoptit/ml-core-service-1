@@ -60,18 +60,16 @@ module.exports = class EntityTypesHelper {
    * List of entity types.
    * @method
    * @name list
-   * @param bodyData - Body data.
    * @returns {Array} List of entity types.
    */
   
-  static list( bodyData ) {
+  static list() {
     return new Promise(async (resolve, reject) => {
         try {
             
             const entityTypes = await this.entityTypesDocument(
-                bodyData.query,
-                bodyData.projection,
-                bodyData.skipFields
+                "all",
+                ["_id","name"]
             );
 
             return resolve({

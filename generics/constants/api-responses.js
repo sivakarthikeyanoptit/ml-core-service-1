@@ -115,5 +115,7 @@ module.exports = {
   "LEARNING_RESORCES_FILTERS_NOT_FOUND" : "Learning resource form not found.",
   "OBSERVATION_NOT_FOUND" : "Could not found observation",
   "OBSERVATION_UPDATED" : "Observation updated successfully",
-  "OBSERVATION_FETCHED" : "Successfully fetched observations"
+  "OBSERVATION_FETCHED" : "Successfully fetched observations",
+  "FORM_NOT_FOUND" : "Could not found form",
+  "ENTITY_TYPES_NOT_FOUND" : "No entity types found"
 };

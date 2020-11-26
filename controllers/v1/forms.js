@@ -14,6 +14,7 @@
      * @class
  */
  module.exports = class Forms extends Abstract {
+   
    constructor() {
      super(schemas["forms"]);
    }
@@ -23,20 +24,13 @@
    }
 
        /**
-   * @api {post} /kendra/api/v1/forms/list
-   * List forms.
+   * @api {get} /kendra/api/v1/forms/details/:formName
+   * Form details
    * @apiVersion 0.0.1
-   * @apiName List forms.
+   * @apiName Form details
    * @apiGroup Forms
    * @apiHeader {String} X-authenticated-user-token Authenticity token
-   * @apiParamExample {json} Request-Body:
-   * {
-    "query" : {
-        "name" : "projects"
-    },
-    "projection" : ["value"]
-    }
-   * @apiSampleRequest /kendra/api/v1/forms/list
+   * @apiSampleRequest /kendra/api/v1/forms/details/projects
    * @apiUse successBody
    * @apiUse errorBody
    * @apiParamExample {json} Response: 
@@ -85,19 +79,17 @@
   /**
    * List forms.
    * @method
-   * @name list
+   * @name details
    * @param {Object} req - Requested data.
-   * @param {Object} req.body.query - Filtered data.
-   * @param {Array} req.body.projection - Projected data.
-   * @param {Array} req.body.skipFields - Field to skip.
+   * @param {Object} req.params._id - Form name.
    * @returns {JSON} List forms.
   */
 
- async list(req) {
+ async details(req) {
    return new Promise(async (resolve, reject) => {
      try {
        
-        let forms = await formsHelper.list(req.body);
+        let forms = await formsHelper.details(req.params._id);
         return resolve(forms);
       
       } catch (error) {
