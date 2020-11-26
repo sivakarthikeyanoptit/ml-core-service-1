@@ -79,6 +79,7 @@ module.exports = class Entities extends Abstract {
       * @method
       * @name listByEntityType
       * @param  {Request} req request body.
+      * @param {String} req.params._id - entityType
       * @returns {JSON} Returns list of entities
      */
 
@@ -146,6 +147,7 @@ module.exports = class Entities extends Abstract {
       * @method
       * @name subEntityList
       * @param  {Request} req request body.
+      * @param {String} req.params._id - entityId
       * @returns {JSON} Returns list of immediate entities
      */
 
@@ -353,6 +355,14 @@ module.exports = class Entities extends Abstract {
     }
     */
 
+    /**
+   * Roles based on entity type
+   * @method
+   * @name subEntitiesRoles
+   * @param {String} req.params._id - entityId.         
+   * @returns {JSON} - Array of user roles.
+   */
+
    subEntitiesRoles(req) {
     return new Promise(async (resolve, reject) => {
 
@@ -398,6 +408,14 @@ module.exports = class Entities extends Abstract {
     ]
   }
     */
+
+    /**
+   * Entities child hierarchy path
+   * @method
+   * @name subEntitiesRoles
+   * @param {String} req.params._id - entityId.         
+   * @returns {JSON} - Entities child hierarchy path
+   */
 
    childHierarchyPath(req) {
     return new Promise(async (resolve, reject) => {
