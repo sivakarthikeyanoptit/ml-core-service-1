@@ -77,11 +77,24 @@ module.exports = class PushNotificationsHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let notificationDataToBeSent = _notificationMessageFormat(notification);
-                notificationDataToBeSent["topic"] = notification.topic;
-
                 let pushToTopicData =
-                await _sendMessage(pushNotificationRelatedInformation);
+                await _sendMessage({
+                    topic : notification.topicName,
+                    notification : {
+                        title : notification.title,
+                        body : notification.text
+                    },
+                    data : {
+                        "title": notification.title,
+                        "text": notification.text,
+                        id: "0",
+                        is_read: JSON.stringify(notification.is_read),
+                        payload: JSON.stringify(notification.payload),
+                        action: notification.action,
+                        internal: JSON.stringify(notification.internal),
+                        created_at: notification.created_at,
+                        type: notification.type
+                }});
 
                 return resolve(pushToTopicData);
 
@@ -677,7 +690,7 @@ function _notificationMessageFormat(notificationMessage) {
             created_at: notificationMessage.created_at,
             type: notificationMessage.type
         },
-        text: notificationMessage.text
+        text : notificationMessage.text
     };
 
     return notificationDataToBeSent;
