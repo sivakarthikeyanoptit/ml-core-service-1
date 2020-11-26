@@ -76,7 +76,7 @@ module.exports = class PushNotificationsHelper {
     static pushToTopic(notification) {
         return new Promise(async (resolve, reject) => {
             try {
-
+               console.log(notification);
                 let pushToTopicData =
                 await _sendMessage({
                     topic : notification.topicName,

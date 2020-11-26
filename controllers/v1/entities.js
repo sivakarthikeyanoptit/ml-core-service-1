@@ -388,12 +388,12 @@ module.exports = class Entities extends Abstract {
   }
 
         /**
-    * @api {get} /kendra/api/v1/entities/childHierarchyPath/:entityId
+    * @api {get} /kendra/api/v1/entities/subEntityTypeList/:entityId
     * Get entities child hierarchy path.
     * @apiVersion 1.0.0
     * @apiGroup Entities
     * @apiHeader {String} X-authenticated-user-token Authenticity token
-    * @apiSampleRequest /kendra/api/v1/entities/childHierarchyPath/5da829874c67d63cca1bd9d0
+    * @apiSampleRequest /kendra/api/v1/entities/subEntityTypeList/5da829874c67d63cca1bd9d0
     * @apiUse successBody
     * @apiUse errorBody
     * @apiParamExample {json} Response:
@@ -417,14 +417,15 @@ module.exports = class Entities extends Abstract {
    * @returns {JSON} - Entities child hierarchy path
    */
 
-   childHierarchyPath(req) {
+   subEntityTypeList(req) {
     return new Promise(async (resolve, reject) => {
 
       try {
 
-        const childHierarchyData = await entitiesHelper.childHierarchyPath(req.params._id);
+        const subEntityTypeListData = 
+        await entitiesHelper.subEntityTypeList(req.params._id);
        
-        resolve(childHierarchyData);
+        resolve(subEntityTypeListData);
 
       } catch (error) {
 

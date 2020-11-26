@@ -5,9 +5,6 @@
  * Description : Solution related helper functionality.
  */
 
-  // Dependencies
- const programsHelper = require(MODULES_BASE_PATH + "/programs/helper");
-
 /**
     * SolutionsHelper
     * @class
@@ -62,39 +59,6 @@ module.exports = class SolutionsHelper {
     });
   }
 
-   /**
-   * List Solutions
-   * @method
-   * @name list
-   * @param bodyData - Body data.
-   * @returns {Array} List of solutions. 
-   */
-  
-  static list( bodyData ) {
-    return new Promise(async (resolve, reject) => {
-        try {
-
-            let queryData = bodyData.query ? bodyData.query : {};
-
-            queryData["status"] = "active";
-            
-            const solutions = await this.solutionDocuments(
-                queryData,
-                bodyData.projection,
-                bodyData.skipFields
-            );
-
-            return resolve({
-                message : constants.apiResponses.SOLUTIONS_FETCHED,
-                result : solutions
-            });
-            
-        } catch (error) {
-            return reject(error);
-        }
-    });
-  }
-
   /**
    * Create solution.
    * @method create
@@ -120,58 +84,4 @@ module.exports = class SolutionsHelper {
     });
   }
 
-  /**
-   * Update solution.
-   * @method 
-   * @name update
-   * @param {String} solutionExternalId - solution external id.
-   * @param {String} userId - Logged in user id.
-   * @param {Object} data - solution updation data.
-   * @returns {JSON} solution updation data. 
-   */
-  
-  static update(solutionExternalId,data,userId) {
-    return new Promise(async (resolve, reject) => {
-        try {
-  
-          let solutionDocument = 
-          await this.solutionDocuments(
-            {
-              externalId: solutionExternalId
-            },["_id"]
-          );
-  
-          if (!solutionDocument[0]) {
-            
-            return resolve({
-              message: constants.apiResponses.SOLUTION_NOT_FOUND,
-              result : {}
-            });
-
-          }
-  
-          let updateObject = {
-            "$set" : {}
-          };
-  
-          Object.keys(data).forEach(solutionData=>{
-            updateObject["$set"][solutionData] = data[solutionData];
-          })
-  
-          updateObject["$set"]["updatedBy"] = userId;
-  
-          await database.models.solutions.findOneAndUpdate({
-            _id : solutionDocument[0]._id
-          }, updateObject)
-  
-          return resolve({
-            status: httpStatusCode.ok.status,
-            message: constants.apiResponses.SOLUTION_UPDATED
-          });
-            
-        } catch (error) {
-            return reject(error);
-        }
-    });
-  }
 };
