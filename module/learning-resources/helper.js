@@ -6,7 +6,7 @@
 */
 
 // Dependencies
-const sunbirdService = require(ROOT_PATH + "/generics/services/sunbird-application");
+const sunbirdService = require(ROOT_PATH + "/generics/services/sunbird");
 const formsHelper = require(MODULES_BASE_PATH + "/forms/helper");
 
 /**
@@ -38,11 +38,21 @@ module.exports = class LearningResourcesHelper {
         let learningResources = await sunbirdService.learningResources(token, pageSize, pageNo, filters, sortBy,searchText);
         if (learningResources && learningResources.result && learningResources.result.content) {
 
+          let resources = [];
+          if(learningResources.result.count > 0 && learningResources.result.content){
+            learningResources.result.content.map(resource => {
+              resources.push({
+                name:resource.name,
+                id:resource.identifier,
+                link:resource.previewUrl
+              });
+            });
+          }
           resolve({
             message: learningResources.message,
             data: {
               count: learningResources.result.count,
-              content: learningResources.result.content
+              content: resources
             },
             success: true
           });

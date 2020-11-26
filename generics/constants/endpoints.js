@@ -20,7 +20,7 @@ module.exports = {
     SUNBIRD_INDEX_SYNC : "/api/data/v1/index/sync",
     SUNBIRD_CREATE_CONTENT : "/api/content/v1/create",
     SUNBIRD_UPLOAD_CONTENT : "/api/content/v1/upload",
-    SUNBIRD_ORGANISATION_LISTS : "/api/org/v1/search",
+    SUNBIRD_ORGANISATION_LISTS : "/organisations/list",
     GET_USER_PROFILE : "/users/getProfile",
     SUNBIRD_LEARNING_RESOURCE_LIST : "/learningResources/list"
 }
