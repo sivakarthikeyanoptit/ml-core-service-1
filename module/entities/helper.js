@@ -617,6 +617,20 @@ module.exports = class EntitiesHelper {
             if (role == "") {
                 throw new Error(constants.apiResponses.ROLE_REQUIRED)
             }
+            
+            let entityDocument = await this.entityDocuments
+            (
+                {
+                    _id: entityId
+                },
+                [
+                    "entityType" 
+                ]
+            )
+            
+            if (!entityDocument.length) {
+                throw new Error(constants.apiResponses.INVALID_ENTITY_ID);
+            }
 
             let userRoles = await userRolesHelper.roleDocuments({
                 code : role
@@ -627,14 +641,12 @@ module.exports = class EntitiesHelper {
             if(!userRoles.length) {
                 throw new Error(constants.apiResponses.INVALID_ROLE)
             }
-            
-            let entityType = userRoles[0].entityTypes[0].entityType;
 
             let queryObject = {
                 query: {
                     bool: {
                         must: [
-                            { match: { "data.entityType": entityType } }
+                            { match: { "data.entityType": userRoles[0].entityTypes[0].entityType } }
                         ]
                     }
                 },
@@ -642,7 +654,7 @@ module.exports = class EntitiesHelper {
             }
             
             let entityMatch = {match : {}};
-            entityMatch.match[`data.telemetry_entities.${entityType}_id`] = entityId;
+            entityMatch.match[`data.telemetry_entities.${entityDocument[0].entityType}_id`] = entityId;
 
             queryObject.query.bool.must.push(entityMatch);
            

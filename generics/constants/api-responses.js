@@ -96,6 +96,7 @@ module.exports = {
   "USER_EXTENSION_UPDATED" : "User extension updated successfully",
   "ENTITY_ID_REQUIRED" : "Entity Id is required",
   "ROLE_REQUIRED" : "Role is required",
+  "INVALID_ENTITY_ID" : "Invalid entity id",
   "INVALID_ROLE" : "Invalid role",
   "USERS_AND_ENTITIES_NOT_FOUND" : "Users and entities not found",
   "USERS_AND_ENTITIES_FETCHED" : "Users and entities fetched successfully"
