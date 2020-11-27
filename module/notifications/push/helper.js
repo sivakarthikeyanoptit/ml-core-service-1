@@ -488,7 +488,7 @@ module.exports = class PushNotificationsHelper {
                         notificationDataToBeSent["deviceId"] = 
                         activeDevices[pointerToDevices].deviceId;
 
-                        notificationDataToBeSent.data.["appType"] = 
+                        notificationDataToBeSent.data["appType"] = 
                         activeDevices[pointerToDevices].appType;
 
                         await this.sendNotifications(
