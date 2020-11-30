@@ -84,7 +84,7 @@ var messageReceived = function (message) {
 
       }
       else {
-        return resolve("Push notification off");
+        return resolve("In app notification off");
       }
 
     } catch (error) {

@@ -105,8 +105,6 @@ var _sendToKafkaConsumers = function (topic,host) {
 
     consumer.on('message', async function (message) {
 
-      console.log(message);
-
       if (message && message.topic === APPLICATION_CONFIG_TOPIC) {
         applicationconfigConsumer.messageReceived(message);
       } else if (message && message.topic === LANGUAGE_TOPIC) {
