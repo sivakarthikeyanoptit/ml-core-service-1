@@ -555,7 +555,9 @@ module.exports = class EntitiesHelper {
         try {
             
             const entities = await this.entityDocuments(
-                bodyData.entities,
+                {
+                    _id : { $in : bodyData.entities }
+                },
                 bodyData.fields ? bodyData.fields  : [] 
             );
 
