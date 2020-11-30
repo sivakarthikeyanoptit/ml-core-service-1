@@ -199,7 +199,7 @@ module.exports = class UsersHelper {
                 );
             }
 
-            let solutionData = {
+            let solutionDataToBeUpdated = {
                 programId : userPrivateProgram._id,
                 programExternalId : userPrivateProgram.externalId,
                 programName : userPrivateProgram.name,
@@ -223,20 +223,20 @@ module.exports = class UsersHelper {
                     })
                 }
 
-                solutionData["entities"] = entityData.map(entity => entity._id);
-                solutionData["entityType"] = entityData[0].entityType;
-                solutionData["entityTypeId"] = entityData[0].entityTypeId;
+                solutionDataToBeUpdated["entities"] = entityData.map(entity => entity._id);
+                solutionDataToBeUpdated["entityType"] = entityData[0].entityType;
+                solutionDataToBeUpdated["entityTypeId"] = entityData[0].entityTypeId;
             }
 
             let solution = ""
 
             if( data.solutionId && data.solutionId !== "" ) {
                 
-                solutionData = 
+                let solutionData = 
                 await solutionsHelper.solutionDocuments({
                     _id : data.solutionId,
                     isReusable : false
-                });
+                },["_id"]);
 
                 if( !solutionData.length > 0 ) {
                     
@@ -251,7 +251,7 @@ module.exports = class UsersHelper {
                 await database.models.solutions.findOneAndUpdate({
                     _id : solutionData[0]._id
                 },{
-                    $set : _.omit(data,["solutionId"])
+                    $set : solutionDataToBeUpdated
                 },{
                     new : true
                 });
@@ -259,35 +259,37 @@ module.exports = class UsersHelper {
 
             } else {
                 
-                solutionData["type"] = 
+                solutionDataToBeUpdated["type"] = 
                 data.type ? data.type : constants.common.ASSESSMENT;
-                solutionData["subType"] = 
+                solutionDataToBeUpdated["subType"] = 
                 data.subType ? data.subType : constants.common.INSTITUTIONAL;
 
+                solutionDataToBeUpdated["isReusable"] = false;
+
                 if( data.solutionName ) {
-                    solutionData["name"] = data.solutionName;
-                    solutionData["externalId"] = 
+                    solutionDataToBeUpdated["name"] = data.solutionName;
+                    solutionDataToBeUpdated["externalId"] = 
                     data.solutionExternalId ? 
                     data.solutionExternalId : data.solutionName+ "-" + dateFormat;
-                    solutionData["description"] = 
+                    solutionDataToBeUpdated["description"] = 
                     data.solutionDescription ? data.solutionDescription : data.solutionName;
                 } else {
-                    solutionData["name"] = userPrivateProgram.programName,
-                    solutionData["externalId"] = userId + "-" + dateFormat;
-                    solutionData["description"] = userPrivateProgram.programDescription;
+                    solutionDataToBeUpdated["name"] = userPrivateProgram.programName,
+                    solutionDataToBeUpdated["externalId"] = userId + "-" + dateFormat;
+                    solutionDataToBeUpdated["description"] = userPrivateProgram.programDescription;
                 }
                 
-                solutionData.createdFor =  organisationAndRootOrganisations.result.createdFor;
-                solutionData.rootOrganisations = organisationAndRootOrganisations.result.rootOrganisations;
+                solutionDataToBeUpdated.createdFor =  organisationAndRootOrganisations.result.createdFor;
+                solutionDataToBeUpdated.rootOrganisations = organisationAndRootOrganisations.result.rootOrganisations;
 
-                solution = await solutionsHelper.create(solutionData);
+                solution = await solutionsHelper.create(solutionDataToBeUpdated);
             }
             
             if( solution._id ) {
 
-                await programsHelper.programDocuments(
+                await database.models.programs.findOneAndUpdate(
                     {
-                        _id : userPrivateProgram.programId
+                        _id : userPrivateProgram._id
                     }, { 
                         $addToSet: { components : ObjectId(solution._id) } 
                 });
@@ -302,6 +304,7 @@ module.exports = class UsersHelper {
             });
 
         } catch (error) {
+            console.log(error);
             return reject(error);
         }
     })
