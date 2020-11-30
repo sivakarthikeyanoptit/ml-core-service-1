@@ -76,7 +76,7 @@ module.exports = class PushNotificationsHelper {
     static pushToTopic(notification) {
         return new Promise(async (resolve, reject) => {
             try {
-               console.log(notification);
+
                 let pushToTopicData =
                 await _sendMessage({
                     topic : notification.topicName,
@@ -93,7 +93,8 @@ module.exports = class PushNotificationsHelper {
                         action: notification.action,
                         internal: JSON.stringify(notification.internal),
                         created_at: notification.created_at,
-                        type: notification.type
+                        type: notification.type,
+                        appType: notification.appType
                 }});
 
                 return resolve(pushToTopicData);
@@ -487,7 +488,7 @@ module.exports = class PushNotificationsHelper {
                         notificationDataToBeSent["deviceId"] = 
                         activeDevices[pointerToDevices].deviceId;
 
-                        notificationDataToBeSent["appType"] = 
+                        notificationDataToBeSent.data["appType"] = 
                         activeDevices[pointerToDevices].appType;
 
                         await this.sendNotifications(

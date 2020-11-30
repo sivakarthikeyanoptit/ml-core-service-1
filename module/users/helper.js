@@ -284,10 +284,12 @@ module.exports = class UsersHelper {
             }
             
             if( solution._id ) {
-                await database.models.programs.updateOne({ 
-                    _id : userPrivateProgram._id 
-                }, { 
-                    $addToSet: { components : ObjectId(solution._id) } 
+
+                await programsHelper.programDocuments(
+                    {
+                        _id : userPrivateProgram.programId
+                    }, { 
+                        $addToSet: { components : ObjectId(solution._id) } 
                 });
             }
 
