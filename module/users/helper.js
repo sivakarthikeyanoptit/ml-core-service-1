@@ -207,7 +207,7 @@ module.exports = class UsersHelper {
                 isAPrivateProgram : userPrivateProgram.isAPrivateProgram
             };
 
-            if( data.entities ) {
+            if( data.entities && data.entities.length > 0 ) {
                 
                 let entityData = await entitiesHelper.entityDocuments(
                     {
