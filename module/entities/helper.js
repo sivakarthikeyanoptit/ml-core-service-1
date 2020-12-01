@@ -653,7 +653,7 @@ module.exports = class EntitiesHelper {
                 _source: [`data.roles.${role}`]
             }
           
-            let users = await elasticSearch.searchDocumentFromIndex
+            let entities = await elasticSearch.searchDocumentFromIndex
             (
                 process.env.ELASTICSEARCH_ENTITIES_INDEX,
                 "_doc",
@@ -662,25 +662,23 @@ module.exports = class EntitiesHelper {
                 null
             )
 
-            if (!users.length) {
+            if (!entities.length) {
                 throw new Error(constants.apiResponses.USERS_NOT_FOUND)
             }
             
             let result = [];
             
-            await Promise.all(users.map (user => {
-                let entityObject = {
-                    entityId: user.id,
-                    users: []
-                } 
-
-                if (Object.keys(user.data.roles).length > 0) {
-                    entityObject.users = [...user.data.roles[role]];
+            await Promise.all(entities.map (async entity => {
+                if (Object.keys(entity.data.roles).length > 0) {
+                    await Promise.all(entity.data.roles[role].map(userId => {
+                        result.push({
+                            entityId: entity.id,
+                            userId: userId
+                        })
+                    }))
                 }
-
-                result.push(entityObject);
             }))
-            
+           
             resolve({
                 success: true,
                 message : constants.apiResponses.USERS_AND_ENTITIES_FETCHED,
