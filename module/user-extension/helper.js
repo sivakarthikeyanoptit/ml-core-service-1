@@ -416,15 +416,15 @@ module.exports = class UserExtensionHelper {
                         new: true
                     });
 
-            return resolve({
-                message : constants.apiResponses.USER_EXTENSION_FETCHED,
-                result : updatedData
-            })
-        } catch (error) {
-            return reject(error);
-        }
-    });
-  }
+                return resolve({
+                    message: constants.apiResponses.USER_EXTENSION_FETCHED,
+                    result: updatedData
+                })
+            } catch (error) {
+                return reject(error);
+            }
+        });
+    }
 
     /**
    * Update profile roles
@@ -481,7 +481,7 @@ module.exports = class UserExtensionHelper {
                 ) {
 
                     const rolesData =
-                    await userRolesHelper.roleDocuments(
+                        await userRolesHelper.roleDocuments(
                             {
                                 _id: requestedData.roles[pointerToRole]._id
                             }, [
@@ -671,7 +671,7 @@ module.exports = class UserExtensionHelper {
                                 projection
                             );
 
-                        if ( relatedEntities && relatedEntities.length > 0) {
+                        if (relatedEntities && relatedEntities.length > 0) {
                             entityMapToRelatedEntities[currentEntities._id.toString()] = relatedEntities;
                         }
                     }
@@ -712,14 +712,17 @@ module.exports = class UserExtensionHelper {
                     })
 
                     for (let userExtensionRoleCounter = 0; userExtensionRoleCounter < userExtensionData[0].roles.length; userExtensionRoleCounter++) {
-                        for (let userExtenionRoleEntityCounter = 0; userExtenionRoleEntityCounter < userExtensionData[0].roles[userExtensionRoleCounter].entities.length; userExtenionRoleEntityCounter++) {
-                            userExtensionData[0].roles[userExtensionRoleCounter].entities[userExtenionRoleEntityCounter] = {
-                                _id: entityMap[userExtensionData[0].roles[userExtensionRoleCounter].entities[userExtenionRoleEntityCounter].toString()]._id,
-                                ...entityMap[userExtensionData[0].roles[userExtensionRoleCounter].entities[userExtenionRoleEntityCounter].toString()].metaInformation
-                            };
+
+                        if (userExtensionData[0].roles[userExtensionRoleCounter].entities && userExtensionData[0].roles[userExtensionRoleCounter].entities.length > 0) {
+                            for (let userExtenionRoleEntityCounter = 0; userExtenionRoleEntityCounter < userExtensionData[0].roles[userExtensionRoleCounter].entities.length; userExtenionRoleEntityCounter++) {
+                                userExtensionData[0].roles[userExtensionRoleCounter].entities[userExtenionRoleEntityCounter] = {
+                                    _id: entityMap[userExtensionData[0].roles[userExtensionRoleCounter].entities[userExtenionRoleEntityCounter].toString()]._id,
+                                    ...entityMap[userExtensionData[0].roles[userExtensionRoleCounter].entities[userExtenionRoleEntityCounter].toString()].metaInformation
+                                };
+                            }
+                            roleMap[userExtensionData[0].roles[userExtensionRoleCounter].roleId.toString()].immediateSubEntityType = (userExtensionData[0].roles[userExtensionRoleCounter].entities[0] && userExtensionData[0].roles[userExtensionRoleCounter].entities[0].entityType) ? userExtensionData[0].roles[userExtensionRoleCounter].entities[0].entityType : "";
+                            roleMap[userExtensionData[0].roles[userExtensionRoleCounter].roleId.toString()].entities = userExtensionData[0].roles[userExtensionRoleCounter].entities;
                         }
-                        roleMap[userExtensionData[0].roles[userExtensionRoleCounter].roleId.toString()].immediateSubEntityType = (userExtensionData[0].roles[userExtensionRoleCounter].entities[0] && userExtensionData[0].roles[userExtensionRoleCounter].entities[0].entityType) ? userExtensionData[0].roles[userExtensionRoleCounter].entities[0].entityType : "";
-                        roleMap[userExtensionData[0].roles[userExtensionRoleCounter].roleId.toString()].entities = userExtensionData[0].roles[userExtensionRoleCounter].entities;
                     }
                 }
 
@@ -748,11 +751,11 @@ module.exports = class UserExtensionHelper {
      * @returns {Object} 
      */
 
-    static getEntities(filterQueryObject, entityType,pageSize,pageNo,searchText) {
+    static getEntities(filterQueryObject, entityType, pageSize, pageNo, searchText) {
         return new Promise(async (resolve, reject) => {
             try {
 
-                if( searchText !== "") {
+                if (searchText !== "") {
                     filterQueryObject["$or"] = [
                         { "entityDocuments.metaInformation.name": new RegExp(searchText, 'i') },
                     ];
@@ -798,7 +801,7 @@ module.exports = class UserExtensionHelper {
                 let userExtensionData =
                     await database.models.userExtension.aggregate(queryObject);
 
-            
+
                 let entityDocuments = [];
                 if (userExtensionData[0]) {
                     userExtensionData[0].data.forEach(entity => {
@@ -807,7 +810,7 @@ module.exports = class UserExtensionHelper {
                             name: entity.entityDocuments.metaInformation.name,
                         });
                     });
-                    return resolve({ data:entityDocuments,count:userExtensionData[0].count })
+                    return resolve({ data: entityDocuments, count: userExtensionData[0].count })
 
                 } else {
                     return resolve({
