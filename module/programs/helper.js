@@ -58,39 +58,6 @@ module.exports = class ProgramsHelper {
     });
   }
 
-   /**
-   * List of Programs
-   * @method
-   * @name list
-   * @param bodyData - Body data.
-   * @returns {Array} List of Programs.
-   */
-  
-  static list( bodyData ) {
-    return new Promise(async (resolve, reject) => {
-        try {
-
-            let queryData = bodyData.query ? bodyData.query : {};
-
-            queryData["status"] = "active";
-            
-            const programs = await this.programDocuments(
-                queryData,
-                bodyData.projection,
-                bodyData.skipFields
-            );
-
-            return resolve({
-                message : constants.apiResponses.PROGRAMS_FETCHED,
-                result : programs
-            });
-            
-        } catch (error) {
-            return reject(error);
-        }
-    });
-  }
-
      /**
    * Create program
    * @method

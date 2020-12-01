@@ -77,19 +77,25 @@ module.exports = class PushNotificationsHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let pushNotificationRelatedInformation = {
-                    topic: notification.topicName,
-                    notification: {
-                        title: notification.title,
-                        body: notification.message
-                    },
-                    data: {
-                      appType: notification.data.appType
-                    }
-                };
-
                 let pushToTopicData =
-                    await _sendMessage(pushNotificationRelatedInformation);
+                await _sendMessage({
+                    topic : notification.topicName,
+                    notification : {
+                        title : notification.title,
+                        body : notification.text
+                    },
+                    data : {
+                        "title": notification.title,
+                        "text": notification.text,
+                        id: "0",
+                        is_read: JSON.stringify(notification.is_read),
+                        payload: JSON.stringify(notification.payload),
+                        action: notification.action,
+                        internal: JSON.stringify(notification.internal),
+                        created_at: notification.created_at,
+                        type: notification.type,
+                        appType: notification.appType
+                }});
 
                 return resolve(pushToTopicData);
 
@@ -476,23 +482,14 @@ module.exports = class PushNotificationsHelper {
                         pointerToDevices++
                     ) {
 
-                        let notificationDataToBeSent = {
-                            deviceId: activeDevices[pointerToDevices].deviceId,
-                            title: notificationMessage.title,
-                            data: {
-                                "title": notificationMessage.title,
-                                "text": notificationMessage.text,
-                                id: "0",
-                                is_read: JSON.stringify(notificationMessage.is_read),
-                                payload: JSON.stringify(notificationMessage.payload),
-                                action: notificationMessage.action,
-                                internal: JSON.stringify(notificationMessage.internal),
-                                created_at: notificationMessage.created_at,
-                                type: notificationMessage.type,
-                                appType: activeDevices[pointerToDevices].appType,
-                            },
-                            text: notificationMessage.text
-                        };
+                        let notificationDataToBeSent =
+                        _notificationMessageFormat(notificationMessage);
+
+                        notificationDataToBeSent["deviceId"] = 
+                        activeDevices[pointerToDevices].deviceId;
+
+                        notificationDataToBeSent.data["appType"] = 
+                        activeDevices[pointerToDevices].appType;
 
                         await this.sendNotifications(
                             notificationDataToBeSent,
@@ -669,5 +666,34 @@ async function _sendMessage(notificationInformation) {
         }
     })
 
+}
+
+/**
+  * Notification message format.
+  * @method
+  * @name _notificationMessageFormat
+  * @param {Object} notificationMessage - Notification message.                                      
+  * @returns {Object} notification data.
+ */
+
+function _notificationMessageFormat(notificationMessage) {
+    
+    let notificationDataToBeSent = {
+        title: notificationMessage.title,
+        data: {
+            "title": notificationMessage.title,
+            "text": notificationMessage.text,
+            id: "0",
+            is_read: JSON.stringify(notificationMessage.is_read),
+            payload: JSON.stringify(notificationMessage.payload),
+            action: notificationMessage.action,
+            internal: JSON.stringify(notificationMessage.internal),
+            created_at: notificationMessage.created_at,
+            type: notificationMessage.type
+        },
+        text : notificationMessage.text
+    };
+
+    return notificationDataToBeSent;
 }
 

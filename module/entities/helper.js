@@ -555,7 +555,9 @@ module.exports = class EntitiesHelper {
         try {
             
             const entities = await this.entityDocuments(
-                bodyData.entities,
+                {
+                    _id : { $in : bodyData.entities }
+                },
                 bodyData.fields ? bodyData.fields  : [] 
             );
 
@@ -624,14 +626,14 @@ module.exports = class EntitiesHelper {
 }
 
      /** 
-   * Entities child hierarchy path.
+   * Sub entity type list.
    * @method
-   * @name childHierarchyPath
+   * @name subEntityTypeList
    * @param entityId - entity id.
-   * @returns {Array} Child hierarchy path data.
+   * @returns {Array} List of sub entity type.
   */
 
-   static childHierarchyPath( entityId ) {
+   static subEntityTypeList( entityId ) {   
     return new Promise(async (resolve, reject) => {
         try {
 

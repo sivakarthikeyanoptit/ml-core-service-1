@@ -23,7 +23,7 @@ module.exports = class UserExtension extends Abstract {
   }
 
   /**
-  * @api {get} /kendra/api/v1/user-extension/getProfile/{{userId}} Get user profile
+  * @api {post} /kendra/api/v1/user-extension/getProfile/{{userId}} Get user profile
   * @apiVersion 1.0.0
   * @apiName Get user profile
   * @apiGroup User Extension
@@ -99,7 +99,7 @@ module.exports = class UserExtension extends Abstract {
   }
 
   /**
-  * @api {get} /kendra/api/v1/user-extension/update/{{userId}} Update user profile
+  * @api {post} /kendra/api/v1/user-extension/update/{{userId}} Update user profile
   * @apiVersion 1.0.0
   * @apiName Update user profile
   * @apiGroup User Extension

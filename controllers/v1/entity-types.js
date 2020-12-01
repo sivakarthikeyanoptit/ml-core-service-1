@@ -13,6 +13,7 @@ const entitiyTypesHelper = require(MODULES_BASE_PATH + "/entityTypes/helper");
     * @class
 */
 module.exports = class EntityTypes extends Abstract {
+  
   constructor() {
     super(schemas["entityTypes"]);
   }
@@ -22,19 +23,12 @@ module.exports = class EntityTypes extends Abstract {
   }
 
    /**
-   * @api {post} /kendra/api/v1/entity-types/list
+   * @api {get} /kendra/api/v1/entity-types/list
    * Lists of entity types.
    * @apiVersion 0.0.1
    * @apiName Lists of entity types.
    * @apiGroup Entity Types
    * @apiHeader {String} X-authenticated-user-token Authenticity token
-   * @apiParamExample {json} Request-Body:
-   * {
-    "query" : {
-        "name" : "school"
-    },
-    "projection" : ["_id","name"]
-    }
    * @apiSampleRequest /kendra/api/v1/entity-types/list
    * @apiUse successBody
    * @apiUse errorBody
@@ -54,10 +48,6 @@ module.exports = class EntityTypes extends Abstract {
    * Lists of entity types.
    * @method
    * @name list
-   * @param {Object} req - Requested data.
-   * @param {Object} req.body.query - Filtered data.
-   * @param {Array} req.body.projection - Projected data.
-   * @param {Array} req.body.skipFields - Field to skip.
    * @returns {JSON} List entity types.
   */
 
@@ -65,7 +55,7 @@ module.exports = class EntityTypes extends Abstract {
   return new Promise(async (resolve, reject) => {
     try {
 
-      const entityTypes = await entitiyTypesHelper.list(req.body);
+      const entityTypes = await entitiyTypesHelper.list();
       return resolve(entityTypes);
 
     } catch (error) {

@@ -105,8 +105,6 @@ var _sendToKafkaConsumers = function (topic,host) {
 
     consumer.on('message', async function (message) {
 
-      console.log(message);
-
       if (message && message.topic === APPLICATION_CONFIG_TOPIC) {
         applicationconfigConsumer.messageReceived(message);
       } else if (message && message.topic === LANGUAGE_TOPIC) {
@@ -116,8 +114,6 @@ var _sendToKafkaConsumers = function (topic,host) {
       } else if (message && message.topic === NOTIFICATIONS_TOPIC) {
         inappnotificationsConsumer.messageReceived(message);
         pushnotificationsConsumer.messageReceived(message);
-      } else if( message && message.topic === IMPROVEMENT_PROJECT_NOTIFICATIONS_TOPIC ) {
-        improvementProjectNotificationsConsumer.messageReceived(message);
       }
     });
 
@@ -132,9 +128,7 @@ var _sendToKafkaConsumers = function (topic,host) {
       } else if(error.topics && error.topics[0] === NOTIFICATIONS_TOPIC){
         inappnotificationsConsumer.errorTriggered(error);
         pushnotificationsConsumer.errorTriggered(error);
-      } else if(error.topics && error.topics[0] === IMPROVEMENT_PROJECT_NOTIFICATIONS_TOPIC) {
-        improvementProjectNotificationsConsumer.errorTriggered(error);
-      }
+      } 
     });
 
   }

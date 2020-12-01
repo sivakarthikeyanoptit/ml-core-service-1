@@ -14,6 +14,13 @@ module.exports = (req) => {
         },
         listByEntityIds : function () {
             req.checkBody('entities').exists().withMessage("required Entity ids");
+        },
+        subEntityTypeList : function () {
+            req.checkParams('_id')
+            .exists()
+            .withMessage("required Entity id")
+            .isMongoId()
+            .withMessage("Invalid entity id");
         }
     }
 
