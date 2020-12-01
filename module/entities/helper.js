@@ -601,8 +601,8 @@ module.exports = class EntitiesHelper {
    * @method
    * @name getUsersByEntityAndRole
    * @param {Object} requestedData - requested data.
-   * @param {String} req.body.entityId - entity id.
-   * @param {String} req.body.role - role code.
+   * @param {String} entityId - entity id.
+   * @param {String} role - role code.
    * @returns {Array}  - List of userIds and entityIds
    */
 
@@ -617,6 +617,18 @@ module.exports = class EntitiesHelper {
             if (role == "") {
                 throw new Error(constants.apiResponses.ROLE_REQUIRED)
             }
+
+            let userRole = await userRolesHelper.roleDocuments({
+                code : role
+            },[
+                "entityTypes"
+            ]);
+            
+            if(!userRole.length) {
+                throw new Error(constants.apiResponses.INVALID_ROLE)
+            }
+
+            let entityType = userRole[0].entityTypes[0].entityType;
             
             let entityDocument = await this.entityDocuments
             (
@@ -624,41 +636,24 @@ module.exports = class EntitiesHelper {
                     _id: entityId
                 },
                 [
-                    "entityType" 
+                    `groups.${entityType}` 
                 ]
             )
             
             if (!entityDocument.length) {
-                throw new Error(constants.apiResponses.INVALID_ENTITY_ID);
-            }
-
-            let userRoles = await userRolesHelper.roleDocuments({
-                code : role
-            },[
-                "entityTypes"
-            ]);
-            
-            if(!userRoles.length) {
-                throw new Error(constants.apiResponses.INVALID_ROLE)
+                throw new Error(constants.apiResponses.USERS_NOT_FOUND);
             }
 
             let queryObject = {
                 query: {
-                    bool: {
-                        must: [
-                            { match: { "data.entityType": userRoles[0].entityTypes[0].entityType } }
-                        ]
+                    terms: {
+                        "_id": entityDocument[0].groups[entityType]
                     }
                 },
                 _source: [`data.roles.${role}`]
             }
-            
-            let entityMatch = {match : {}};
-            entityMatch.match[`data.telemetry_entities.${entityDocument[0].entityType}_id`] = entityId;
-
-            queryObject.query.bool.must.push(entityMatch);
-           
-            let entityDocuments = await elasticSearch.searchDocumentFromIndex
+          
+            let users = await elasticSearch.searchDocumentFromIndex
             (
                 process.env.ELASTICSEARCH_ENTITIES_INDEX,
                 "_doc",
@@ -667,20 +662,20 @@ module.exports = class EntitiesHelper {
                 null
             )
 
-            if (!entityDocuments.length) {
-                throw new Error(constants.apiResponses.USERS_AND_ENTITIES_NOT_FOUND)
+            if (!users.length) {
+                throw new Error(constants.apiResponses.USERS_NOT_FOUND)
             }
             
             let result = [];
             
-            await Promise.all(entityDocuments.map (entity => {
+            await Promise.all(users.map (user => {
                 let entityObject = {
-                    entityId: entity.id,
+                    entityId: user.id,
                     users: []
                 } 
 
-                if (Object.keys(entity.data.roles).length > 0) {
-                    entityObject.users = [...entity.data.roles[role]];
+                if (Object.keys(user.data.roles).length > 0) {
+                    entityObject.users = [...user.data.roles[role]];
                 }
 
                 result.push(entityObject);

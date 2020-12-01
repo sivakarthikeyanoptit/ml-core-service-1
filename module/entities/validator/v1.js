@@ -13,8 +13,9 @@ module.exports = (req) => {
             req.checkParams('_id').exists().withMessage("required Entity id");
         },
         getUsersByEntityAndRole: function () {
-            req.checkBody('entityId').exists().withMessage("entityId id is required");
-            req.checkBody('role').exists().withMessage("role is required");
+            req.checkParams('_id').exists().withMessage("required entity id")
+            .isMongoId().withMessage("Invalid entity id");
+            req.checkQuery('role').exists().withMessage("required role code");
         }
     }
 
