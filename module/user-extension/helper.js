@@ -671,7 +671,7 @@ module.exports = class UserExtensionHelper {
                                 projection
                             );
 
-                        if (relatedEntities.length > 0) {
+                        if ( relatedEntities && relatedEntities.length > 0) {
                             entityMapToRelatedEntities[currentEntities._id.toString()] = relatedEntities;
                         }
                     }
