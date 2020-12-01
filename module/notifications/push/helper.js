@@ -95,7 +95,17 @@ module.exports = class PushNotificationsHelper {
                         created_at: notification.created_at,
                         type: notification.type,
                         appType: notification.appType
-                }});
+                    },
+                    android: {
+                        ttl: 3600 * 1000, // 1 hour in milliseconds
+                        priority: 'high',
+                        notification: {
+                            click_action: "FCM_PLUGIN_ACTIVITY",
+                            icon: 'notifications_icon',
+                            color: "#A63936"
+                        }
+                    }
+                });
 
                 return resolve(pushToTopicData);
 
