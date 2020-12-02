@@ -109,6 +109,8 @@ module.exports = class UserExtensionHelper {
                         {
                             "userId": userDetails.userId,
                             "externalId": userDetails.userName,
+                            "status": "active",
+                            "isDeleted": false,
                             "devices": [deviceData],
                             "createdBy": "SYSTEM",
                             "updatedBy": "SYSTEM"
@@ -437,6 +439,7 @@ module.exports = class UserExtensionHelper {
    */
 
     static updateProfileRoles(requestedData, userId, userName) {
+
         return new Promise(async (resolve, reject) => {
             try {
 
@@ -522,9 +525,9 @@ module.exports = class UserExtensionHelper {
                     delete requestedData.roles[pointerToRole]._id;
                 }
 
-                if (userExtensionData) {
-                    requestedData.userId = requestedData.updatedBy = userId;
-
+                if (!userExtensionData) {
+                    
+                    requestedData.userId = userId;
                     requestedData.createdBy =
                         userExtensionData && userExtensionData.createdBy ?
                             userExtensionData.createdBy : userId;
@@ -537,7 +540,7 @@ module.exports = class UserExtensionHelper {
                     requestedData.isDeleted = false;
                 }
 
-                delete requestedData.stateId;
+                requestedData.updatedBy = userId;
 
                 await database.models.userExtension.findOneAndUpdate({
                     userId: userId
