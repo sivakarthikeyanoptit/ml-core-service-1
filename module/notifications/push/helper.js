@@ -94,7 +94,8 @@ module.exports = class PushNotificationsHelper {
                         internal: JSON.stringify(notification.internal),
                         created_at: notification.created_at,
                         type: notification.type,
-                        appType: notification.appType
+                        appType: notification.appType,
+                        "notification_foreground": "true"
                     },
                     android: {
                         ttl: 3600 * 1000, // 1 hour in milliseconds
@@ -699,7 +700,8 @@ function _notificationMessageFormat(notificationMessage) {
             action: notificationMessage.action,
             internal: JSON.stringify(notificationMessage.internal),
             created_at: notificationMessage.created_at,
-            type: notificationMessage.type
+            type: notificationMessage.type,
+            "notification_foreground": "true"
         },
         text : notificationMessage.text
     };
