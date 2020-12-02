@@ -101,7 +101,7 @@ module.exports = async function (req, res, next) {
 
   let internalAccessApiPaths = [
     "/cloud-services/",
-    "/entities/listByEntityIds",
+    "/entities/listByIds",
     "/entity-types/list",
     "/user-roles/list",
     "/forms/details",
