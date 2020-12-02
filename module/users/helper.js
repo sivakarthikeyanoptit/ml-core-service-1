@@ -281,6 +281,7 @@ module.exports = class UsersHelper {
                 
                 solutionDataToBeUpdated.createdFor =  organisationAndRootOrganisations.result.createdFor;
                 solutionDataToBeUpdated.rootOrganisations = organisationAndRootOrganisations.result.rootOrganisations;
+                solutionDataToBeUpdated.updatedBy = userId;
 
                 solution = await solutionsHelper.create(solutionDataToBeUpdated);
             }
