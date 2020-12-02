@@ -4,20 +4,17 @@ module.exports = {
     global.migrationMsg = "Adding static links"
 
     let staticLinks = [{
-      "value": "privacyPolicy",
+      "value": "privacy-policy",
       "link": "https://shikshalokam.org/wp-content/uploads/2019/01/data_privacy_policy.html",
       "title": "Privacy Policy",
-      "appType": "assessment",
       "isCommon": true
     }, {
-      "value": "termsOfUse",
+      "value": "terms-of-use",
       "link": "https://shikshalokam.org/wp-content/uploads/2019/05/Final-ShikshaLokam-Terms-of-Use-MCM-08052019-Clean-copy-1.html",
-      "appType": "assessment",
       "title": "Terms of Use",
       "isCommon": true
     }, {
-      "value": "tutorial-video",
-      "appType": "assessment",
+      "value": "tutorial-videos",
       "link": "",
       "title": "Tutorial Video",
       "metaInformation": {
@@ -31,16 +28,17 @@ module.exports = {
       },
       "isCommon": true
     }, {
-      "value": "faq",
+      "value": "faqs",
       "link": "https://wiki.shikshalokam.org/faqs/",
       "title": "FAQ",
-      "appType": "assessment",
       "isCommon": true
     }];
 
     let staticData = [];
     staticLinks.map(async function(link){
       let staticLink = link;
+      staticLink["appType"] = "improvement-project";
+      staticLink["appName"] = "unnati";
       staticLink['updatedAt'] =  moment().format();
       staticLink["createdAt"] =  moment().format();
       staticLink["createdBy"] = "SYSTEM";
@@ -48,14 +46,9 @@ module.exports = {
       staticLink["status"] = "active";
       staticLink["isDeleted"] = false;
       staticData.push(staticLink);
-
-      let document = await db.collection('staticLinks').findOne({ value:link.value });
-      if(!document){
-        await db.collection('staticLinks').insert(staticLink);
-      }
-      
-
+     
     })
+    await db.collection('staticLinks').insertMany(staticData);
 
    
 
