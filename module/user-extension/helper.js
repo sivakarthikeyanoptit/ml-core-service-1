@@ -522,7 +522,7 @@ module.exports = class UserExtensionHelper {
                     delete requestedData.roles[pointerToRole]._id;
                 }
 
-                if (!userExtensionData[0]) {
+                if (userExtensionData) {
                     requestedData.userId = requestedData.updatedBy = userId;
 
                     requestedData.createdBy =
