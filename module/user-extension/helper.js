@@ -623,7 +623,8 @@ module.exports = class UserExtensionHelper {
                             "entityDocuments.groups": 1,
                             "entityDocuments.entityType": 1,
                             "entityDocuments.entityTypeId": 1,
-                            "state": 1
+                            "state": 1,
+                            "ratings": 1
                         }
                     }
                 ];
