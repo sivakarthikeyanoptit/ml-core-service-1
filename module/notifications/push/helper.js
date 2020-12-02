@@ -82,7 +82,8 @@ module.exports = class PushNotificationsHelper {
                     topic : notification.topicName,
                     notification : {
                         title : notification.title,
-                        body : notification.text
+                        body : notification.text,
+                        click_action: "FCM_PLUGIN_ACTIVITY"
                     },
                     data : {
                         "title": notification.title,
@@ -101,7 +102,6 @@ module.exports = class PushNotificationsHelper {
                         ttl: 3600 * 1000, // 1 hour in milliseconds
                         priority: 'high',
                         notification: {
-                            click_action: "FCM_PLUGIN_ACTIVITY",
                             icon: 'notifications_icon',
                             color: "#A63936"
                         }
