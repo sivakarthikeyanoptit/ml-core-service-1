@@ -522,7 +522,7 @@ module.exports = class UserExtensionHelper {
                     delete requestedData.roles[pointerToRole]._id;
                 }
 
-                if (!userExtensionData[0]) {
+                if (userExtensionData) {
                     requestedData.userId = requestedData.updatedBy = userId;
 
                     requestedData.createdBy =
@@ -623,8 +623,7 @@ module.exports = class UserExtensionHelper {
                             "entityDocuments.groups": 1,
                             "entityDocuments.entityType": 1,
                             "entityDocuments.entityTypeId": 1,
-                            "state": 1,
-                            "ratings": 1
+                            "state": 1
                         }
                     }
                 ];
