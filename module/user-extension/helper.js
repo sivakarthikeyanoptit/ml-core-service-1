@@ -746,7 +746,7 @@ module.exports = class UserExtensionHelper {
      * Get profile with entity details
      * @method
      * @name getEntities
-     * @param {Object} filterQueryObject - filtered data.
+     * @param {Object} userId - Logged in user id.
      * @param {String} entityType - entity type
      * @param {String} pageSize - Size of page.
      * @param {String} pageNo - Recent page no.
@@ -754,9 +754,15 @@ module.exports = class UserExtensionHelper {
      * @returns {Object} 
      */
 
-    static getEntities(filterQueryObject, entityType, pageSize, pageNo, searchText) {
+    static getEntities(userId, entityType, pageSize, pageNo, searchText) {
         return new Promise(async (resolve, reject) => {
             try {
+
+                let filterQueryObject = {
+                    userId : userId,
+                    status: constants.common.ACTIVE,
+                    isDeleted: false
+                }
 
                 if (searchText !== "") {
                     filterQueryObject["$or"] = [
