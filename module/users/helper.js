@@ -468,8 +468,17 @@ module.exports = class UsersHelper {
                     }
                 }
                 if (userInfo) {
+
+                    let userData = {
+                        lastName:userInfo[0].lastName,
+                        maskedPhone:userInfo[0].maskedPhone,
+                        email:userInfo[0].email,
+                        identifier:userInfo[0].identifier,
+                        userName:userInfo[0].userName
+                    }
+                    
                     return resolve({
-                        result: { data: userInfo },
+                        result: userData,
                         message: constants.apiResponses.USER_EXTENSION_FETCHED
                     });
                 } else {
