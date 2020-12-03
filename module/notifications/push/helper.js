@@ -631,11 +631,7 @@ async function _sendMessage(notificationInformation) {
         try {
 
             let deviceId = notificationInformation.token;
-            let appType = false;
-            if(notificationInformation.data.appType &&  notificationInformation.data.appType != undefined){
-              appType = notificationInformation.data.appType;
-            }
-
+            let appType = notificationInformation.data.appType;
             let methodToCall = await _getFcmMethod(appType);
         
             let success;
