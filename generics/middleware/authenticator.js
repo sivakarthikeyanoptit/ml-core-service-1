@@ -96,8 +96,7 @@ module.exports = async function (req, res, next) {
   let byPassUrlPaths = [
     "bodh/search",
     "bodh/request",
-    "apps/details",
-    "entities/listByIds"
+    "apps/details"
   ]
   // Allow search endpoints for non-logged in users.
 
