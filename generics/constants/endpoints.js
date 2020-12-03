@@ -22,5 +22,6 @@ module.exports = {
     SUNBIRD_UPLOAD_CONTENT : "/api/content/v1/upload",
     SUNBIRD_ORGANISATION_LISTS : "/organisations/list",
     GET_USER_PROFILE : "/users/getProfile",
-    SUNBIRD_LEARNING_RESOURCE_LIST : "/learningResources/list"
+    SUNBIRD_LEARNING_RESOURCE_LIST : "/learningResources/list",
+    SUNBIRD_USER_SEARCH :"/users/search"
 }

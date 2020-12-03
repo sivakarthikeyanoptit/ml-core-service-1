@@ -210,11 +210,28 @@ const learningResources = function (token, pageSize, pageNo, filters, sortBy,sea
 
 
     })
-}
+
+   }
+   const userSearch = function (requestBody,token) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                
+                let searchUrl = constants.endpoints.SUNBIRD_USER_SEARCH;
+                let response = await callToSunbird("POST", searchUrl, token, requestBody);
+                return resolve(response);
+
+            } catch (error) {
+                reject({ message: constants.apiResponses.SUNBIRD_SERVICE_DOWN });
+            }
+        })
+
+   }
+
 
 
 module.exports = {
     organisationList : organisationList,
     userProfile : userProfile,
-    learningResources: learningResources
+    learningResources: learningResources,
+    userSearch: userSearch 
 };

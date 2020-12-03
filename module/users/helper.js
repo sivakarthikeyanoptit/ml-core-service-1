@@ -439,4 +439,35 @@ module.exports = class UsersHelper {
         })
     }
 
+    /**
+      * check if the provided email is sys admin or not.
+      * @method
+      * @name isSystemAdmin
+      * @param {String} userEmail user email address.
+      * @returns {Promise} returns a promise.
+     */
+
+    static search(searchText,token) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+
+                let searchFields = ['userName','email','phone'];
+                for (let index = 0; index < searchFields.length; index++) {
+                    let element = searchFields[index];
+                    
+                    let userSearchResult = 
+                    await sunbirdService.userSearch({ element:searchText },token);
+
+                    console.log("userSearchResult",userSearchResult);
+                }
+               
+                return resolve({ data:"",response:"sss" });
+                
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
 };
