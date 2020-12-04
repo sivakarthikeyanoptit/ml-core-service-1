@@ -253,10 +253,10 @@ module.exports = class EntitiesHelper {
                 ) {
     
                     let getImmediateEntityTypes =
-                        await entityTypesHelper.list({
+                        await entityTypesHelper.entityTypesDocument({
                             name : entitiesDocument[0].entityType
                         },["immediateChildrenEntityType"]
-                        );
+                    );
     
                     let immediateEntitiesIds;
     
@@ -543,12 +543,42 @@ module.exports = class EntitiesHelper {
   }
 
    /**
-     * List roles by entity type.
-     * @method
-     * @name subEntitiesRoles
-     * @param entityId - entity id.
-     * @returns {Object} List of roles by entity id.
-    */
+   * List of Entities
+   * @method
+   * @name list
+   * @param bodyData - Body data.
+   * @returns {Array} List of Entities.
+   */
+  
+  static listByEntityIds( entityIds = [], fields = [] ) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            const entities = await this.entityDocuments(
+                {
+                    _id : { $in : entityIds }
+                },
+                fields ? fields  : [] 
+            );
+
+            return resolve({
+                message : constants.apiResponses.ENTITIES_FETCHED,
+                result : entities
+            });
+            
+        } catch (error) {
+            return reject(error);
+        }
+    });
+  }
+
+  /** 
+   * List roles by entity type.
+   * @method
+   * @name subEntitiesRoles
+   * @param entityId - entity id.
+   * @returns {Object} List of roles by entity id.
+  */
 
    static subEntitiesRoles( entityId ) {
     return new Promise(async (resolve, reject) => {
@@ -594,5 +624,40 @@ module.exports = class EntitiesHelper {
     })
 
 }
+
+     /** 
+   * Sub entity type list.
+   * @method
+   * @name subEntityTypeList
+   * @param entityId - entity id.
+   * @returns {Array} List of sub entity type.
+  */
+
+   static subEntityTypeList( entityId ) {   
+    return new Promise(async (resolve, reject) => {
+        try {
+
+             const entityDocuments = await this.entityDocuments({
+                 _id : entityId
+             },["childHierarchyPath"]);
+
+             if( !entityDocuments.length > 0 ) {
+                 return resolve({
+                     message : constants.apiResponses.ENTITY_NOT_FOUND,
+                     result : []
+                 })
+             }
+             
+             return resolve({
+                 message : constants.apiResponses.ENTITIES_CHILD_HIERACHY_PATH,
+                 result : entityDocuments[0].childHierarchyPath
+             });
+
+        } catch (error) {
+            return reject(error);
+        }
+    })
+
+   }
 
 }

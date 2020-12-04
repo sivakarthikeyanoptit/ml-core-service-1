@@ -93,13 +93,29 @@ module.exports = async function (req, res, next) {
   }
 
 
+  let byPassUrlPaths = [
+    "bodh/search",
+    "bodh/request",
+    "apps/details"
+  ]
   // Allow search endpoints for non-logged in users.
-  if (req.path.includes("bodh/search") || req.path.includes("bodh/request") || req.path.includes("apps/details")) {
-    next();
-    return
-  }
 
-  let internalAccessApiPaths = ["/cloud-services/","apps/create","apps/update"];
+  await Promise.all(byPassUrlPaths.map(async function (path) {
+    if (req.path.includes(path)) {
+      next();
+      return
+    }
+  }));
+
+  let internalAccessApiPaths = [
+    "/cloud-services/",
+    "/entities/listByIds",
+    "/entity-types/list",
+    "/user-roles/list",
+    "/forms/details",
+    "/programs/list"
+  ];
+  
   let performInternalAccessTokenCheck = false;
   await Promise.all(internalAccessApiPaths.map(async function (path) {
     if (req.path.includes(path)) {

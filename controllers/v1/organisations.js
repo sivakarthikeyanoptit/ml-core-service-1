@@ -76,14 +76,13 @@ module.exports = class Organisations {
       * @returns {Array} consisting of organization name and id.
      */
 
-    list() {
+    list(req) {
 
         return new Promise(async (resolve, reject) => {
 
             try {
 
-                let listOfOrganisation = await organisationHelper.list();
-
+                let listOfOrganisation = await organisationHelper.list(req.userDetails.userToken);
                 return resolve(listOfOrganisation);
 
             } catch (error) {

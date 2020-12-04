@@ -117,18 +117,15 @@ const configuration = {
       process.env.NOTIFICATIONS_TOPIC || 
       process.env.DEFAULT_NOTIFICATION_TOPIC,
 
-      languagesTopic: 
-      process.env.LANGUAGE_TOPIC || 
-      process.env.DEFAULT_LANGUAGES_TOPIC,
-
       emailTopic: 
       process.env.EMAIL_TOPIC || 
       process.env.DEFAULT_EMAIL_TOPIC,
 
       appConfigTopic: 
       process.env.APPLICATION_CONFIG_TOPIC || 
-      process.env.DEFAULT_APPLICATION_CONFIG_TOPIC
+      process.env.DEFAULT_APPLICATION_CONFIG_TOPIC,
 
+      improvementProjectTopic : process.env.IMPROVEMENT_PROJECT_NOTIFICATIONS_TOPIC
     }
   },
   elasticSearchConfig: {
