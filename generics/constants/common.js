@@ -41,5 +41,10 @@ module.exports = {
   "UPLOAD_FOLDER_PATH" : "/public/upload",
   "APPS_UPLOAD_FILE_PATH" : "static/apps/",
   "VERSION_1" : "v1",
-  "VERSION_2" : "v2"
+  "VERSION_2" : "v2",
+  "ASSESSMENT" : "assessment",
+  "INSTITUTIONAL" : "institutional",
+  "USER_ORGANISATIONS_FETCHED" : "User organisations fetched successfully",
+  "LEARNING_RESOURCE_FILTER_FORM_NAME":"learning-resource-filters",
+  "PROJECT" : "project"
 };

@@ -13,6 +13,9 @@ process.env.DEFAULT_NOTIFICATIONS_TOPIC;
 const APPLICATION_CONFIG_TOPIC = process.env.APPLICATION_CONFIG_TOPIC || 
 process.env.DEFAULT_APPLICATION_CONFIG_TOPIC;
 
+const IMPROVEMENT_PROJECT_NOTIFICATIONS_TOPIC = 
+process.env.IMPROVEMENT_PROJECT_NOTIFICATIONS_TOPIC;
+
 /**
   * Kafka configuration.
   * @function
@@ -65,6 +68,12 @@ var connect = function (config) {
     config.host
   );
 
+  _sendToKafkaConsumers(
+    config.topics["improvementProjectTopic"],
+    config.host
+  );
+  
+
   return {
     kafkaProducer: producer,
     kafkaConsumer: kafka.Consumer,
@@ -91,9 +100,8 @@ var _sendToKafkaConsumers = function (topic,host) {
           kafkaHost : host,
           groupId : process.env.KAFKA_GROUP_ID,
           autoCommit : true
-      },
-      topic
-      );  
+      },topic 
+    );  
 
     consumer.on('message', async function (message) {
 
@@ -120,7 +128,7 @@ var _sendToKafkaConsumers = function (topic,host) {
       } else if(error.topics && error.topics[0] === NOTIFICATIONS_TOPIC){
         inappnotificationsConsumer.errorTriggered(error);
         pushnotificationsConsumer.errorTriggered(error);
-      }
+      } 
     });
 
   }

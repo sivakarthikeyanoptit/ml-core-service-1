@@ -24,7 +24,7 @@ module.exports = class OrganisationHelper {
    * @returns {Array} Organisation lists.
    */
 
-    static list() {
+    static list(token) {
         return new Promise(async (resolve, reject) => {
             try {
 
@@ -43,15 +43,10 @@ module.exports = class OrganisationHelper {
                 } else {
                     
                     let organisations = 
-                    await sunbirdService.organisationList({
-                        "request" : {
-                          "filters" : { "$or" : {} },
-                          "limit" : constants.common.ORGANISATIONS_LIMIT,
-                          "offset" : constants.common.ORGANISATIONS_OFFSET
-                        }
-                    })
-
-                    if ( organisations.responseCode !== constants.common.OK ) {
+                    await sunbirdService.organisationList(token,constants.common.ORGANISATIONS_LIMIT,
+                        constants.common.ORGANISATIONS_OFFSET)
+                    
+                    if ( organisations.status !== httpStatusCode.ok.status) {
                         throw {
                             status : httpStatusCode.bad_request_status,
                             message : constants.apiResponses.ERROR_IN_ORGANISATIONS_LIST
