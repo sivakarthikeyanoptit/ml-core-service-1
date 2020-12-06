@@ -109,6 +109,8 @@ module.exports = class UserExtensionHelper {
                         {
                             "userId": userDetails.userId,
                             "externalId": userDetails.userName,
+                            "status": "active",
+                            "isDeleted": false,
                             "devices": [deviceData],
                             "createdBy": "SYSTEM",
                             "updatedBy": "SYSTEM"
@@ -437,6 +439,7 @@ module.exports = class UserExtensionHelper {
    */
 
     static updateProfileRoles(requestedData, userId, userName) {
+
         return new Promise(async (resolve, reject) => {
             try {
 
@@ -522,9 +525,9 @@ module.exports = class UserExtensionHelper {
                     delete requestedData.roles[pointerToRole]._id;
                 }
 
-                if (!userExtensionData[0]) {
-                    requestedData.userId = requestedData.updatedBy = userId;
-
+                if (!userExtensionData) {
+                    
+                    requestedData.userId = userId;
                     requestedData.createdBy =
                         userExtensionData && userExtensionData.createdBy ?
                             userExtensionData.createdBy : userId;
@@ -537,7 +540,7 @@ module.exports = class UserExtensionHelper {
                     requestedData.isDeleted = false;
                 }
 
-                delete requestedData.stateId;
+                requestedData.updatedBy = userId;
 
                 await database.models.userExtension.findOneAndUpdate({
                     userId: userId
@@ -743,7 +746,7 @@ module.exports = class UserExtensionHelper {
      * Get profile with entity details
      * @method
      * @name getEntities
-     * @param {Object} filterQueryObject - filtered data.
+     * @param {Object} userId - Logged in user id.
      * @param {String} entityType - entity type
      * @param {String} pageSize - Size of page.
      * @param {String} pageNo - Recent page no.
@@ -751,9 +754,15 @@ module.exports = class UserExtensionHelper {
      * @returns {Object} 
      */
 
-    static getEntities(filterQueryObject, entityType, pageSize, pageNo, searchText) {
+    static getEntities(userId, entityType, pageSize, pageNo, searchText) {
         return new Promise(async (resolve, reject) => {
             try {
+
+                let filterQueryObject = {
+                    userId : userId,
+                    status: constants.common.ACTIVE,
+                    isDeleted: false
+                }
 
                 if (searchText !== "") {
                     filterQueryObject["$or"] = [

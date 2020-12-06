@@ -12,8 +12,13 @@ module.exports = (req) => {
         subEntitiesRoles : function() {
             req.checkParams('_id').exists().withMessage("required Entity id");
         },
-        listByEntityIds : function () {
-            req.checkBody('entities').exists().withMessage("required Entity ids");
+        listByIds : function () {
+            req.checkBody('entities').exists().withMessage("required Entity ids")
+            .isArray().withMessage("entities should be array")
+            .notEmpty().withMessage("entities cannot be empty")
+            .custom(entities => 
+                entitiesValidation(entities)
+            ).withMessage("invalid entity ids");
         },
         subEntityTypeList : function () {
             req.checkParams('_id')
@@ -31,5 +36,19 @@ module.exports = (req) => {
 
     if (entityValidator[req.params.method]) {
         entityValidator[req.params.method]()
+    }
+
+    function entitiesValidation(entity) {
+        let isObjectIds = true;
+        if(Array.isArray(entity)){
+            for (var i = 0; entity.length > i; i++) {
+                if(!ObjectId.isValid(entity[i])) {
+                    isObjectIds = false;
+                } 
+            }
+        }
+        
+        return isObjectIds;
+        
     }
 }

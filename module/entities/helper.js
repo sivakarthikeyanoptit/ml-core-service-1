@@ -551,15 +551,15 @@ module.exports = class EntitiesHelper {
    * @returns {Array} List of Entities.
    */
   
-  static listByEntityIds( bodyData ) {
+  static listByEntityIds( entityIds = [], fields = [] ) {
     return new Promise(async (resolve, reject) => {
         try {
-            
+
             const entities = await this.entityDocuments(
                 {
-                    _id : { $in : bodyData.entities }
+                    _id : { $in : entityIds }
                 },
-                bodyData.fields ? bodyData.fields  : [] 
+                fields ? fields  : [] 
             );
 
             return resolve({

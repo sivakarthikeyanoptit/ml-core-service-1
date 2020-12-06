@@ -394,15 +394,13 @@ module.exports = class UserExtension extends Abstract {
 
       try {
 
-        let result = await userExtensionHelper.getEntities({
-          userId: (req.params._id && req.params._id != "") ? req.params._id : req.userDetails.userId,
-          status: constants.common.ACTIVE,
-          isDeleted: false,
-        }, 
-        req.query.entityType ? req.query.entityType : "",
-        req.pageSize,
-        req.pageNo,
-        req.searchText );
+        let result = await userExtensionHelper.getEntities(
+          (req.params._id && req.params._id != "") ? req.params._id : req.userDetails.userId ,
+          req.query.entityType ? req.query.entityType : "",
+          req.pageSize,
+          req.pageNo,
+          req.searchText 
+        );
 
         return resolve({
           message: constants.apiResponses.USER_ENTITIES_FOUND,

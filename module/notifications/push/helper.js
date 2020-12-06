@@ -94,15 +94,16 @@ module.exports = class PushNotificationsHelper {
                         internal: JSON.stringify(notification.internal),
                         created_at: notification.created_at,
                         type: notification.type,
-                        appType: notification.appType
+                        appType: notification.appType,
+                        "notification_foreground": "true"
                     },
                     android: {
                         ttl: 3600 * 1000, // 1 hour in milliseconds
                         priority: 'high',
                         notification: {
-                            click_action: "FCM_PLUGIN_ACTIVITY",
                             icon: 'notifications_icon',
-                            color: "#A63936"
+                            color: "#A63936",
+                            click_action: "FCM_PLUGIN_ACTIVITY"
                         }
                     }
                 });
@@ -630,11 +631,7 @@ async function _sendMessage(notificationInformation) {
         try {
 
             let deviceId = notificationInformation.token;
-            let appType = false;
-            if(notificationInformation.data.appType &&  notificationInformation.data.appType != undefined){
-              appType = notificationInformation.data.appType;
-            }
-
+            let appType = notificationInformation.data.appType;
             let methodToCall = await _getFcmMethod(appType);
         
             let success;
@@ -699,7 +696,8 @@ function _notificationMessageFormat(notificationMessage) {
             action: notificationMessage.action,
             internal: JSON.stringify(notificationMessage.internal),
             created_at: notificationMessage.created_at,
-            type: notificationMessage.type
+            type: notificationMessage.type,
+            "notification_foreground": "true"
         },
         text : notificationMessage.text
     };
