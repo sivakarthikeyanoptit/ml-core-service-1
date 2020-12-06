@@ -441,6 +441,65 @@ module.exports = class Entities extends Abstract {
       }
     });
   }
+
+    /**
+  * @api {get} /kendra/api/v1/entities/getUsersByEntityAndRole/:entityId?role=""
+  * @apiVersion 1.0.0
+  * @apiName Get users by entityId and role.
+  * @apiGroup Entities
+  * @apiHeader {String} X-authenticated-user-token Authenticity token
+  * @apiSampleRequest /kendra/api/v1/entities/getUsersByEntityAndRole/5da829874c67d63cca1bd9d0?role=HM
+  * @apiUse successBody
+  * @apiUse errorBody
+  * @apiParamExample {json} Response:
+  * {
+    "message": "Users and entities fetched successfully",
+    "status": 200,
+    "result": [
+        {
+          "entityId": "5c5694be52600a1ce8d24d99",
+          "userId": "65ce67e1-40ae-40e8-8c02-961571cd3b46"
+        }
+      ]
+  * }
+  */
+
+   /**
+   * Get users by entityId and role.
+   * @method
+   * @name getUsersByEntityAndRole
+   * @param {Object} req - request data.
+   * @param {String} req.params.entityId - entity id.
+   * @param {String} req.query.role - role code.
+   * @returns {JSON} Array of entities and users.
+   */
+
+  getUsersByEntityAndRole(req) {
+    return new Promise(async (resolve, reject) => {
+
+      try {
+
+        let result = 
+        await entitiesHelper.getUsersByEntityAndRole(
+          req.params._id,
+          req.query.role
+        );
+
+        return resolve({
+          message: result.message,
+          result: result.data
+        });
+
+      } catch (error) {
+
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error
+        })
+      }
+    })
+  }
   
 };
 

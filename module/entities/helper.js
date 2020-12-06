@@ -1,5 +1,6 @@
 const entityTypesHelper = require(MODULES_BASE_PATH + "/entityTypes/helper");
 const userRolesHelper = require(MODULES_BASE_PATH + "/user-roles/helper");
+const elasticSearch = require(GENERIC_HELPERS_PATH + "/elastic-search");
 
 module.exports = class EntitiesHelper {
 
@@ -659,5 +660,105 @@ module.exports = class EntitiesHelper {
     })
 
    }
+
+     /**
+   * Get users by entityId and role
+   * @method
+   * @name getUsersByEntityAndRole
+   * @param {Object} requestedData - requested data.
+   * @param {String} entityId - entity id.
+   * @param {String} role - role code.
+   * @returns {Array}  - List of userIds and entityIds
+   */
+
+  static getUsersByEntityAndRole( entityId= "", role= "" ) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            if (entityId == "") {
+                throw new Error(constants.apiResponses.ENTITY_ID_REQUIRED);
+            }
+
+            if (role == "") {
+                throw new Error(constants.apiResponses.ROLE_REQUIRED)
+            }
+
+            let userRole = await userRolesHelper.roleDocuments({
+                code : role
+            },[
+                "entityTypes"
+            ]);
+            
+            if(!userRole.length) {
+                throw new Error(constants.apiResponses.INVALID_ROLE)
+            }
+
+            let entityType = userRole[0].entityTypes[0].entityType;
+            
+            let entityDocument = await this.entityDocuments
+            (
+                {
+                    _id: entityId
+                },
+                [
+                    `groups.${entityType}` 
+                ]
+            )
+            
+            if (!entityDocument.length) {
+                throw new Error(constants.apiResponses.USERS_NOT_FOUND);
+            }
+
+            let queryObject = {
+                query: {
+                    terms: {
+                        "_id": entityDocument[0].groups[entityType]
+                    }
+                },
+                _source: [`data.roles.${role}`]
+            }
+            
+            let entities = await elasticSearch.searchDocumentFromIndex
+            (
+                process.env.ELASTICSEARCH_ENTITIES_INDEX,
+                "_doc",
+                queryObject,
+                null,
+                null
+            )
+
+            if (!entities.length) {
+                throw new Error(constants.apiResponses.USERS_NOT_FOUND)
+            }
+            
+            let result = [];
+            
+            await Promise.all(entities.map (async entity => {
+                if (Object.keys(entity.data.roles).length > 0) {
+                    await Promise.all(entity.data.roles[role].map(userId => {
+                        result.push({
+                            entityId: entity.id,
+                            userId: userId
+                        })
+                    }))
+                }
+            }))
+           
+            resolve({
+                success: true,
+                message : constants.apiResponses.USERS_AND_ENTITIES_FETCHED,
+                data : result
+            });
+
+        } catch (error) {
+            return resolve({
+                success: false,
+                message: error.message,
+                data: false
+            });
+        }
+    })
+  }
+
 
 }

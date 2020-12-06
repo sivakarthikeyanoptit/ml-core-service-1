@@ -1133,8 +1133,11 @@ var searchDocumentFromIndex = function (index = "", type = "", queryObject = "",
       let documentObject = {
         index: index,
         type: type,
-        body: queryObject,
-        size : size
+        body: queryObject
+      }
+
+      if(size != null) {
+        documentObject.size = size
       }
 
       let result = await elasticsearch.client.search(documentObject);
@@ -1147,7 +1150,7 @@ var searchDocumentFromIndex = function (index = "", type = "", queryObject = "",
           searchDocuments.push(_.merge({ id: eachResultData._id }, eachResultData._source));
         })
 
-      } else if (result.statusCode === httpStatusCode["ok"].status && Object.keys(result.body.suggest).length > 0) {
+      } else if (result.statusCode === httpStatusCode["ok"].status && result.body.suggest && Object.keys(result.body.suggest).length > 0) {
         searchDocuments = result.body.suggest;
       } else {
         throw new Error("Failed to get search results from index.")
