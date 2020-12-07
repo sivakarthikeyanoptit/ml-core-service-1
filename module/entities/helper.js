@@ -710,14 +710,14 @@ module.exports = class EntitiesHelper {
             }
 
             let queryObject = {
-                query: {
-                    terms: {
-                        "_id": entityDocument[0].groups[entityType]
-                    }
+                "query": {
+                  "ids" : {
+                    "values" : entityDocument[0].groups[entityType]
+                  }
                 },
-               _source:  [`data.roles.${role}`,"data.externalId"]
-            }
-            
+                "_source":  [`data.roles.${role}`,"data.externalId"]
+              }
+
             let entities = await elasticSearch.searchDocumentFromIndex
             (
                 process.env.ELASTICSEARCH_ENTITIES_INDEX,
