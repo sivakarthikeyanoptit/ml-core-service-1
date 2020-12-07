@@ -715,7 +715,7 @@ module.exports = class EntitiesHelper {
                         "_id": entityDocument[0].groups[entityType]
                     }
                 },
-                _source: [`data.roles.${role}`]
+               _source:  [`data.roles.${role}`,"data.externalId"]
             }
             
             let entities = await elasticSearch.searchDocumentFromIndex
@@ -738,6 +738,7 @@ module.exports = class EntitiesHelper {
                     await Promise.all(entity.data.roles[role].map(userId => {
                         result.push({
                             entityId: entity.id,
+                            entityExternalId: entity.data.externalId,
                             userId: userId
                         })
                     }))
