@@ -723,8 +723,8 @@ module.exports = class EntitiesHelper {
                 process.env.ELASTICSEARCH_ENTITIES_INDEX,
                 "_doc",
                 queryObject,
-                null,
-                null
+                "all",
+                "all"
             )
 
             if (!entities.length) {

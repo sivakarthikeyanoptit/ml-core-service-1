@@ -447,7 +447,7 @@ module.exports = class Entities extends Abstract {
   * @apiVersion 1.0.0
   * @apiName Get users by entityId and role.
   * @apiGroup Entities
-  * @apiHeader {String} X-authenticated-user-token Authenticity token
+  * @apiHeader {String} internal-access-token Authenticity token
   * @apiSampleRequest /kendra/api/v1/entities/getUsersByEntityAndRole/5da829874c67d63cca1bd9d0?role=HM
   * @apiUse successBody
   * @apiUse errorBody

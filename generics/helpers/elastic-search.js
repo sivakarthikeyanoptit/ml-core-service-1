@@ -1136,7 +1136,7 @@ var searchDocumentFromIndex = function (index = "", type = "", queryObject = "",
         body: queryObject
       }
 
-      if(size != null) {
+      if(size != "all") {
         documentObject.size = size
       }
 
