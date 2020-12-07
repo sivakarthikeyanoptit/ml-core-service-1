@@ -458,6 +458,7 @@ module.exports = class Entities extends Abstract {
     "result": [
         {
           "entityId": "5c5694be52600a1ce8d24d99",
+          "entityExternalId" : "17869",
           "userId": "65ce67e1-40ae-40e8-8c02-961571cd3b46"
         }
       ]
