@@ -1,67 +1,69 @@
 /**
- * name : user-roles.js
+ * name : programs.js
  * author : Aman
  * created-date : 03-Sep-2020
- * Description : User roles related information.
+ * Description : Solution related information.
  */
 
 // Dependencies
-const userRolesHelper = require(MODULES_BASE_PATH + "/user-roles/helper");
+const programsHelper = require(MODULES_BASE_PATH + "/programs/helper");
 
-module.exports = class UserRoles extends Abstract {
+module.exports = class Programs extends Abstract {
     
     constructor() {
-        super(schemas["user-roles"]);
+        super(schemas["programs"]);
     }
 
     /**
-   * @api {post} /kendra/api/v1/user-roles/list
-   * Lists user roles.
+   * @api {post} /kendra/api/v1/programs/list
+   * programs lists.
    * @apiVersion 0.0.1
-   * @apiName Lists of user roles.
-   * @apiGroup User Roles
+   * @apiName programs lists.
+   * @apiGroup programs
    * @apiHeader {String} X-authenticated-user-token Authenticity token
    * @apiParamExample {json} Request-Body:
    * {
     "query" : {
-        "code" : "HM"
+        "externalId" : "PROGID01"
     },
-    "projection" : ["_id","code"]
+    "projection" : ["_id","name"]
     }
-   * @apiSampleRequest /kendra/api/v1/user-roles/list
+   * @apiSampleRequest /kendra/api/v1/programs/list
    * @apiUse successBody
    * @apiUse errorBody
    * @apiParamExample {json} Response: 
    * {
-    "message": "Successfully fetched user roles",
-    "status": 200,
+   * "message": "Programs fetched successfully",
+   * "status": 200,
     "result": [
         {
-            "_id": "5d6e521066a9a45df3aa891e",
-            "code": "HM"
+            "_id": "5b98fa069f664f7e1ae7498c",
+            "name": "DCPCR Assessment Framework 2018"
         }
-    ]
-  }
+      ]
+    }
    */
 
   /**
-   * List user roles.
+   * List programs.
    * @method
    * @name list
    * @param {Object} req - Requested data.
    * @param {Object} req.body.query - Filtered data.
    * @param {Array} req.body.projection - Projected data.
    * @param {Array} req.body.skipFields - Field to skip.
-   * @returns {JSON} List user roles.
+   * @returns {JSON} List programs data.
   */
 
  async list(req) {
     return new Promise(async (resolve, reject) => {
       try {
   
-        const userRoles = await userRolesHelper.list(req.body);
+        const programs = await programsHelper.list(
+            req.body
+        );
   
-        return resolve(userRoles);
+        return resolve(programs);
   
       } catch (error) {
         return reject({

@@ -155,6 +155,46 @@ function checkIfURLIsSunbirdAPI(url) {
   return (url.startsWith(process.env.sunbird_url)) ? true : false;
 }
 
+ /**
+  * Get epoch time from current date.
+  * @function
+  * @name epochTime
+  * @returns {Date} returns epoch time.  
+*/
+
+function epochTime() {
+  var currentDate = new Date();
+  currentDate = currentDate.getTime();
+  return currentDate;
+}
+
+/**
+  * Parse a single column.
+  * @function
+  * @name valueParser - Parse value
+  * @param {String} dataToBeParsed - data to be parsed. 
+  * @returns {Object} returns parsed data
+*/
+
+function valueParser(dataToBeParsed) {
+
+  let parsedData = {}
+
+  Object.keys(dataToBeParsed).forEach(eachDataToBeParsed => {
+    parsedData[eachDataToBeParsed] = dataToBeParsed[eachDataToBeParsed].trim()
+  })
+
+  if(parsedData._arrayFields && parsedData._arrayFields.split(",").length > 0) {
+    parsedData._arrayFields.split(",").forEach(arrayTypeField => {
+      if (parsedData[arrayTypeField]) {
+        parsedData[arrayTypeField] = parsedData[arrayTypeField].split(",")
+      }
+    })
+  }
+
+  return parsedData
+}
+
 module.exports = {
   camelCaseToTitleCase : camelCaseToTitleCase,
   lowerCase : lowerCase,
@@ -164,5 +204,7 @@ module.exports = {
   isValidMongoId : isValidMongoId,
   convertStringToObjectId : convertStringToObjectId,
   generateUniqueId : generateUniqueId,
-  checkIfURLIsSunbirdAPI : checkIfURLIsSunbirdAPI
+  checkIfURLIsSunbirdAPI : checkIfURLIsSunbirdAPI,
+  epochTime : epochTime,
+  valueParser : valueParser
 };
