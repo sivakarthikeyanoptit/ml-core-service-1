@@ -50,9 +50,9 @@ module.exports = class UserProfileHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let formData = await formsHelper.list({
+                let formData = await formsHelper.formsDocument({
                     name: constants.common.USER_PROFILE_FORM_NAME 
-                })
+                });
 
                 if( !formData[0] ) {
                     return reject({  

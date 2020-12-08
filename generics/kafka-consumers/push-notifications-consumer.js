@@ -27,23 +27,38 @@ var messageReceived = function (message) {
       
       let parsedMessage = JSON.parse(message.value)
 
-      if ( 
-        parsedMessage.action !== "deletion" && 
-        parsedMessage.action !== "versionUpdate" &&
-        parsedMessage.action !== "Update" 
-      ) {
+      if(parsedMessage.push == true  || !parsedMessage.push) {
 
-        let userId = parsedMessage.user_id;
-        delete parsedMessage.user_id;
-        parsedMessage.is_read = false;
 
-        await pushNotificationsHelper.pushNotificationMessageToDevice(
-          userId, 
-          parsedMessage
-        )
+        if( parsedMessage.pushToTopic ) {
+
+          await pushNotificationsHelper.pushToTopic(parsedMessage);
+
+        } else {
+
+          if ( 
+            parsedMessage.action !== "deletion" && 
+            parsedMessage.action !== "versionUpdate" &&
+            parsedMessage.action !== "Update" 
+          ) {
+
+            let userId = parsedMessage.user_id;
+            delete parsedMessage.user_id;
+            parsedMessage.is_read = false;
+  
+            await pushNotificationsHelper.pushNotificationMessageToDevice(
+              userId,
+              parsedMessage
+            )
+
+          }
+        }
+  
+        return resolve("Message Received");
+      } else {
+        return resolve("Push notification not enable");
       }
-
-      return resolve("Message Received");
+      
     } catch (error) {
       return reject(error);
     }

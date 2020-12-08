@@ -2,27 +2,26 @@
  * name : helper.js
  * author : Aman
  * created-date : 03-sep-2020
- * Description : User Roles related helper functionality.
+ * Description : Solution related helper functionality.
  */
 
 /**
-    * UserRolesHelper
+    * SolutionsHelper
     * @class
 */
-
-module.exports = class UserRolesHelper {
+module.exports = class SolutionsHelper {
 
     /**
-   * User roles document.
+   * Solution Data
    * @method
-   * @name roleDocuments
+   * @name solutionDocuments
    * @param {Array} [filterQuery = "all"] - solution ids.
    * @param {Array} [fieldsArray = "all"] - projected fields.
    * @param {Array} [skipFields = "none"] - field not to include
-   * @returns {Array} List of user roles document. 
+   * @returns {Array} List of solutions. 
    */
   
-  static roleDocuments(
+  static solutionDocuments(
     filterQuery = "all", 
     fieldsArray = "all",
     skipFields = "none"
@@ -46,12 +45,13 @@ module.exports = class UserRolesHelper {
               })
             }
     
-            let userRolesData = await database.models.userRoles.find(
+            let solutionDocuments = 
+            await database.models.solutions.find(
               queryObject, 
               projection
             ).lean();
             
-            return resolve(userRolesData);
+            return resolve(solutionDocuments);
             
         } catch (error) {
             return reject(error);
@@ -59,28 +59,24 @@ module.exports = class UserRolesHelper {
     });
   }
 
-   /**
-   * List of user roles data.
-   * @method
-   * @name list
-   * @param bodyData - Body data.
-   * @returns {Array} List of user roles data.
+  /**
+   * Create solution.
+   * @method create
+   * @name create
+   * @param {Object} data - solution creation data.
+   * @returns {JSON} solution creation data. 
    */
   
-  static list( bodyData ) {
+  static create(data) {
     return new Promise(async (resolve, reject) => {
         try {
-            
-            const roles = await this.roleDocuments(
-                bodyData.query,
-                bodyData.projection,
-                bodyData.skipFields
+    
+            let solutionData = 
+            await database.models.solutions.create(
+              data
             );
-
-            return resolve({
-                message : constants.apiResponses.USER_ROLES_FETCHED,
-                result : roles
-            });
+            
+            return resolve(solutionData);
             
         } catch (error) {
             return reject(error);
