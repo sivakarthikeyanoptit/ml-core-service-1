@@ -117,5 +117,11 @@ module.exports = {
   "OBSERVATION_UPDATED" : "Observation updated successfully",
   "OBSERVATION_FETCHED" : "Successfully fetched observations",
   "FORM_NOT_FOUND" : "Could not found form",
-  "ENTITY_TYPES_NOT_FOUND" : "No entity types found"
+  "ENTITY_TYPES_NOT_FOUND" : "No entity types found",
+  "ENTITY_ID_REQUIRED" : "Entity Id is required",
+  "ROLE_REQUIRED" : "Role is required",
+  "ENTITIES_NOT_FOUND" : "Entities not found",
+  "INVALID_ROLE" : "Invalid role",
+  "USERS_NOT_FOUND" : "Users not found for this role inside the given entity",
+  "USERS_AND_ENTITIES_FETCHED" : "Users and entities fetched successfully"
 };
