@@ -1,5 +1,6 @@
 const entityTypesHelper = require(MODULES_BASE_PATH + "/entityTypes/helper");
 const userRolesHelper = require(MODULES_BASE_PATH + "/user-roles/helper");
+const elasticSearch = require(GENERIC_HELPERS_PATH + "/elastic-search");
 
 module.exports = class EntitiesHelper {
 
@@ -253,10 +254,10 @@ module.exports = class EntitiesHelper {
                 ) {
     
                     let getImmediateEntityTypes =
-                        await entityTypesHelper.list({
+                        await entityTypesHelper.entityTypesDocument({
                             name : entitiesDocument[0].entityType
                         },["immediateChildrenEntityType"]
-                        );
+                    );
     
                     let immediateEntitiesIds;
     
@@ -543,12 +544,42 @@ module.exports = class EntitiesHelper {
   }
 
    /**
-     * List roles by entity type.
-     * @method
-     * @name subEntitiesRoles
-     * @param entityId - entity id.
-     * @returns {Object} List of roles by entity id.
-    */
+   * List of Entities
+   * @method
+   * @name list
+   * @param bodyData - Body data.
+   * @returns {Array} List of Entities.
+   */
+  
+  static listByEntityIds( entityIds = [], fields = [] ) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            const entities = await this.entityDocuments(
+                {
+                    _id : { $in : entityIds }
+                },
+                fields ? fields  : [] 
+            );
+
+            return resolve({
+                message : constants.apiResponses.ENTITIES_FETCHED,
+                result : entities
+            });
+            
+        } catch (error) {
+            return reject(error);
+        }
+    });
+  }
+
+  /** 
+   * List roles by entity type.
+   * @method
+   * @name subEntitiesRoles
+   * @param entityId - entity id.
+   * @returns {Object} List of roles by entity id.
+  */
 
    static subEntitiesRoles( entityId ) {
     return new Promise(async (resolve, reject) => {
@@ -594,5 +625,141 @@ module.exports = class EntitiesHelper {
     })
 
 }
+
+     /** 
+   * Sub entity type list.
+   * @method
+   * @name subEntityTypeList
+   * @param entityId - entity id.
+   * @returns {Array} List of sub entity type.
+  */
+
+   static subEntityTypeList( entityId ) {   
+    return new Promise(async (resolve, reject) => {
+        try {
+
+             const entityDocuments = await this.entityDocuments({
+                 _id : entityId
+             },["childHierarchyPath"]);
+
+             if( !entityDocuments.length > 0 ) {
+                 return resolve({
+                     message : constants.apiResponses.ENTITY_NOT_FOUND,
+                     result : []
+                 })
+             }
+             
+             return resolve({
+                 message : constants.apiResponses.ENTITIES_CHILD_HIERACHY_PATH,
+                 result : entityDocuments[0].childHierarchyPath
+             });
+
+        } catch (error) {
+            return reject(error);
+        }
+    })
+
+   }
+
+     /**
+   * Get users by entityId and role
+   * @method
+   * @name getUsersByEntityAndRole
+   * @param {Object} requestedData - requested data.
+   * @param {String} entityId - entity id.
+   * @param {String} role - role code.
+   * @returns {Array}  - List of userIds and entityIds
+   */
+
+  static getUsersByEntityAndRole( entityId= "", role= "" ) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            if (entityId == "") {
+                throw new Error(constants.apiResponses.ENTITY_ID_REQUIRED);
+            }
+
+            if (role == "") {
+                throw new Error(constants.apiResponses.ROLE_REQUIRED)
+            }
+
+            let userRole = await userRolesHelper.roleDocuments({
+                code : role
+            },[
+                "entityTypes"
+            ]);
+            
+            if(!userRole.length) {
+                throw new Error(constants.apiResponses.INVALID_ROLE)
+            }
+
+            let entityType = userRole[0].entityTypes[0].entityType;
+            
+            let entityDocument = await this.entityDocuments
+            (
+                {
+                    _id: entityId
+                },
+                [
+                    `groups.${entityType}` 
+                ]
+            )
+            
+            if (!entityDocument.length) {
+                throw new Error(constants.apiResponses.USERS_NOT_FOUND);
+            }
+
+            let queryObject = {
+                "query": {
+                  "ids" : {
+                    "values" : entityDocument[0].groups[entityType]
+                  }
+                },
+                "_source":  [`data.roles.${role}`,"data.externalId"]
+              }
+
+            let entities = await elasticSearch.searchDocumentFromIndex
+            (
+                process.env.ELASTICSEARCH_ENTITIES_INDEX,
+                "_doc",
+                queryObject,
+                "all",
+                "all"
+            )
+
+            if (!entities.length) {
+                throw new Error(constants.apiResponses.USERS_NOT_FOUND)
+            }
+            
+            let result = [];
+            
+            await Promise.all(entities.map (async entity => {
+                if (Object.keys(entity.data.roles).length > 0) {
+                    await Promise.all(entity.data.roles[role].map(userId => {
+                        result.push({
+                            entityId: entity.id,
+                            entityExternalId: entity.data.externalId,
+                            userId: userId
+                        })
+                    }))
+                }
+            }))
+           
+            resolve({
+                success: true,
+                message : constants.apiResponses.USERS_AND_ENTITIES_FETCHED,
+                data : result
+            });
+
+        } catch (error) {
+            return resolve({
+                success: false,
+                message: error.message,
+                data: false
+            });
+        }
+    })
+  }
+
 
 }

@@ -79,6 +79,7 @@ module.exports = class Entities extends Abstract {
       * @method
       * @name listByEntityType
       * @param  {Request} req request body.
+      * @param {String} req.params._id - entityType
       * @returns {JSON} Returns list of entities
      */
 
@@ -146,6 +147,7 @@ module.exports = class Entities extends Abstract {
       * @method
       * @name subEntityList
       * @param  {Request} req request body.
+      * @param {String} req.params._id - entityId
       * @returns {JSON} Returns list of immediate entities
      */
 
@@ -171,6 +173,14 @@ module.exports = class Entities extends Abstract {
               req.pageNo
             );
             
+            if(entityDocuments.result && entityDocuments.result.data && Array.isArray(entityDocuments.result.data) && entityDocuments.result.data.length > 0) {
+              for (let pointerToEntitiesArray = 0; pointerToEntitiesArray < entityDocuments.result.data.length; pointerToEntitiesArray++) {
+                if(entityDocuments.result.data[pointerToEntitiesArray].entityType == "school") {
+                  entityDocuments.result.data[pointerToEntitiesArray].label += " - " + entityDocuments.result.data[pointerToEntitiesArray].externalId;
+                }
+              }
+            }
+
             return resolve(entityDocuments);
     
           } catch (error) {
@@ -249,6 +259,64 @@ module.exports = class Entities extends Abstract {
       })
     }
 
+     /**
+  * @api {get} /kendra/api/v1/entities/listByIds
+  * List entities.
+  * @apiVersion 1.0.0
+  * @apiName List entities
+  * @apiGroup Entities
+  * @apiSampleRequest /kendra/api/v1/entities/listByIds
+  * @param {json} Request-Body:
+  * {
+  * "entities" : ["5beaa888af0065f0e0a10515"],
+    "fields" : ["entityType"]
+    }
+  * @apiUse successBody
+  * @apiUse errorBody
+  * @apiParamExample {json} Response:
+  * {
+    "message" : "List of entities fetched successfully",
+    "status" : 200,
+    "result" : [
+        {
+            "_id" : "5beaa888af0065f0e0a10515",
+            "entityType": "school"
+        }
+    ]
+  }
+  */
+
+    /**
+   * List of entities.
+   * @method
+   * @name listByIds
+   * @param {Object} req - requested data.
+   * @param {String} req.params._id - requested entity type.         
+   * @returns {JSON} - Array of entities.
+   */
+
+  listByIds(req) {
+    return new Promise(async (resolve, reject) => {
+
+      try {
+
+        const entities = await entitiesHelper.listByEntityIds(req.body.entities,req.body.fields);
+        return resolve(entities);
+
+      } catch (error) {
+
+        return reject({
+          status : error.status || httpStatusCode.internal_server_error.status,
+          message : error.message || httpStatusCode.internal_server_error.message,
+          errorObject : error
+        })
+
+      }
+
+
+    })
+  }
+
     /**
     * @api {get} /kendra/api/v1/entities/subEntitiesRoles/:entityId
     * Get roles based on entity type.
@@ -287,7 +355,15 @@ module.exports = class Entities extends Abstract {
     }
     */
 
-  subEntitiesRoles(req) {
+    /**
+   * Roles based on entity type
+   * @method
+   * @name subEntitiesRoles
+   * @param {String} req.params._id - entityId.         
+   * @returns {JSON} - Array of user roles.
+   */
+
+   subEntitiesRoles(req) {
     return new Promise(async (resolve, reject) => {
 
       try {
@@ -311,5 +387,120 @@ module.exports = class Entities extends Abstract {
     });
   }
 
+        /**
+    * @api {get} /kendra/api/v1/entities/subEntityTypeList/:entityId
+    * Get entities child hierarchy path.
+    * @apiVersion 1.0.0
+    * @apiGroup Entities
+    * @apiHeader {String} X-authenticated-user-token Authenticity token
+    * @apiSampleRequest /kendra/api/v1/entities/subEntityTypeList/5da829874c67d63cca1bd9d0
+    * @apiUse successBody
+    * @apiUse errorBody
+    * @apiParamExample {json} Response:
+    * {
+    "message": "Entities child hierarchy path fetched successfully",
+    "status": 200,
+    "result": [
+        "district",
+        "block",
+        "cluster",
+        "school"
+    ]
+  }
+    */
+
+    /**
+   * Entities child hierarchy path
+   * @method
+   * @name subEntitiesRoles
+   * @param {String} req.params._id - entityId.         
+   * @returns {JSON} - Entities child hierarchy path
+   */
+
+   subEntityTypeList(req) {
+    return new Promise(async (resolve, reject) => {
+
+      try {
+
+        const subEntityTypeListData = 
+        await entitiesHelper.subEntityTypeList(req.params._id);
+       
+        resolve(subEntityTypeListData);
+
+      } catch (error) {
+
+        return reject({
+          status:
+            error.status ||
+            httpStatusCode["internal_server_error"].status,
+
+          message:
+            error.message ||
+            httpStatusCode["internal_server_error"].message
+        });
+      }
+    });
+  }
+
+    /**
+  * @api {get} /kendra/api/v1/entities/getUsersByEntityAndRole/:entityId?role=""
+  * @apiVersion 1.0.0
+  * @apiName Get users by entityId and role.
+  * @apiGroup Entities
+  * @apiHeader {String} internal-access-token Authenticity token
+  * @apiSampleRequest /kendra/api/v1/entities/getUsersByEntityAndRole/5da829874c67d63cca1bd9d0?role=HM
+  * @apiUse successBody
+  * @apiUse errorBody
+  * @apiParamExample {json} Response:
+  * {
+    "message": "Users and entities fetched successfully",
+    "status": 200,
+    "result": [
+        {
+          "entityId": "5c5694be52600a1ce8d24d99",
+          "entityExternalId" : "17869",
+          "userId": "65ce67e1-40ae-40e8-8c02-961571cd3b46"
+        }
+      ]
+  * }
+  */
+
+   /**
+   * Get users by entityId and role.
+   * @method
+   * @name getUsersByEntityAndRole
+   * @param {Object} req - request data.
+   * @param {String} req.params.entityId - entity id.
+   * @param {String} req.query.role - role code.
+   * @returns {JSON} Array of entities and users.
+   */
+
+  getUsersByEntityAndRole(req) {
+    return new Promise(async (resolve, reject) => {
+
+      try {
+
+        let result = 
+        await entitiesHelper.getUsersByEntityAndRole(
+          req.params._id,
+          req.query.role
+        );
+
+        return resolve({
+          message: result.message,
+          result: result.data
+        });
+
+      } catch (error) {
+
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error
+        })
+      }
+    })
+  }
+  
 };
 
