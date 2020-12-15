@@ -587,7 +587,7 @@ module.exports = class EntitiesHelper {
 
              const entityDocuments = await this.entityDocuments({
                  _id : entityId
-             },["childHierarchyPath"]);
+             },["childHierarchyPath","allowedRoles"]);
 
              if( !entityDocuments.length > 0 ) {
                  return resolve({
@@ -596,16 +596,35 @@ module.exports = class EntitiesHelper {
                  })
              }
 
-             if( !entityDocuments[0].childHierarchyPath || !entityDocuments[0].childHierarchyPath.length > 0 ) {
-                 return resolve({
-                     message : constants.apiResponses.SUB_ENTITY_NOT_FOUND,
-                     result : []
-                 })
+             let queryObject = {};
+
+             if( entityDocuments[0].allowedRoles && entityDocuments[0].allowedRoles.length > 0 ) {
+                queryObject["code"] = {};
+                queryObject["code"]["$in"] = entityDocuments[0].allowedRoles;
+             }
+
+             let lengthOfQuery = Object.keys(queryObject).length;
+
+             if( !lengthOfQuery > 0 ) {
+
+                if (
+                    !entityDocuments[0].childHierarchyPath || 
+                    !entityDocuments[0].childHierarchyPath.length > 0
+                ) {
+                    return resolve({
+                        message : constants.apiResponses.SUB_ENTITY_NOT_FOUND,
+                        result : []
+                    });
+                }
+                
+                queryObject[ "entityTypes.entityType"] = {};
+                queryObject[ "entityTypes.entityType"]["$in"] =
+                entityDocuments[0].childHierarchyPath;
              }
             
-            const rolesData = await userRolesHelper.roleDocuments({
-                "entityTypes.entityType" : { $in : entityDocuments[0].childHierarchyPath }
-            },["code","title"]);
+            const rolesData = await userRolesHelper.roleDocuments(
+                queryObject,["code","title"]
+            );
 
             if( !rolesData.length > 0 ) {
              return resolve({
