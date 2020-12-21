@@ -116,7 +116,7 @@ module.exports = async function (req, res, next) {
     "/programs/list",
     "/entities/getUsersByEntityAndRole/",
     "/programs/create",
-    "programs/update/"
+    "/programs/update/"
   ];
   
   let performInternalAccessTokenCheck = false;
