@@ -123,5 +123,11 @@ module.exports = {
   "ENTITIES_NOT_FOUND" : "Entities not found",
   "INVALID_ROLE" : "Invalid role",
   "USERS_NOT_FOUND" : "Users not found for this role inside the given entity",
-  "USERS_AND_ENTITIES_FETCHED" : "Users and entities fetched successfully"
+  "USERS_AND_ENTITIES_FETCHED" : "Users and entities fetched successfully",
+  "PROGRAM_ID_REQUIRED" : "Program Id is required",
+  "PROGRAMS_CREATED" : "Programs created successfully",
+  "PROGRAMS_UPDATED" : "Programs updated successfully",
+  "ERROR_CREATING_PROGRAM" : "Error creating program",
+  "PROGRAM_NOT_FOUND" : "Program not found" ,
+  "PROGRAM_EXIST" : "Program exist",
 };

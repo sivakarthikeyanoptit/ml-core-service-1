@@ -72,6 +72,17 @@ module.exports = class ProgramsHelper {
 
       try {
 
+        let programsData = await this.programDocuments({
+          _id : programId
+        },["_id"]);
+
+        if(programsData) {
+          return resolve({
+            message : constants.apiResponses.PROGRAM_EXIST,
+            result : []
+          });
+        }
+
         let programData = {
           "externalId" : data.externalId,
           "name" : data.name,
@@ -87,7 +98,7 @@ module.exports = class ProgramsHelper {
           "language" : [ 
               "English"
           ],
-          "keywords" : [
+          "keywords" : data.keywords ? data.keywords : [
             "keywords 1",
             "keywords 2"
           ],
@@ -98,19 +109,22 @@ module.exports = class ProgramsHelper {
               "quality" : 10
           },
           "components" : [],
-          "isAPrivateProgram" : data.isAPrivateProgram ? data.isAPrivateProgram : false  
+          "isAPrivateProgram" : data.isAPrivateProgram ? data.isAPrivateProgram : false,
+          "scope" : data.scope ? data.scope : {}
         }
 
         let program = await database.models.programs.create(
           programData
         );
 
+        if(!program){
+          throw new Error(constants.apiResponses.ERROR_CREATING_PROGRAM);
+        }
+
         return resolve(program);
 
       } catch (error) {
-
-        return reject(error);
-
+          return reject(error);
       }
 
     })
@@ -148,6 +162,47 @@ module.exports = class ProgramsHelper {
 
         return reject(error);
 
+      }
+
+    })
+  }
+
+
+    /**
+   * Update program
+   * @method
+   * @name update
+   * @param {Array} data 
+   * @returns {JSON} - create program.
+   */
+
+  static update(programId="", programData) {
+
+    return new Promise(async (resolve, reject) => {
+
+      try {
+
+        let program = await database.models.programs.findOneAndUpdate(
+          { _id: programId },
+          { $set: programData }
+        );
+        
+        if(!program){
+          return resolve({
+            message : constants.apiResponses.PROGRAM_NOT_FOUND,
+            result : []
+          });
+        }
+
+        return resolve({
+            message: constants.apiResponses.PROGRAMS_UPDATED,
+            result: {
+              "_id" : program._id
+            }
+        })
+
+      } catch (error) {
+          return reject(error);
       }
 
     })

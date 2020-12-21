@@ -1,7 +1,10 @@
 module.exports = {
     name: "programs",
     schema: {
-      externalId: String,
+      externalId: {
+        type: String,
+        index: true
+      },
       name: String,
       description: String,
       owner: String,
@@ -23,6 +26,10 @@ module.exports = {
       rootOrganisations : {
         type : [String],
         default : []
+      },
+      scope: {
+        type: Object,
+        index: true
       }
     }
   };
