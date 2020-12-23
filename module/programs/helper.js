@@ -208,4 +208,67 @@ module.exports = class ProgramsHelper {
     })
   }
 
+
+  /**
+   * Search programs.
+   * @method
+   * @name search
+   * @param {Object} filteredData - Search programs from filtered data.
+   * @param {Number} pageSize - page limit.
+   * @param {Number} pageNo - No of the page. 
+   * @param {Object} projection - Projected data. 
+   * @returns {Array} List of programs document. 
+   */
+
+  static search(filteredData, pageSize, pageNo,projection) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        let programDocument = [];
+
+        let projection1 = {};
+
+        if( projection ) {
+          projection1["$project"] = projection
+        } else {
+          projection1["$project"] = {
+            name: 1,
+            externalId: 1,
+            components: 1
+          };
+        }
+
+        let facetQuery = {};
+        facetQuery["$facet"] = {};
+
+        facetQuery["$facet"]["totalCount"] = [
+          { "$count": "count" }
+        ];
+
+        facetQuery["$facet"]["data"] = [
+          { $skip: pageSize * (pageNo - 1) },
+          { $limit: pageSize }
+        ];
+
+        let projection2 = {};
+        projection2["$project"] = {
+          "data": 1,
+          "count": {
+            $arrayElemAt: ["$totalCount.count", 0]
+          }
+        };
+
+        programDocument.push(filteredData, projection1, facetQuery, projection2);
+
+        let programDocuments = 
+        await database.models.programs.aggregate(programDocument);
+
+        return resolve(programDocuments);
+
+      } catch (error) {
+        return reject(error);
+      }
+    })
+  }
+
 };

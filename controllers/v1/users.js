@@ -11,6 +11,8 @@
  */
 
 const usersHelper = require(MODULES_BASE_PATH + "/users/helper.js");
+const programsHelper = require(MODULES_BASE_PATH + "/programs/helper");
+var {ObjectId} = require('mongodb');
 
 /**
     * User
@@ -590,5 +592,132 @@ module.exports = class Users extends Abstract {
       }
     });
   }
+
+
+
+  /**
+     * @api {post} /kendra/api/v1/users/programs?page=:page&limit=:limit&search=:search 
+     * Program List
+     * @apiVersion 1.0.0
+     * @apiGroup Users
+     * @apiHeader {String} X-authenticated-user-token Authenticity token
+     * @apiSampleRequest /kendra/api/v1/users/programs?page=:page&limit=:limit&search=:search 
+     * @apiUse successBody
+     * @apiUse errorBody
+     * @apiParamExample {json} Request:
+     * {
+        "role" : "HM",
+        "state" : "5c0bbab881bdbe330655da7f",
+        "block" : "5c0bbab881bdbe330655da7f",
+        "cluster" : "5c0bbab881bdbe330655da7f",
+        "school" : "5c0bbab881bdbe330655da7f"
+
+      }
+
+      * @apiParamExample {json} Response:
+      * {
+         "status" : 200,
+          "message" : "Users programs fetched successfully",
+          "result" : {
+              “description” : “Programs description”,
+              “data” : 
+              [{
+                "_id" : "5b98d7b6d4f87f317ff615ee",
+                "externalId" : "PROGID01",
+                "name" : "DCPCR School Development",
+                "solutions" :  4
+              }],
+            “count” : 1
+          }
+      }
+
+    */
+
+    /**
+      * Check whether the email id provided is sys admin or not.
+      * @method
+      * @name prigrams
+      * @param  {Request} req request body.
+      * @returns {JSON} Returns success as true or false.
+     */
+
+    programs(req) {
+      return new Promise(async (resolve, reject) => {
+
+        try {
+
+          let response = {};
+          let messageData;
+          let matchQuery = {};
+
+          matchQuery["$match"] = {};
+
+          matchQuery["$match"]["status"] = "active";
+          matchQuery["$match"]["isDeleted"] = false;
+
+          if(req.body.role){
+            matchQuery["$match"]["scope.roles.code"] = req.body.role;
+          }
+
+          matchQuery["$match"]["$or"] = [];
+          matchQuery["$match"]["$or"].push({ "name": new RegExp(req.searchText, 'i') }, { "description": new RegExp(req.searchText, 'i') }, { "keywords": new RegExp(req.searchText, 'i') });
+
+          let data = req.body;
+          Object.keys(data).forEach( entity => {
+
+            if(entity != "role"){
+              let queryFilter = {
+                "scope.entityType" : entity,
+                "scope.entities" : data[entity]
+              }
+              matchQuery["$match"]["$or"].push(queryFilter)
+            }
+          })
+          
+          let programDocument = await programsHelper.search(matchQuery, req.pageSize, req.pageNo);
+
+          messageData = constants.apiResponses.PROGRAMS_FETCHED;
+
+          if (!programDocument[0].count) {
+              programDocument[0].count = 0;
+              messageData = constants.apiResponses.PROGRAM_NOT_FOUND;
+          }
+
+          for (var i = 0; i < programDocument[0]['data'].length; i++) {
+            programDocument[0]['data'][i]['solutions'] = programDocument[0]['data'][i].components.length;
+            delete programDocument[0]['data'][i].components;
+
+          }
+
+          response.result = programDocument;
+          response["message"] = messageData;
+
+          return resolve(response);
+
+        } catch (error) {
+
+            return reject({
+                status: 
+                error.status || 
+                httpStatusCode["internal_server_error"].status,
+
+                message: 
+                error.message || 
+                httpStatusCode["internal_server_error"].message
+            })
+
+        }
+
+      })
+    }
+
+
+
+
+
+
+
+
+
 };
 
