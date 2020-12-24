@@ -464,8 +464,8 @@ module.exports = class Users extends Abstract {
 
   /**
   * @api {get} /kendra/api/v1/users/search
+  * User Search
   * @apiVersion 1.0.0
-  * @apiName User Search
   * @apiGroup Users
   * @apiHeader {String} internal-access-token Internal access token
   * @apiHeader {String} X-authenticated-user-token Authenticity token
