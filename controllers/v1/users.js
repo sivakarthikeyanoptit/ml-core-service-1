@@ -12,6 +12,7 @@
 
 const usersHelper = require(MODULES_BASE_PATH + "/users/helper.js");
 const programsHelper = require(MODULES_BASE_PATH + "/programs/helper");
+const solutionHelper = require(MODULES_BASE_PATH + "/solutions/helper");
 var {ObjectId} = require('mongodb');
 
 /**
@@ -593,8 +594,6 @@ module.exports = class Users extends Abstract {
     });
   }
 
-
-
   /**
      * @api {post} /kendra/api/v1/users/programs?page=:page&limit=:limit&search=:search 
      * Program List
@@ -636,7 +635,7 @@ module.exports = class Users extends Abstract {
     /**
       * Check whether the email id provided is sys admin or not.
       * @method
-      * @name prigrams
+      * @name programs
       * @param  {Request} req request body.
       * @returns {JSON} Returns success as true or false.
      */
@@ -710,14 +709,6 @@ module.exports = class Users extends Abstract {
 
       })
     }
-
-
-
-
-
-
-
-
 
 };
 
