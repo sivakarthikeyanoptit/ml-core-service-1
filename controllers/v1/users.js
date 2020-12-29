@@ -633,7 +633,7 @@ module.exports = class Users extends Abstract {
     */
 
     /**
-      * Check whether the email id provided is sys admin or not.
+      * Get program list
       * @method
       * @name programs
       * @param  {Request} req request body.
@@ -695,6 +695,156 @@ module.exports = class Users extends Abstract {
 
         } catch (error) {
 
+            return reject({
+                status: 
+                error.status || 
+                httpStatusCode["internal_server_error"].status,
+
+                message: 
+                error.message || 
+                httpStatusCode["internal_server_error"].message
+            })
+
+        }
+
+      })
+    }
+
+  /**
+     * @api {post} /kendra/api/v1/users/solutions:programId?page=:page&limit=:limit&search=:search 
+     * Solution List
+     * @apiVersion 1.0.0
+     * @apiGroup Users
+     * @apiHeader {String} X-authenticated-user-token Authenticity token
+     * @apiSampleRequest /kendra/api/v1/users/solutions/5b98d7b6d4f87f317ff615ee?page=:page&limit=:limit&search=:search 
+     * @apiUse successBody
+     * @apiUse errorBody
+     * @apiParamExample {json} Request:
+     * {
+        "role" : "HM",
+        "state" : "5c0bbab881bdbe330655da7f",
+        "block" : "5c0bbab881bdbe330655da7f",
+        "cluster" : "5c0bbab881bdbe330655da7f",
+        "school" : "5c0bbab881bdbe330655da7f"
+
+      }
+
+      * @apiParamExample {json} Response:
+      * {
+         "status" : 200,
+          "message" : "Users solutions fetched successfully",
+          "result" : {
+            “programName” : “AFRICA-ME-TEST-FRAMEWORK”,
+            “description” : “Solutions description”,
+              “data” : [{
+                  "_id" : "5beaaa2baf0065f0e0a105c7",
+                  "externalId" : "AFRICA-ME-TEST-FRAMEWORK-TEMPLATE",
+                  "name" : "AFRICA-ME-TEST-FRAMEWORK-TEMPLATE",
+                  "type" : "observation",
+                  "roles" : ["HM","DEO"],
+                  “programId” : "5b98d7b6d4f87f317ff615ee"
+              }],
+              “count”  : 1
+          }
+
+      }
+
+    */
+
+    /**
+      * Get solutions list
+      * @method
+      * @name solutions
+      * @param  {Request} req request body.
+      * @param {String} req.params._id - program id
+      * @returns {JSON} Returns success as true or false.
+     */
+
+    solutions(req) {
+      return new Promise(async (resolve, reject) => {
+
+        try {
+
+          let programsData = await programsHelper.programDocuments({
+            _id : req.params._id,
+            "scope.roles.code" : req.body.role
+          },["components","name","description"]);
+
+
+          if(!programsData || programsData.length < 1){
+
+            return resolve({
+              message : constants.apiResponses.PROGRAM_NOT_FOUND,
+              result : []
+            });
+          }
+
+          let response = {};
+          let messageData;
+          let matchQuery = {};
+
+          matchQuery["$match"] = {};
+          matchQuery["$match"]["_id"] = {};
+
+          matchQuery["$match"]["status"] = "active";
+          matchQuery["$match"]["isDeleted"] = false;
+          matchQuery["$match"]["_id"]["$in"] = programsData[0].components;
+
+
+          if(req.body.role){
+            matchQuery["$match"]["scope.roles.code"] = req.body.role;
+          }
+
+          matchQuery["$match"]["$or"] = [];
+          matchQuery["$match"]["$or"].push({ "name": new RegExp(req.searchText, 'i') }, { "description": new RegExp(req.searchText, 'i') }, { "keywords": new RegExp(req.searchText, 'i') });
+
+          let data = req.body;
+          Object.keys(data).forEach( entity => {
+
+            if(entity != "role"){
+              let queryFilter = {
+                "scope.entityType" : entity,
+                "scope.entities" : data[entity]
+              }
+              matchQuery["$match"]["$or"].push(queryFilter)
+            }
+          })
+          
+          let solutionDocument = await solutionHelper.search(matchQuery, req.pageSize, req.pageNo);
+
+          messageData = constants.apiResponses.SOLUTIONS_FETCHED;
+
+          if (!solutionDocument[0].count) {
+              solutionDocument[0].count = 0;
+              messageData = constants.apiResponses.SOLUTION_NOT_FOUND;
+          }
+
+          for (var i = 0; i < solutionDocument[0]['data'].length; i++) {
+            let role = [];
+            if(solutionDocument[0]['data'][i].scope.roles && solutionDocument[0]['data'][i].scope.roles.length >0){
+              let scope = solutionDocument[0]['data'][i].scope.roles;
+              for (var j = 0 ; j < scope.length ; j++) {
+                role.push(scope[j].code)
+              }
+         
+              solutionDocument[0]['data'][i]['roles'] = role;
+            }
+            
+            delete solutionDocument[0]['data'][i].scope;
+
+          }
+
+          response.result ={};
+          response.result.programName = programsData[0].name;
+          response.result.description =  programsData[0].description;
+          response.result.data = solutionDocument[0].data;
+          response.result.count = solutionDocument[0].count;
+          response["message"] = messageData;
+
+          return resolve(response);
+
+        } catch (error) {
+            console.log(error,"user error")
             return reject({
                 status: 
                 error.status || 

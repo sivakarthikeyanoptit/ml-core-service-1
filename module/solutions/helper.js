@@ -84,4 +84,70 @@ module.exports = class SolutionsHelper {
     });
   }
 
+  /**
+   * Search solutions.
+   * @method
+   * @name search
+   * @param {Object} filteredData - Search solutions from filtered data.
+   * @param {Number} pageSize - page limit.
+   * @param {Number} pageNo - No of the page. 
+   * @param {Object} projection - Projected data. 
+   * @returns {Array} List of solutions document. 
+   */
+
+  static search(filteredData, pageSize, pageNo,projection) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        let solutionDocument = [];
+
+        let projection1 = {};
+
+        if( projection ) {
+          projection1["$project"] = projection
+        } else {
+          projection1["$project"] = {
+            externalId: 1,
+            name: 1,
+            type: 1,
+            'scope.roles':1,
+            programId:1
+          };
+        }
+
+        let facetQuery = {};
+        facetQuery["$facet"] = {};
+
+        facetQuery["$facet"]["totalCount"] = [
+          { "$count": "count" }
+        ];
+
+        facetQuery["$facet"]["data"] = [
+          { $skip: pageSize * (pageNo - 1) },
+          { $limit: pageSize }
+        ];
+
+        let projection2 = {};
+        projection2["$project"] = {
+          "data": 1,
+          "count": {
+            $arrayElemAt: ["$totalCount.count", 0]
+          }
+        };
+
+        solutionDocument.push(filteredData, projection1, facetQuery, projection2);
+
+        let solutionDocuments = 
+        await database.models.solutions.aggregate(solutionDocument);
+
+        return resolve(solutionDocuments);
+
+      } catch (error) {
+        return reject(error);
+      }
+    })
+  }
+
+  
+
 };
