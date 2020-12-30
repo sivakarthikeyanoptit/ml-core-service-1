@@ -28,6 +28,7 @@ module.exports = {
   "QR_CODE_EXISTS" : "Qr code already exists",
   "QR_CODE_DATA_NOT_FOUND" : "Data for qr code not found",
   "SUNBIRD_SERVICE_DOWN" : "Could not connect to bodh service",
+  "ASSESSMENT_SERVICE_DOWN" : "Could not connect to assessment service",
   "DIAL_CODE_NOT_PUBLISHED" : "Dial code is not published",
   "COULD_NOT_LINK_BODH_CONTENT" : "Failed to link bodh content",
   "QR_CODE_GENERATED" : "QR code generated successfully",

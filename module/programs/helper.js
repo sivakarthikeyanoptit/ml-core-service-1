@@ -9,6 +9,7 @@
     * ProgramsHelper
     * @class
 */
+const samikshaService = require(ROOT_PATH + "/generics/services/samiksha");
 module.exports = class ProgramsHelper {
 
     /**
@@ -72,11 +73,12 @@ module.exports = class ProgramsHelper {
 
       try {
 
+
         let programsData = await this.programDocuments({
-          _id : programId
+          externalId : data.externalId
         },["_id"]);
 
-        if(programsData) {
+        if(programsData && programsData.length > 0) {
           return resolve({
             message : constants.apiResponses.PROGRAM_EXIST,
             result : []
@@ -108,9 +110,8 @@ module.exports = class ProgramsHelper {
           "imageCompression" : {
               "quality" : 10
           },
-          "components" : [],
-          "isAPrivateProgram" : data.isAPrivateProgram ? data.isAPrivateProgram : false,
-          "scope" : data.scope ? data.scope : {}
+          "components" : data.components,
+          "isAPrivateProgram" : data.isAPrivateProgram ? data.isAPrivateProgram : false
         }
 
         let program = await database.models.programs.create(
@@ -121,7 +122,23 @@ module.exports = class ProgramsHelper {
           throw new Error(constants.apiResponses.ERROR_CREATING_PROGRAM);
         }
 
-        return resolve(program);
+        if(data.scope && program.components){
+          let scope = {
+            "programs": data.scope
+          }
+
+          for(var i=0; i < program.components.length; i++){
+            let programSolutionMap = await samikshaService.createProgramSolutionMap(program._id,program.components[i],scope);
+          }
+          
+        }
+
+        return resolve({
+          message : constants.apiResponses.PROGRAMS_CREATED,
+          result : {
+            "_id" : program._id
+          }
+        });
 
       } catch (error) {
           return reject(error);

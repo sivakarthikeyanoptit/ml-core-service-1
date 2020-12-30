@@ -223,9 +223,9 @@ const getUserTargetedPrograms = function ( token, bodyData, pageNo, pageSize, se
         try {
 
             let samikshaServiceUrl = 
-            process.env.APPLICATION_BASE_HOST +  + 
+            process.env.ASSESSMENT_BASE_HOST + 
             process.env.SAMIKSHA_SERVICE_BASE_URL + 
-            process.env.SAMIKSHA_USER_TARGETED_PROGRAMS + "?page=" + pageNo + "&limit=" + pageSize;
+            constants.endpoints.USER_TARGETED_PROGRAMS + "?page=" + pageNo + "&limit=" + pageSize;
             
             if( searchText !== "" ) {
                 samikshaServiceUrl = samikshaServiceUrl + "&search=" + searchText;
@@ -263,7 +263,45 @@ const getUserTargetedPrograms = function ( token, bodyData, pageNo, pageSize, se
 
                 return resolve(result);
             }
+        } catch (error) {
+            return reject(error);
+        }
+    })
+}
+   
+  /**
+  * Samiksha api creating programSolutionMap document
+  * @function
+  * @name createProgramSolutionMap
+  * @returns {Promise} returns a promise.
+  */
 
+var createProgramSolutionMap = function (programId,solutionId,scope) {
+
+    const createProgramSolutionMapUrl = process.env.ASSESSMENT_BASE_HOST+process.env.SAMIKSHA_SERVICE_BASE_URL+constants.endpoints.CREATE_PROGRAM_SOLUTION_MAP+"/"+programId+"?solutionId="+solutionId;
+    return new Promise((resolve, reject) => {
+        try {
+
+            let options = {
+                "headers": {
+                    "content-type": "application/json",
+                    "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN
+                }
+            };
+
+            options['json'] = scope;
+        
+            request.post(createProgramSolutionMapUrl, options, callback);
+
+            function callback(err, data) {
+                if (err) {
+                    return reject({
+                        message: constants.apiResponses.ASSESSMENT_SERVICE_DOWN
+                    });
+                } else {
+                    return resolve(data.body);
+                }
+            }
         } catch (error) {
             return reject(error);
         }
@@ -275,5 +313,6 @@ module.exports = {
     completedAssessments: completedAssessments,
     pendingObservations: pendingObservations,
     completedObservations: completedObservations,
-    getUserTargetedPrograms: getUserTargetedPrograms
+    getUserTargetedPrograms: getUserTargetedPrograms,
+    createProgramSolutionMap: createProgramSolutionMap
 };
