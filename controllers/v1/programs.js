@@ -148,12 +148,7 @@ module.exports = class Programs extends Abstract {
             req.body
         );
 
-        return resolve({
-            message : constants.apiResponses.PROGRAMS_CREATED,
-            result : {
-              "_id" : programs._id
-            }
-        });
+        return resolve(programs);
   
       } catch (error) {
         return reject({
