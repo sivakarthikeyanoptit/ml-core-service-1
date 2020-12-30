@@ -10,6 +10,7 @@
 const programsHelper = require(MODULES_BASE_PATH + "/programs/helper");
 const solutionsHelper = require(MODULES_BASE_PATH + "/solutions/helper");
 const sunbirdService = require(ROOT_PATH + "/generics/services/sunbird");
+const assessmentService = require(ROOT_PATH + "/generics/services/samiksha");
 
 
 // Dependencies 
@@ -492,5 +493,55 @@ module.exports = class UsersHelper {
             }
         })
     }
+
+
+    /**
+    * Get user targeted programs.
+    * @method
+    * @name programs
+    * @param {Object} bodyData - request body data.
+    * @param {String} userToken - Logged in user token.
+    * @returns {Array} - Get user targeted programs.
+    */
+
+   static programs(bodyData, userToken, pageNo, pageSize,searchText) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            let programs = await assessmentService.getUserTargetedPrograms
+            ( 
+                userToken,
+                bodyData, 
+                pageNo,
+                pageSize,
+                searchText
+            );
+
+            if (!programs.success) {
+                throw new Error(constants.apiResponses.PROGRAM_NOT_FOUND)
+            }
+
+            programs.data["description"] = constants.apiResponses.PROGRAM_DESCRIPTION;
+
+            if (!programs.data.count) {
+                programs.data.count = 0;
+            }
+            
+            return resolve({
+                success: true,
+                message: constants.apiResponses.USER_TARGETED_PROGRAMS_FETCHED,
+                data: programs.data
+            });
+
+        } catch (error) {
+            return resolve({
+                success: false,
+                message: error.message,
+                data: []
+            });
+        }
+    })
+}
+
 
 };

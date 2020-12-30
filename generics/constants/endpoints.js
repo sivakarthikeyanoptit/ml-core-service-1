@@ -25,5 +25,6 @@ module.exports = {
     SUNBIRD_LEARNING_RESOURCE_LIST : "/learningResources/list",
     SUNBIRD_USER_SEARCH :"/users/search",
     CREATE_PROGRAM_SOLUTION_MAP : "api/v1/programsSolutionsMap/create",
-    UPDATE_PROGRAM_SOLUTION_MAP : "api/v1/programsSolutionsMap/update"
+    UPDATE_PROGRAM_SOLUTION_MAP : "api/v1/programsSolutionsMap/update",
+    USER_TARGETED_PROGRAMS = "api/v1/programsSolutionsMap/targetedPrograms"
 }
