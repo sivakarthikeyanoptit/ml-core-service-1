@@ -616,17 +616,17 @@ module.exports = class Users extends Abstract {
       * @apiParamExample {json} Response:
       * {
          "status" : 200,
-          "message" : "Users programs fetched successfully",
-          "result" : {
-              “description” : “Programs description”,
-              “data” : 
+         "message" : "Users programs fetched successfully",
+         "result" : {
+              "description" : "Programs description",
+              "data" : 
               [{
                 "_id" : "5b98d7b6d4f87f317ff615ee",
                 "externalId" : "PROGID01",
                 "name" : "DCPCR School Development",
                 "solutions" :  4
               }],
-            “count” : 1
+            "count" : 1
           }
       }
 
@@ -644,54 +644,20 @@ module.exports = class Users extends Abstract {
       return new Promise(async (resolve, reject) => {
 
         try {
-
-          let response = {};
-          let messageData;
-          let matchQuery = {};
-
-          matchQuery["$match"] = {};
-
-          matchQuery["$match"]["status"] = "active";
-          matchQuery["$match"]["isDeleted"] = false;
-
-          if(req.body.role){
-            matchQuery["$match"]["scope.roles.code"] = req.body.role;
-          }
-
-          matchQuery["$match"]["$or"] = [];
-          matchQuery["$match"]["$or"].push({ "name": new RegExp(req.searchText, 'i') }, { "description": new RegExp(req.searchText, 'i') }, { "keywords": new RegExp(req.searchText, 'i') });
-
-          let data = req.body;
-          Object.keys(data).forEach( entity => {
-
-            if(entity != "role"){
-              let queryFilter = {
-                "scope.entityType" : entity,
-                "scope.entities" : data[entity]
-              }
-              matchQuery["$match"]["$or"].push(queryFilter)
-            }
-          })
           
-          let programDocument = await programsHelper.search(matchQuery, req.pageSize, req.pageNo);
-
-          messageData = constants.apiResponses.PROGRAMS_FETCHED;
-
-          if (!programDocument[0].count) {
-              programDocument[0].count = 0;
-              messageData = constants.apiResponses.PROGRAM_NOT_FOUND;
-          }
-
-          for (var i = 0; i < programDocument[0]['data'].length; i++) {
-            programDocument[0]['data'][i]['solutions'] = programDocument[0]['data'][i].components.length;
-            delete programDocument[0]['data'][i].components;
-
-          }
-
-          response.result = programDocument;
-          response["message"] = messageData;
-
-          return resolve(response);
+          let programs = await usersHelper.programs
+          (
+            req.body,
+            req.userDetails.userToken,
+            req.pageNo,
+            req.pageSize,
+            req.searchText
+          )
+         
+          return resolve({
+            message: programs.message,
+            result: programs.data
+          });
 
         } catch (error) {
 
@@ -734,9 +700,9 @@ module.exports = class Users extends Abstract {
          "status" : 200,
           "message" : "Users solutions fetched successfully",
           "result" : {
-            “programName” : “AFRICA-ME-TEST-FRAMEWORK”,
-            “description” : “Solutions description”,
-              “data” : [{
+            "programName" : "AFRICA-ME-TEST-FRAMEWORK",
+            "description" : "Solutions description",
+              "data" : [{
                   "_id" : "5beaaa2baf0065f0e0a105c7",
                   "externalId" : "AFRICA-ME-TEST-FRAMEWORK-TEMPLATE",
                   "name" : "AFRICA-ME-TEST-FRAMEWORK-TEMPLATE",
