@@ -205,7 +205,6 @@ var completedObservations = function () {
 
 }
 
-
 /**
   * Samiksha api creating programSolutionMap document
   * @function
@@ -249,13 +248,53 @@ var createProgramSolutionMap = function (programId,solutionId,scope) {
 
 }
 
+/**
+  * Samiksha api update programSolutionMap document
+  * @function
+  * @name updateProgramSolutionMap
+  * @returns {Promise} returns a promise.
+*/
 
+var updateProgramSolutionMap = function (programId,solutionId,scope) {
 
+    const updateProgramSolutionMapUrl = process.env.ASSESSMENT_BASE_HOST+process.env.SAMIKSHA_SERVICE_BASE_URL+constants.endpoints.UPDATE_PROGRAM_SOLUTION_MAP+"/"+programId+"?solutionId="+solutionId;
+    return new Promise((resolve, reject) => {
+        try {
+
+            let options = {
+                "headers": {
+                    "content-type": "application/json",
+                    "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN
+                }
+            };
+
+            options['json'] = scope;
+        
+            request.post(updateProgramSolutionMapUrl, options, callback);
+
+            function callback(err, data) {
+
+                if (err) {
+                    return reject({
+                        message: constants.apiResponses.ASSESSMENT_SERVICE_DOWN
+                    });
+                } else {
+                    return resolve(data.body);
+                }
+            }
+           
+        } catch (error) {
+            return reject(error);
+        }
+    })
+
+}
 
 module.exports = {
     pendingAssessments: pendingAssessments,
     completedAssessments: completedAssessments,
     pendingObservations: pendingObservations,
     completedObservations: completedObservations,
-    createProgramSolutionMap: createProgramSolutionMap
+    createProgramSolutionMap: createProgramSolutionMap,
+    updateProgramSolutionMap: updateProgramSolutionMap
 };

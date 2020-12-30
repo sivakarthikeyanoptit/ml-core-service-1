@@ -199,16 +199,37 @@ module.exports = class ProgramsHelper {
 
       try {
 
+        let updatedProgramData = programData;
+        let reqScope;
+
+        if(programData.scope){
+          reqScope = programData.scope;
+          delete updatedProgramData.scope;
+        }
+        
         let program = await database.models.programs.findOneAndUpdate(
           { _id: programId },
-          { $set: programData }
+          { $set: updatedProgramData }
         );
-        
+
         if(!program){
           return resolve({
             message : constants.apiResponses.PROGRAM_NOT_FOUND,
             result : []
           });
+        }
+
+        if(reqScope && program.components){
+
+          console.log("scope there")
+
+          let scope = {
+            "programs": reqScope
+          }
+
+          for(var i=0; i < program.components.length; i++){
+            let programSolutionMap = await samikshaService.updateProgramSolutionMap(program._id,program.components[i],scope);
+          }
         }
 
         return resolve({

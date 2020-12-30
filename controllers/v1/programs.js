@@ -192,7 +192,14 @@ module.exports = class Programs extends Abstract {
       },
       "components" : [ 
           ObjectId("5b98fa069f664f7e1ae7498c")
-      ]
+      ],
+      "scope" :{
+          "entityType" : "state",
+          "entityTypeId" : ObjectId("5d6605db652f3110440de195"),
+          "entities" : [ 
+              ObjectId("5d6609ef81a57a6173a79e78")
+          ]
+      }
     }
    * @apiSampleRequest /kendra/api/v1/programs/update/5b98d7b6d4f87f317ff615ee
    * @apiUse successBody
