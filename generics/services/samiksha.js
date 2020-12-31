@@ -369,8 +369,8 @@ const getUserTargetedSolutionsByPrograms = function ( token, programId, bodyData
             let samikshaServiceUrl = 
             process.env.ASSESSMENT_BASE_HOST + 
             process.env.SAMIKSHA_SERVICE_BASE_URL + 
-            constants.endpoints.USER_TARGETED_SOLUTIONS + "?page=" + pageNo + "&limit=" + pageSize;
-            
+            constants.endpoints.USER_TARGETED_SOLUTIONS + programId + "/?page=" + pageNo + "&limit=" + pageSize;
+
             if( searchText !== "" ) {
                 samikshaServiceUrl = samikshaServiceUrl + "&search=" + searchText;
             }

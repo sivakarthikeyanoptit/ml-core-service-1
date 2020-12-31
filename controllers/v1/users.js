@@ -733,8 +733,8 @@ module.exports = class Users extends Abstract {
 
           let programs = await usersHelper.solutionsByProgram
           (
-            req.parms._id
             req.body,
+            req.params._id,
             req.userDetails.userToken,
             req.pageNo,
             req.pageSize,
@@ -747,7 +747,6 @@ module.exports = class Users extends Abstract {
           });
 
         } catch (error) {
-            console.log(error,"user error")
             return reject({
                 status: 
                 error.status || 

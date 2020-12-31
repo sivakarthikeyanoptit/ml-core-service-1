@@ -544,22 +544,23 @@ module.exports = class UsersHelper {
     }
 
     /**
-    * Get user targeted programs.
+    * Get user targeted solutions.
     * @method
     * @name solutionsByProgram
     * @param {Object} bodyData - request body data.
+    * @param {String} progamId - Program Id.
     * @param {String} userToken - Logged in user token.
-    * @returns {Array} - Get user targeted programs.
+    * @returns {Array} - Get user targeted solutions.
     */
 
-   static solutionsByProgram(programId,bodyData, userToken, pageNo, pageSize,searchText) {
+   static solutionsByProgram(bodyData, programId, userToken, pageNo, pageSize,searchText) {
         return new Promise(async (resolve, reject) => {
             try {
 
                 let programs = await assessmentService.getUserTargetedSolutionsByPrograms
                 ( 
-                    programId,
                     userToken,
+                    programId,
                     bodyData, 
                     pageNo,
                     pageSize,
@@ -569,12 +570,6 @@ module.exports = class UsersHelper {
                 if (!programs.success) {
                     throw new Error(constants.apiResponses.PROGRAM_NOT_FOUND)
                 }
-
-                // programs.data["description"] = constants.apiResponses.PROGRAM_DESCRIPTION;
-
-                // if (!programs.data.count) {
-                //     programs.data.count = 0;
-                // }
                 
                 return resolve({
                     success: true,
@@ -591,10 +586,5 @@ module.exports = class UsersHelper {
             }
         })
     }
-
-
-
-    
-
 
 };
