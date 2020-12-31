@@ -349,6 +349,73 @@ var updateProgramSolutionMap = function (programId,solutionId,scope) {
 
 }
 
+/**
+  * User targetted solutions.
+  * @function
+  * @name getUserTargetedSolutionsByPrograms
+  * @param {String} token - User token.
+  * @param {String} programId - program Id.
+  * @param {Object} bodyData - Requested body data.
+  * @param {String} pageNo - page number
+  * @param {String} pageSize - page size
+  * @param {String} searchText - Text to search.
+  * @returns {JSON} - List of user targetted solutions.
+*/
+
+const getUserTargetedSolutionsByPrograms = function ( token, programId, bodyData, pageNo, pageSize, searchText = "" ) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            let samikshaServiceUrl = 
+            process.env.ASSESSMENT_BASE_HOST + 
+            process.env.SAMIKSHA_SERVICE_BASE_URL + 
+            constants.endpoints.USER_TARGETED_SOLUTIONS + "?page=" + pageNo + "&limit=" + pageSize;
+            
+            if( searchText !== "" ) {
+                samikshaServiceUrl = samikshaServiceUrl + "&search=" + searchText;
+            }
+           
+            const options = {
+                headers : {
+                    "content-type": "application/json",
+                    AUTHORIZATION : process.env.AUTHORIZATION,
+                    "x-authenticated-user-token" : token
+                },
+                json : bodyData
+            };
+
+            request.post(samikshaServiceUrl,options,assessmentCallback);
+
+            function assessmentCallback(err, data) {
+
+                console.log(err,"err")
+                console.log(data.body,"data.body")
+
+                let result = {
+                    success : true
+                };
+
+                if (err) {
+                    result.success = false;
+                } else {
+
+                    let response = data.body;
+                   
+                    if( response.status === httpStatusCode['ok'].status ) {
+                        result["data"] = response.result;
+                    } else {
+                        result.success = false;
+                    }
+                }
+
+                return resolve(result);
+            }
+        } catch (error) {
+            return reject(error);
+        }
+    })
+}
+
 module.exports = {
     pendingAssessments: pendingAssessments,
     completedAssessments: completedAssessments,
@@ -356,6 +423,7 @@ module.exports = {
     completedObservations: completedObservations,
     createProgramSolutionMap: createProgramSolutionMap,
     updateProgramSolutionMap: updateProgramSolutionMap,
-    getUserTargetedPrograms: getUserTargetedPrograms
+    getUserTargetedPrograms: getUserTargetedPrograms,
+    getUserTargetedSolutionsByPrograms: getUserTargetedSolutionsByPrograms
 
 };

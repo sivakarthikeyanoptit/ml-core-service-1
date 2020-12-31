@@ -731,83 +731,20 @@ module.exports = class Users extends Abstract {
 
         try {
 
-          let programsData = await programsHelper.programDocuments({
-            _id : req.params._id,
-            "scope.roles.code" : req.body.role
-          },["components","name","description"]);
-
-
-          if(!programsData || programsData.length < 1){
-
-            return resolve({
-              message : constants.apiResponses.PROGRAM_NOT_FOUND,
-              result : []
-            });
-          }
-
-          let response = {};
-          let messageData;
-          let matchQuery = {};
-
-          matchQuery["$match"] = {};
-          matchQuery["$match"]["_id"] = {};
-
-          matchQuery["$match"]["status"] = "active";
-          matchQuery["$match"]["isDeleted"] = false;
-          matchQuery["$match"]["_id"]["$in"] = programsData[0].components;
-
-
-          if(req.body.role){
-            matchQuery["$match"]["scope.roles.code"] = req.body.role;
-          }
-
-          matchQuery["$match"]["$or"] = [];
-          matchQuery["$match"]["$or"].push({ "name": new RegExp(req.searchText, 'i') }, { "description": new RegExp(req.searchText, 'i') }, { "keywords": new RegExp(req.searchText, 'i') });
-
-          let data = req.body;
-          Object.keys(data).forEach( entity => {
-
-            if(entity != "role"){
-              let queryFilter = {
-                "scope.entityType" : entity,
-                "scope.entities" : data[entity]
-              }
-              matchQuery["$match"]["$or"].push(queryFilter)
-            }
-          })
-          
-          let solutionDocument = await solutionHelper.search(matchQuery, req.pageSize, req.pageNo);
-
-          messageData = constants.apiResponses.SOLUTIONS_FETCHED;
-
-          if (!solutionDocument[0].count) {
-              solutionDocument[0].count = 0;
-              messageData = constants.apiResponses.SOLUTION_NOT_FOUND;
-          }
-
-          for (var i = 0; i < solutionDocument[0]['data'].length; i++) {
-            let role = [];
-            if(solutionDocument[0]['data'][i].scope.roles && solutionDocument[0]['data'][i].scope.roles.length >0){
-              let scope = solutionDocument[0]['data'][i].scope.roles;
-              for (var j = 0 ; j < scope.length ; j++) {
-                role.push(scope[j].code)
-              }
+          let programs = await usersHelper.solutionsByProgram
+          (
+            req.parms._id
+            req.body,
+            req.userDetails.userToken,
+            req.pageNo,
+            req.pageSize,
+            req.searchText
+          )
          
-              solutionDocument[0]['data'][i]['roles'] = role;
-            }
-            
-            delete solutionDocument[0]['data'][i].scope;
-
-          }
-
-          response.result ={};
-          response.result.programName = programsData[0].name;
-          response.result.description =  programsData[0].description;
-          response.result.data = solutionDocument[0].data;
-          response.result.count = solutionDocument[0].count;
-          response["message"] = messageData;
-
-          return resolve(response);
+          return resolve({
+            message: programs.message,
+            result: programs.data
+          });
 
         } catch (error) {
             console.log(error,"user error")

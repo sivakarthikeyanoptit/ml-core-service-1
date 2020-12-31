@@ -505,43 +505,96 @@ module.exports = class UsersHelper {
     */
 
    static programs(bodyData, userToken, pageNo, pageSize,searchText) {
-    return new Promise(async (resolve, reject) => {
-        try {
+        return new Promise(async (resolve, reject) => {
+            try {
 
-            let programs = await assessmentService.getUserTargetedPrograms
-            ( 
-                userToken,
-                bodyData, 
-                pageNo,
-                pageSize,
-                searchText
-            );
+                let programs = await assessmentService.getUserTargetedPrograms
+                ( 
+                    userToken,
+                    bodyData, 
+                    pageNo,
+                    pageSize,
+                    searchText
+                );
 
-            if (!programs.success) {
-                throw new Error(constants.apiResponses.PROGRAM_NOT_FOUND)
+                if (!programs.success) {
+                    throw new Error(constants.apiResponses.PROGRAM_NOT_FOUND)
+                }
+
+                programs.data["description"] = constants.apiResponses.PROGRAM_DESCRIPTION;
+
+                if (!programs.data.count) {
+                    programs.data.count = 0;
+                }
+                
+                return resolve({
+                    success: true,
+                    message: constants.apiResponses.USER_TARGETED_PROGRAMS_FETCHED,
+                    data: programs.data
+                });
+
+            } catch (error) {
+                return resolve({
+                    success: false,
+                    message: error.message,
+                    data: []
+                });
             }
+        })
+    }
 
-            programs.data["description"] = constants.apiResponses.PROGRAM_DESCRIPTION;
+    /**
+    * Get user targeted programs.
+    * @method
+    * @name solutionsByProgram
+    * @param {Object} bodyData - request body data.
+    * @param {String} userToken - Logged in user token.
+    * @returns {Array} - Get user targeted programs.
+    */
 
-            if (!programs.data.count) {
-                programs.data.count = 0;
+   static solutionsByProgram(programId,bodyData, userToken, pageNo, pageSize,searchText) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let programs = await assessmentService.getUserTargetedSolutionsByPrograms
+                ( 
+                    programId,
+                    userToken,
+                    bodyData, 
+                    pageNo,
+                    pageSize,
+                    searchText
+                );
+
+                if (!programs.success) {
+                    throw new Error(constants.apiResponses.PROGRAM_NOT_FOUND)
+                }
+
+                // programs.data["description"] = constants.apiResponses.PROGRAM_DESCRIPTION;
+
+                // if (!programs.data.count) {
+                //     programs.data.count = 0;
+                // }
+                
+                return resolve({
+                    success: true,
+                    message: constants.apiResponses.USER_TARGETED_SOLUTIONS_FETCHED,
+                    data: programs.data
+                });
+
+            } catch (error) {
+                return resolve({
+                    success: false,
+                    message: error.message,
+                    data: []
+                });
             }
-            
-            return resolve({
-                success: true,
-                message: constants.apiResponses.USER_TARGETED_PROGRAMS_FETCHED,
-                data: programs.data
-            });
+        })
+    }
 
-        } catch (error) {
-            return resolve({
-                success: false,
-                message: error.message,
-                data: []
-            });
-        }
-    })
-}
+
+
+    
 
 
 };

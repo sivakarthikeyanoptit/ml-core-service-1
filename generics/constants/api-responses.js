@@ -132,5 +132,6 @@ module.exports = {
   "PROGRAM_NOT_FOUND" : "Program not found" ,
   "PROGRAM_EXIST" : "Program exist",
   "PROGRAM_DESCRIPTION" : "Program description",
-  "USER_TARGETED_PROGRAMS_FETCHED" : "Users programs fetched successfully"
+  "USER_TARGETED_PROGRAMS_FETCHED" : "Users programs fetched successfully",
+  "USER_TARGETED_SOLUTIONS_FETCHED" : "Users solutions fetched successfully"
 };
