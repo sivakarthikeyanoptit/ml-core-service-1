@@ -9,7 +9,6 @@
     * ProgramsHelper
     * @class
 */
-const samikshaService = require(ROOT_PATH + "/generics/services/samiksha");
 module.exports = class ProgramsHelper {
 
     /**
@@ -72,19 +71,7 @@ module.exports = class ProgramsHelper {
     return new Promise(async (resolve, reject) => {
 
       try {
-
-
-        let programsData = await this.programDocuments({
-          externalId : data.externalId
-        },["_id"]);
-
-        if(programsData && programsData.length > 0) {
-          return resolve({
-            message : constants.apiResponses.PROGRAM_EXIST,
-            result : []
-          });
-        }
-
+        
         let programData = {
           "externalId" : data.externalId,
           "name" : data.name,
@@ -100,7 +87,7 @@ module.exports = class ProgramsHelper {
           "language" : [ 
               "English"
           ],
-          "keywords" : data.keywords ? data.keywords : [
+          "keywords" : [
             "keywords 1",
             "keywords 2"
           ],
@@ -110,35 +97,15 @@ module.exports = class ProgramsHelper {
           "imageCompression" : {
               "quality" : 10
           },
-          "components" : data.components,
-          "isAPrivateProgram" : data.isAPrivateProgram ? data.isAPrivateProgram : false
+          "components" : [],
+          "isAPrivateProgram" : data.isAPrivateProgram ? data.isAPrivateProgram : false  
         }
 
         let program = await database.models.programs.create(
           programData
         );
 
-        if(!program){
-          throw new Error(constants.apiResponses.ERROR_CREATING_PROGRAM);
-        }
-
-        if(data.scope && program.components){
-          let scope = {
-            "programs": data.scope
-          }
-
-          for(var i=0; i < program.components.length; i++){
-            let programSolutionMap = await samikshaService.createProgramSolutionMap(program._id,program.components[i],scope);
-          }
-          
-        }
-
-        return resolve({
-          message : constants.apiResponses.PROGRAMS_CREATED,
-          result : {
-            "_id" : program._id
-          }
-        });
+        return resolve(program);
 
       } catch (error) {
           return reject(error);
@@ -183,69 +150,6 @@ module.exports = class ProgramsHelper {
 
     })
   }
-
-
-    /**
-   * Update program
-   * @method
-   * @name update
-   * @param {Array} data 
-   * @returns {JSON} - create program.
-   */
-
-  static update(programId="", programData) {
-
-    return new Promise(async (resolve, reject) => {
-
-      try {
-
-        let updatedProgramData = programData;
-        let reqScope;
-
-        if(programData.scope){
-          reqScope = programData.scope;
-          delete updatedProgramData.scope;
-        }
-        
-        let program = await database.models.programs.findOneAndUpdate(
-          { _id: programId },
-          { $set: updatedProgramData }
-        );
-
-        if(!program){
-          return resolve({
-            message : constants.apiResponses.PROGRAM_NOT_FOUND,
-            result : []
-          });
-        }
-
-        if(reqScope && program.components){
-
-          console.log("scope there")
-
-          let scope = {
-            "programs": reqScope
-          }
-
-          for(var i=0; i < program.components.length; i++){
-            let programSolutionMap = await samikshaService.updateProgramSolutionMap(program._id,program.components[i],scope);
-          }
-        }
-
-        return resolve({
-            message: constants.apiResponses.PROGRAMS_UPDATED,
-            result: {
-              "_id" : program._id
-            }
-        })
-
-      } catch (error) {
-          return reject(error);
-      }
-
-    })
-  }
-
 
   /**
    * Search programs.
