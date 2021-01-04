@@ -559,7 +559,7 @@ module.exports = class UsersHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let programs = await assessmentService.getUserTargetedSolutionsByPrograms
+                let solutions = await assessmentService.getUserTargetedSolutionsByPrograms
                 ( 
                     userToken,
                     programId,
@@ -569,14 +569,14 @@ module.exports = class UsersHelper {
                     searchText
                 );
 
-                if (!programs.success) {
+                if (!solutions.success) {
                     throw new Error(constants.apiResponses.PROGRAM_NOT_FOUND)
                 }
                 
                 return resolve({
                     success: true,
                     message: constants.apiResponses.USER_TARGETED_SOLUTIONS_FETCHED,
-                    data: programs.data
+                    data: solutions.data
                 });
 
             } catch (error) {

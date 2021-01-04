@@ -715,6 +715,9 @@ module.exports = class Users extends Abstract {
       * @name solutions
       * @param  {Request} req request body.
       * @param {String} req.params._id - program id
+      * @param {String} req.pageNo - pageNo
+      * @param {String} req.pageSize - pageSize
+      * @param {String} req.searchText - searchText
       * @returns {JSON} Returns success as true or false.
      */
 
@@ -723,7 +726,7 @@ module.exports = class Users extends Abstract {
 
         try {
 
-          let programs = 
+          let solutions = 
           await usersHelper.solutions(
               req.body,
               req.params._id,
@@ -734,8 +737,8 @@ module.exports = class Users extends Abstract {
            )
          
           return resolve({
-            message: programs.message,
-            result: programs.data
+            message: solutions.message,
+            result: solutions.data
           });
 
         } catch (error) {
