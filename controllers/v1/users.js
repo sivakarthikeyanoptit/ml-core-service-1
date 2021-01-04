@@ -11,9 +11,6 @@
  */
 
 const usersHelper = require(MODULES_BASE_PATH + "/users/helper.js");
-const programsHelper = require(MODULES_BASE_PATH + "/programs/helper");
-const solutionHelper = require(MODULES_BASE_PATH + "/solutions/helper");
-var {ObjectId} = require('mongodb');
 
 /**
     * User
@@ -610,9 +607,7 @@ module.exports = class Users extends Abstract {
         "block" : "5c0bbab881bdbe330655da7f",
         "cluster" : "5c0bbab881bdbe330655da7f",
         "school" : "5c0bbab881bdbe330655da7f"
-
       }
-
       * @apiParamExample {json} Response:
       * {
          "status" : 200,
@@ -645,19 +640,18 @@ module.exports = class Users extends Abstract {
 
         try {
           
-          let programs = await usersHelper.programs
-          (
-            req.body,
-            req.userDetails.userToken,
-            req.pageNo,
-            req.pageSize,
-            req.searchText
-          )
+          let programs = 
+          await usersHelper.programs( 
+              req.body, 
+              req.userDetails.userToken, 
+              req.pageNo,
+              req.pageSize,
+              req.searchText
+          );
+
+          programs.result = programs.data;
          
-          return resolve({
-            message: programs.message,
-            result: programs.data
-          });
+          return resolve(programs);
 
         } catch (error) {
 
@@ -677,7 +671,7 @@ module.exports = class Users extends Abstract {
     }
 
   /**
-     * @api {post} /kendra/api/v1/users/solutions:programId?page=:page&limit=:limit&search=:search 
+     * @api {post} /kendra/api/v1/users/solutions/:programId?page=:page&limit=:limit&search=:search 
      * Solution List
      * @apiVersion 1.0.0
      * @apiGroup Users
@@ -692,9 +686,7 @@ module.exports = class Users extends Abstract {
         "block" : "5c0bbab881bdbe330655da7f",
         "cluster" : "5c0bbab881bdbe330655da7f",
         "school" : "5c0bbab881bdbe330655da7f"
-
       }
-
       * @apiParamExample {json} Response:
       * {
          "status" : 200,
@@ -731,15 +723,15 @@ module.exports = class Users extends Abstract {
 
         try {
 
-          let programs = await usersHelper.solutionsByProgram
-          (
-            req.body,
-            req.params._id,
-            req.userDetails.userToken,
-            req.pageNo,
-            req.pageSize,
-            req.searchText
-          )
+          let programs = 
+          await usersHelper.solutions(
+              req.body,
+              req.params._id,
+              req.userDetails.userToken,
+              req.pageNo,
+              req.pageSize,
+              req.searchText
+           )
          
           return resolve({
             message: programs.message,

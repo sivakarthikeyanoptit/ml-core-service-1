@@ -494,13 +494,15 @@ module.exports = class UsersHelper {
         })
     }
 
-
     /**
     * Get user targeted programs.
     * @method
     * @name programs
     * @param {Object} bodyData - request body data.
     * @param {String} userToken - Logged in user token.
+    * @param {String} pageNo - Page number.
+    * @param {String} pageSize - Page size.
+    * @param {String} searchText - Search text.
     * @returns {Array} - Get user targeted programs.
     */
 
@@ -546,14 +548,14 @@ module.exports = class UsersHelper {
     /**
     * Get user targeted solutions.
     * @method
-    * @name solutionsByProgram
+    * @name solutions
     * @param {Object} bodyData - request body data.
     * @param {String} progamId - Program Id.
     * @param {String} userToken - Logged in user token.
     * @returns {Array} - Get user targeted solutions.
     */
 
-   static solutionsByProgram(bodyData, programId, userToken, pageNo, pageSize,searchText) {
+   static solutions(bodyData, programId, userToken, pageNo, pageSize,searchText) {
         return new Promise(async (resolve, reject) => {
             try {
 
