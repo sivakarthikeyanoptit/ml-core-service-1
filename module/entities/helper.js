@@ -753,7 +753,7 @@ module.exports = class EntitiesHelper {
             let result = [];
             
             await Promise.all(entities.map (async entity => {
-                if (Object.keys(entity.data.roles).length > 0) {
+                if (entity.data.roles && Object.keys(entity.data.roles).length > 0) {
                     await Promise.all(entity.data.roles[role].map(userId => {
                         result.push({
                             entityId: entity.id,
