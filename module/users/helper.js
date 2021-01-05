@@ -510,29 +510,64 @@ module.exports = class UsersHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let programs = await assessmentService.getUserTargetedPrograms
-                ( 
-                    userToken,
-                    bodyData, 
-                    pageNo,
+
+                let filterEntities = Object.values(_.omit(bodyData,["role","filteredData"])).map(entity => {
+                    return ObjectId(entity);
+                });
+
+                let targetedProgramQuery = {
+                    "scope.roles.code" : bodyData.role,
+                    "scope.entities" : { $in : filterEntities }
+                }
+
+                let targetedPrograms =  await programsHelper.programDocuments(targetedProgramQuery,["_id"]);
+
+                if( !targetedPrograms.length > 0 ) {
+                    throw {
+                      message : constants.apiResponses.PROGRAM_NOT_FOUND
+                    };
+                }
+
+                let targetedProgramIds = [];
+          
+                targetedPrograms.forEach(targetedProgram => {
+                    targetedProgramIds.push(targetedProgram._id);
+                });
+                  
+                let matchQuery = {
+                    "$match" : {
+                      _id : { $in : targetedProgramIds },
+                      "isDeleted" : false,
+                      status : constants.common.ACTIVE_STATUS
+                    }
+                };
+
+                let targettedPrograms = await programsHelper.search(
+                    matchQuery,
                     pageSize,
+                    pageNo,
+                    {
+                      name : 1,
+                      description : 1,
+                      externalId: 1,
+                      components: 1
+                    },
                     searchText
                 );
 
-                if (!programs.success) {
-                    throw new Error(constants.apiResponses.PROGRAM_NOT_FOUND)
+                targettedPrograms[0].description = constants.apiResponses.PROGRAM_DESCRIPTION;
+             
+                if (targettedPrograms[0].data && targettedPrograms[0].data.length > 0) {
+                    targettedPrograms[0].data.map( program => {
+                        program.solutions = program.components.length;
+                        delete program.components;
+                    })
                 }
 
-                programs.data["description"] = constants.apiResponses.PROGRAM_DESCRIPTION;
-
-                if (!programs.data.count) {
-                    programs.data.count = 0;
-                }
-                
                 return resolve({
                     success: true,
                     message: constants.apiResponses.USER_TARGETED_PROGRAMS_FETCHED,
-                    data: programs.data
+                    result: targettedPrograms[0]
                 });
 
             } catch (error) {
@@ -559,24 +594,81 @@ module.exports = class UsersHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let solutions = await assessmentService.getUserTargetedSolutionsByPrograms
-                ( 
-                    userToken,
-                    programId,
-                    bodyData, 
-                    pageNo,
+                let filterEntities = 
+                  Object.values(_.omit(bodyData,["role"])).map(entity => {
+                    return ObjectId(entity);
+                });
+
+                let targetedSolutionQuery = {
+                    "scope.roles.code" : bodyData.role,
+                    programId : programId,
+                    isReusable : false
+                }
+
+                let targetedSolutions =  await solutionsHelper.solutionDocuments(targetedSolutionQuery,["_id"]);
+
+                if( !targetedSolutions.length > 0 ) {
+                    throw {
+                      message : constants.apiResponses.SOLUTION_NOT_FOUND
+                    };
+                }
+
+                let targetedSolutionIds = [];
+          
+                targetedSolutions.forEach(targetedSolution => {
+                    targetedSolutionIds.push(targetedSolution._id);
+                });
+                  
+                let matchQuery = {
+                    "$match" : {
+                      _id : { $in : targetedSolutionIds },
+                      "isDeleted" : false,
+                      status : constants.common.ACTIVE_STATUS
+                    }
+                };
+
+                let targettedSolutions = await solutionsHelper.search(
+                    matchQuery,
                     pageSize,
+                    pageNo,
+                    {
+                      name : 1,
+                      externalId: 1,
+                      type: 1,
+                      programId: 1,
+                      programName: 1,
+                      programDescription: 1,
+                      "scope.roles": 1,
+                    },
                     searchText
                 );
 
-                if (!solutions.success) {
-                    throw new Error(constants.apiResponses.PROGRAM_NOT_FOUND)
+                targettedSolutions[0].programName = targettedSolutions[0].data[0]['programName'];
+                targettedSolutions[0].description = targettedSolutions[0].data[0]['programDescription'];
+             
+                if (targettedSolutions[0].data && targettedSolutions[0].data.length > 0) {
+                    targettedSolutions[0].data.map( solution => {
+                        delete solution.programName;
+                        delete solution.programDescription;
+
+                        let role = [];
+                        if(solution.scope.roles && solution.scope.roles.length >0){
+                          let scope = solution.scope.roles;
+                          for (var j = 0 ; j < scope.length ; j++) {
+                            role.push(scope[j].code)
+                          }
+                     
+                          solution['roles'] = role;
+                        }
+            
+                        delete solution.scope;
+                    })
                 }
-                
+                 
                 return resolve({
                     success: true,
                     message: constants.apiResponses.USER_TARGETED_SOLUTIONS_FETCHED,
-                    data: solutions.data
+                    result: targettedSolutions[0]
                 });
 
             } catch (error) {

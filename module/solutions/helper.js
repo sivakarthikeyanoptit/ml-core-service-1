@@ -95,7 +95,7 @@ module.exports = class SolutionsHelper {
    * @returns {Array} List of solutions document. 
    */
 
-  static search(filteredData, pageSize, pageNo,projection) {
+  static search(filteredData, pageSize, pageNo,projection,search = "") {
     return new Promise(async (resolve, reject) => {
       try {
 
@@ -113,6 +113,16 @@ module.exports = class SolutionsHelper {
             'scope.roles':1,
             programId:1
           };
+        }
+
+        if ( search !== "" ) {
+          filteredData["$match"]["$or"] = [];
+          filteredData["$match"]["$or"].push(
+            { 
+              "name": new RegExp(search, 'i') 
+            }, { 
+            "description": new RegExp(search, 'i') 
+          });
         }
 
         let facetQuery = {};

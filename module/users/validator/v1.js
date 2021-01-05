@@ -18,6 +18,10 @@ module.exports = (req) => {
         },
         solutions : function () {
             req.checkParams('_id').exists().withMessage("required Program id");
+            req.checkBody('role').exists().withMessage("required roles");
+        },
+        programs : function () {
+            req.checkBody('role').exists().withMessage("required roles");
         }
         
 

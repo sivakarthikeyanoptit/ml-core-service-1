@@ -632,6 +632,9 @@ module.exports = class Users extends Abstract {
       * @method
       * @name programs
       * @param  {Request} req request body.
+      * @param {String} req.pageNo - pageNo
+      * @param {String} req.pageSize - pageSize
+      * @param {String} req.searchText - searchText
       * @returns {JSON} Returns success as true or false.
      */
 
@@ -648,8 +651,6 @@ module.exports = class Users extends Abstract {
               req.pageSize,
               req.searchText
           );
-
-          programs.result = programs.data;
          
           return resolve(programs);
 
@@ -736,10 +737,7 @@ module.exports = class Users extends Abstract {
               req.searchText
            )
          
-          return resolve({
-            message: solutions.message,
-            result: solutions.data
-          });
+          return resolve(solutions);
 
         } catch (error) {
             return reject({

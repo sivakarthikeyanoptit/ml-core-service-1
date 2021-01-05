@@ -66,6 +66,7 @@ module.exports = {
         default : []
       },
       project : Object,
-      referenceFrom : String
+      referenceFrom : String,
+      scope : Object
     }
   };

@@ -162,7 +162,7 @@ module.exports = class ProgramsHelper {
    * @returns {Array} List of programs document. 
    */
 
-  static search(filteredData, pageSize, pageNo,projection) {
+  static search(filteredData, pageSize, pageNo,projection,search = "") {
     return new Promise(async (resolve, reject) => {
       try {
 
@@ -178,6 +178,16 @@ module.exports = class ProgramsHelper {
             externalId: 1,
             components: 1
           };
+        }
+
+        if ( search !== "" ) {
+          filteredData["$match"]["$or"] = [];
+          filteredData["$match"]["$or"].push(
+            { 
+              "name": new RegExp(search, 'i') 
+            }, { 
+            "description": new RegExp(search, 'i') 
+          });
         }
 
         let facetQuery = {};
