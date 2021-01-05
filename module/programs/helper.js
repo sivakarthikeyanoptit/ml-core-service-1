@@ -133,7 +133,7 @@ module.exports = class ProgramsHelper {
         let programsData = await this.programDocuments({
           createdBy : userId,
           isAPrivateProgram : true
-        },["name","externalId","description","_id"]);
+        },["name","externalId","description","_id","isAPrivateProgram"]);
 
         if( !programsData.length > 0 ) {
           return resolve({
