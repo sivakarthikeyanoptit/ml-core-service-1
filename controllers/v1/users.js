@@ -164,7 +164,8 @@ module.exports = class Users extends Abstract {
             "_id": "5edf0d14c57dab7f639f3e0d",
             "externalId": "EF-DCPCR-2018-001-TEMPLATE-2020-06-09 09:46:20",
             "name": "My program",
-            "description": "DCPCR Assessment Framework 2018"
+            "description": "DCPCR Assessment Framework 2018",
+            "isAPrivateProgram" : false
         }
      ]}
      * @apiUse successBody
@@ -464,8 +465,8 @@ module.exports = class Users extends Abstract {
 
   /**
   * @api {get} /kendra/api/v1/users/search
+  * User Search
   * @apiVersion 1.0.0
-  * @apiName User Search
   * @apiGroup Users
   * @apiHeader {String} internal-access-token Internal access token
   * @apiHeader {String} X-authenticated-user-token Authenticity token
