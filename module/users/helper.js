@@ -11,10 +11,6 @@ const programsHelper = require(MODULES_BASE_PATH + "/programs/helper");
 const solutionsHelper = require(MODULES_BASE_PATH + "/solutions/helper");
 const sunbirdService = require(ROOT_PATH + "/generics/services/sunbird");
 const assessmentService = require(ROOT_PATH + "/generics/services/samiksha");
-
-
-// Dependencies 
-
 const userRolesHelper = require(MODULES_BASE_PATH + "/user-roles/helper");
 const entitiesHelper = require(MODULES_BASE_PATH + "/entities/helper");
 
@@ -489,6 +485,60 @@ module.exports = class UsersHelper {
                 }
             } catch (error) {
                 return reject(error);
+            }
+        })
+    }
+
+     /**
+      * User targeted solutions.
+      * @method
+      * @name solutions
+      * @param {String} programId - program id.
+      * @param {Object} requestedData requested data.
+      * @param {Object} token Token.
+      * @param {String} pageSize page size.
+      * @param {String} pageNo page no.
+      * @param {String} search search text.
+      * @returns {Object} targeted user solutions.
+     */
+
+    static solutions( programId,requestedData,token,pageSize,pageNo,search ) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                
+                requestedData["filter"] = {
+                    programId : programId
+                };
+
+                let autoTargetedSolutions = 
+                await assessmentService.autoTargetedSolutions(
+                    requestedData,
+                    token,
+                    pageSize,
+                    pageNo,
+                    search
+                );
+
+                if( autoTargetedSolutions.data.data && autoTargetedSolutions.data.data.length > 0 ) {
+                    autoTargetedSolutions.data["programName"] = autoTargetedSolutions.data.data[0].programName;
+                }
+
+                autoTargetedSolutions.data["description"] = constants.common.TARGETED_SOLUTION_TEXT;
+
+                return resolve({
+                    message : constants.apiResponses.USER_TARGETED_SOLUTION_FETCHED,
+                    success : true,
+                    data : autoTargetedSolutions.data
+                })
+            } catch (error) {
+                return resolve({
+                    success : false,
+                    data : {
+                        description : constants.common.TARGETED_SOLUTION_TEXT,
+                        data : [],
+                        count : 0
+                    }
+                });
             }
         })
     }
