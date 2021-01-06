@@ -15,15 +15,7 @@ module.exports = (req) => {
         entitiesMappingForm : function () {
             req.checkParams('_id').exists().withMessage("required Entity id");
             req.checkQuery('roleId').exists().withMessage("required role id");
-        },
-        solutions : function () {
-            req.checkParams('_id').exists().withMessage("required Program id");
-            req.checkBody('role').exists().withMessage("required roles");
-        },
-        programs : function () {
-            req.checkBody('role').exists().withMessage("required roles");
-        }
-        
+        }  
 
     }
 
