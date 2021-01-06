@@ -396,7 +396,7 @@ module.exports = class ProgramsHelper {
             _id : programId
           },{ $set : data }, { new: true });
 
-          if( !program || program._id ) {
+          if( !program ) {
             throw {
               message : constants.apiResponses.PROGRAM_NOT_UPDATED
             };
