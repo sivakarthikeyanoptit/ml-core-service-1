@@ -205,9 +205,136 @@ var completedObservations = function () {
 
 }
 
+/**
+  * List of user auto targeted programs.
+  * @function
+  * @name autoTargetedSolutions
+  * @param {Object} bodyData - requested body data.
+  * @param {String} pageSize - page limit.
+  * @param {String} pageNo - page number.
+  * @returns {Promise} returns a promise.
+*/
+
+var autoTargetedSolutions = function (bodyData,token,pageSize,pageNo,search) {
+
+    const autoTargetedSolutionsUrl = 
+    process.env.ASSESSMENT_APPLICATION_ENDPOINT+
+    process.env.SAMIKSHA_SERVICE_BASE_URL+
+    process.env.URL_PREFIX + "/" +
+    constants.endpoints.USER_TARGETED_SOLUTIONS+
+    "?page=" + pageNo + "&limit=" + pageSize+ "&search=" + search;
+
+     return new Promise((resolve, reject) => {
+        try {
+            
+            const samikshaCallBack = function (err, data) {
+                let result = {
+                    success : true
+                };
+
+                if (err) {
+                    result.success = false;
+                } else {
+                    
+                    let response = data.body;
+                    
+                    if( response.status === httpStatusCode['ok'].status ) {
+                        result["data"] = response.result;
+                    } else {
+                        result.success = false;
+                    }
+                }
+
+                return resolve(result);
+            }
+
+            const options = {
+                headers : {
+                    "content-type": "application/json",
+                    AUTHORIZATION : process.env.AUTHORIZATION,
+                    "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
+                    "x-authenticated-user-token" : token
+                },
+                json : bodyData
+            };
+
+            request.post(autoTargetedSolutionsUrl, options, samikshaCallBack);
+        } catch (error) {
+            return reject(error);
+        }
+    })
+}
+
+/**
+  * User targetted programs.
+  * @function
+  * @name autoTargetedPrograms
+  * @param {String} token - User token.
+  * @param {Object} bodyData - Requested body data.
+  * @param {String} pageNo - page number
+  * @param {String} pageSize - page size
+  * @param {String} searchText - Text to search.
+  * @returns {JSON} - List of user targetted programs.
+*/
+
+const autoTargetedPrograms = function ( token, bodyData, pageNo, pageSize, searchText = "" ) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            let samikshaServiceUrl = 
+            process.env.ASSESSMENT_APPLICATION_ENDPOINT + 
+            process.env.SAMIKSHA_SERVICE_BASE_URL + 
+            process.env.URL_PREFIX + "/" + 
+            constants.endpoints.USER_TARGETED_PROGRAMS + "?page=" + pageNo + "&limit=" + pageSize;
+
+            if( searchText !== "" ) {
+                samikshaServiceUrl = samikshaServiceUrl + "&search=" + searchText;
+            }
+
+            const options = {
+                headers : {
+                    "content-type": "application/json",
+                    AUTHORIZATION : process.env.AUTHORIZATION,
+                    "x-authenticated-user-token" : token
+                },
+                json : bodyData
+            };
+
+            request.post(samikshaServiceUrl,options,assessmentCallback);
+
+            function assessmentCallback(err, data) {
+
+                let result = {
+                    success : true
+                };
+
+                if (err) {
+                    result.success = false;
+                } else {
+
+                    let response = data.body;
+
+                    if( response.status === httpStatusCode['ok'].status ) {
+                        result["data"] = response.result;
+                    } else {
+                        result.success = false;
+                    }
+                }
+
+                return resolve(result);
+            }
+
+        } catch (error) {
+            return reject(error);
+        }
+    })
+}
+
 module.exports = {
     pendingAssessments: pendingAssessments,
     completedAssessments: completedAssessments,
     pendingObservations: pendingObservations,
-    completedObservations: completedObservations
+    completedObservations: completedObservations,
+    autoTargetedSolutions : autoTargetedSolutions,
+    autoTargetedPrograms : autoTargetedPrograms
 };

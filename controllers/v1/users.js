@@ -591,5 +591,177 @@ module.exports = class Users extends Abstract {
       }
     });
   }
+
+   /**
+  * @api {get} /kendra/api/v1/users/solutions/:programId?page=:page&limit=:limit&search=:searchText
+  * @apiVersion 1.0.0
+  * @apiName User solutions
+  * @apiGroup Users
+  * @apiHeader {String} internal-access-token Internal access token
+  * @apiHeader {String} X-authenticated-user-token Authenticity token
+  * @apiSampleRequest /kendra/api/v1/users/solutions/5ff438b04698083dbfab7284?page=1&limit=10
+  * @apiParamExample {json} Request-Body:
+  * {
+        "role" : "HM",
+   		"state" : "5c0bbab881bdbe330655da7f",
+   		"block" : "5c0bbab881bdbe330655da7f",
+   		"cluster" : "5c0bbab881bdbe330655da7f",
+        "school" : "5c0bbab881bdbe330655da7f"
+    }
+  * @apiUse successBody
+  * @apiUse errorBody
+  * @apiParamExample {json} Response:
+  * {
+    "message": "Successfully fetched user targeted solution",
+    "status": 200,
+    "result": {
+        "data": [
+            {
+                "_id": "5fc3dff14ea9b44f3340afe2",
+                "programId": "5ff438b04698083dbfab7284",
+                "programName": "TEST_SCOPE_PROGRAM",
+                "externalId": "f449823a-06bb-4a3f-9d49-edbe1524ebbb-1606672337956"
+            },
+            {
+                "_id": "5ff447e127ef425953bd8306",
+                "externalId": "TEST_SOLUTION_SCOPE",
+                "programId": "5ff438b04698083dbfab7284",
+                "programName": "TEST scope in program"
+            },
+            {
+                "_id": "5ff482737f768d2de902e912",
+                "externalId": "SCOPE_OBSERVATION_TEST",
+                "name": "observation testing",
+                "description": "Testing observation",
+                "programId": "5ff438b04698083dbfab7284",
+                "programName": "TEST scope in program"
+            }
+        ],
+        "count": 3,
+        "programName": "TEST_SCOPE_PROGRAM",
+        "description": "View and participate in educational programs active in your location and designed for your role."
+    }
+    }
+  **/
+
+  /**
+  * User targeted solutions.
+  * @method
+  * @name solutions
+  * @param  {req}  - requested data.
+  * @returns {json} List of targeted solutions.
+  */
+
+ solutions(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        let targetedSolutions = await usersHelper.solutions(
+            req.params._id,
+            req.body,
+            req.userDetails.userToken,
+            req.pageSize,
+            req.pageNo,
+            req.searchText
+        );
+
+        targetedSolutions["result"] = targetedSolutions.data;
+        return resolve(targetedSolutions);
+
+      } catch (error) {
+
+        return reject({
+            status: 
+            error.status || 
+            httpStatusCode["internal_server_error"].status,
+
+            message: 
+            error.message || 
+            httpStatusCode["internal_server_error"].message
+        })
+
+      }
+    });
+  }
+
+
+/**
+     * @api {post} /kendra/api/v1/users/programs?page=:page&limit=:limit&search=:search 
+     * Program List
+     * @apiVersion 1.0.0
+     * @apiGroup Users
+     * @apiHeader {String} X-authenticated-user-token Authenticity token
+     * @apiSampleRequest /kendra/api/v1/users/programs?page=:page&limit=:limit&search=:search 
+     * @apiUse successBody
+     * @apiUse errorBody
+     * @apiParamExample {json} Request:
+     * {
+        "role" : "HM",
+        "state" : "5c0bbab881bdbe330655da7f",
+        "block" : "5c0bbab881bdbe330655da7f",
+        "cluster" : "5c0bbab881bdbe330655da7f",
+        "school" : "5c0bbab881bdbe330655da7f"
+      }
+      * @apiParamExample {json} Response:
+      * {
+         "status" : 200,
+         "message" : "Users programs fetched successfully",
+         "result" : {
+              "description" : "Programs description",
+              "data" : 
+              [{
+                "_id" : "5b98d7b6d4f87f317ff615ee",
+                "externalId" : "PROGID01",
+                "name" : "DCPCR School Development",
+                "solutions" :  4
+              }],
+            "count" : 1
+          }
+      }
+    */
+
+    /**
+      * List of targeted user programs
+      * @method
+      * @name programs
+      * @param  {Request} req request body.
+      * @param {String} req.pageNo - pageNo
+      * @param {String} req.pageSize - pageSize
+      * @param {String} req.searchText - searchText
+      * @returns {Object} list of targeted user programs. 
+     */
+
+    programs(req) {
+      return new Promise(async (resolve, reject) => {
+
+        try {
+          
+          let programs = 
+          await usersHelper.programs( 
+              req.body, 
+              req.userDetails.userToken, 
+              req.pageNo,
+              req.pageSize,
+              req.searchText
+          );
+         
+          return resolve(programs);
+
+        } catch (error) {
+
+            return reject({
+                status: 
+                error.status || 
+                httpStatusCode["internal_server_error"].status,
+
+                message: 
+                error.message || 
+                httpStatusCode["internal_server_error"].message
+            })
+
+        }
+
+      })
+    }
 };
 
