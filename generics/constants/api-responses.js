@@ -136,5 +136,11 @@ module.exports = {
   "USER_TARGETED_PROGRAMS_FETCHED" : "Users programs fetched successfully",
   "USER_TARGETED_SOLUTIONS_FETCHED" : "Users solutions fetched successfully",
   "ROLE_REQUIRED_IN_SCOPE" : "Required role in scope",
-  "INVALID_ROLE_CODE" : "Invalid role in code"
+  "INVALID_ROLE_CODE" : "Invalid role in code",
+  "SOLUTION_CREATED" : "Solution created successfully",
+  "SOLUTION_TYPE_INVALID" : "Solution type is invalid",
+  "SOLUTION_NOT_CREATED" : "Solution not created",
+  "ENTITIES_REQUIRED_IN_SCOPE" : "Entities required in scope",
+  "ENTITY_TYPE_REQUIRED_IN_SCOPE" : "Required entity type in scope",
+  "SCOPE_ENTITY_INVALID" : "Scope entity is invalid"
 };
