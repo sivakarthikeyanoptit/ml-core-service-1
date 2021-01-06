@@ -26,6 +26,6 @@ module.exports = {
     SUNBIRD_USER_SEARCH :"/users/search",
     CREATE_PROGRAM_SOLUTION_MAP : "api/v1/programsSolutionsMap/create",
     UPDATE_PROGRAM_SOLUTION_MAP : "api/v1/programsSolutionsMap/update",
-    USER_TARGETED_PROGRAMS : "/programs/autoTargeted",
+    USER_TARGETED_PROGRAMS : "programs/autoTargeted",
     USER_TARGETED_SOLUTIONS : "solutions/autoTargeted"
 }

@@ -538,6 +538,55 @@ module.exports = class UsersHelper {
                         data : [],
                         count : 0
                     }
+                })
+            }
+        })
+    }
+
+    /**
+    * Get user targeted programs.
+    * @method
+    * @name programs
+    * @param {Object} bodyData - request body data.
+    * @param {String} userToken - Logged in user token.
+    * @param {String} pageNo - Page number.
+    * @param {String} pageSize - Page size.
+    * @param {String} searchText - Search text.
+    * @returns {Array} - Get user targeted programs.
+    */
+
+   static programs(bodyData, userToken, pageNo, pageSize,searchText) {
+       return new Promise(async (resolve, reject) => {
+            try {
+
+                let programs = await assessmentService.autoTargetedPrograms
+                ( 
+                    userToken,
+                    bodyData, 
+                    pageNo,
+                    pageSize,
+                    searchText
+                );
+
+                if (!programs.success) {
+                    throw new Error(constants.apiResponses.PROGRAM_NOT_FOUND)
+                }
+
+                return resolve({
+                    success: true,
+                    message: constants.apiResponses.USER_TARGETED_PROGRAMS_FETCHED,
+                    result: programs.data
+                });
+
+            } catch (error) {
+                return resolve({
+                    success: false,
+                    message: error.message,
+                    data : {
+                        description : constants.common.TARGETED_SOLUTION_TEXT,
+                        data : [],
+                        count : 0
+                    }
                 });
             }
         })
