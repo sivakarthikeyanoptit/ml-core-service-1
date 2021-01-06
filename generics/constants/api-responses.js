@@ -133,5 +133,7 @@ module.exports = {
   "PROGRAM_EXIST" : "Program exist",
   "PROGRAM_DESCRIPTION" : "Program description",
   "USER_TARGETED_PROGRAMS_FETCHED" : "Users programs fetched successfully",
-  "USER_TARGETED_SOLUTIONS_FETCHED" : "Users solutions fetched successfully"
+  "USER_TARGETED_SOLUTIONS_FETCHED" : "Users solutions fetched successfully",
+  "ROLE_REQUIRED_IN_SCOPE" : "Required role in scope",
+  "INVALID_ROLE_CODE" : "Invalid role in code"
 };

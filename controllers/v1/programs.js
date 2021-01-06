@@ -75,4 +75,89 @@ module.exports = class Programs extends Abstract {
     });
   }
 
+    /**
+  * @api {post} /kendra/api/v1/programs/create Create Program
+  * @apiVersion 1.0.0
+  * @apiName create
+  * @apiGroup Program
+  * @apiSampleRequest /kendra/api/v1/programs/create
+  * @apiHeader {String} internal-access-token internal access token  
+  * @apiHeader {String} X-authenticated-user-token Authenticity token 
+  * @apiParamExample {json} Request-Body:
+  * {
+      "externalId" : "PROGID01",
+      "name" : "DCPCR School Development Index 2018-19",
+      "description" : "DCPCR School Development Index 2018-19",
+      "isDeleted" : false,
+      "resourceType" : [ 
+          "program"
+      ],
+      "language" : [ 
+          "English"
+      ],
+      "keywords" : [],
+      "concepts" : [],
+      "createdFor" : [ 
+          "0126427034137395203", 
+          "0124487522476933120"
+      ],
+      "userId":"a082787f-8f8f-42f2-a706-35457ca6f1fd",
+      "imageCompression" : {
+          "quality" : 10
+      },
+      "components" : [ 
+          ObjectId("5b98fa069f664f7e1ae7498c")
+      ],
+      "scope" : {
+          "entityType" : "state",
+          "entities" : [ 
+              ObjectId("5d6609ef81a57a6173a79e78")
+          ]
+      }
+    }
+  * @apiParamExample {json} Response:
+   {
+    "message": "Program created successfully",
+    "status": 200,
+    "result": {
+        "_id": "5ff09aa4a43c952a32279234"
+    }
+   } 
+  * @apiUse successBody
+  * @apiUse errorBody
+  */
+
+   /**
+   * Create program.
+   * @method
+   * @name create
+   * @param {Object} req - requested data.
+   * @returns {JSON} - created program document.
+   */
+
+  async create(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        req.body.userId = req.userDetails.userId;
+        let programCreationData = await programsHelper.create(
+          req.body
+        );
+        
+        return resolve({
+          message : constants.apiResponses.PROGRAMS_CREATED,
+          result : _.pick(programCreationData,["_id"])
+        });
+
+      }
+      catch (error) {
+        reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error
+        })
+      }
+    })
+  } 
+
 }
