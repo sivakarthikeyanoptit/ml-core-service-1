@@ -493,4 +493,49 @@ module.exports = class UsersHelper {
         })
     }
 
+     /**
+    * Get user targeted programs.
+    * @method
+    * @name programs
+    * @param {Object} bodyData - request body data.
+    * @param {String} userToken - Logged in user token.
+    * @param {String} pageNo - Page number.
+    * @param {String} pageSize - Page size.
+    * @param {String} searchText - Search text.
+    * @returns {Array} - Get user targeted programs.
+    */
+
+   static programs(bodyData, userToken, pageNo, pageSize,searchText) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let programs = await assessmentService.getUserTargetedPrograms
+                ( 
+                    userToken,
+                    bodyData, 
+                    pageNo,
+                    pageSize,
+                    searchText
+                );
+
+                if (!programs.success) {
+                    throw new Error(constants.apiResponses.PROGRAM_NOT_FOUND)
+                }
+
+                return resolve({
+                    success: true,
+                    message: constants.apiResponses.USER_TARGETED_PROGRAMS_FETCHED,
+                    result: programs
+                });
+
+            } catch (error) {
+                return resolve({
+                    success: false,
+                    message: error.message,
+                    data: []
+                });
+            }
+        })
+    }
+
 };

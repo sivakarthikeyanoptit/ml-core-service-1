@@ -24,8 +24,5 @@ module.exports = {
     GET_USER_PROFILE : "/users/getProfile",
     SUNBIRD_LEARNING_RESOURCE_LIST : "/learningResources/list",
     SUNBIRD_USER_SEARCH :"/users/search",
-    CREATE_PROGRAM_SOLUTION_MAP : "api/v1/programsSolutionsMap/create",
-    UPDATE_PROGRAM_SOLUTION_MAP : "api/v1/programsSolutionsMap/update",
-    USER_TARGETED_PROGRAMS : "api/v1/programsSolutionsMap/targetedPrograms",
-    USER_TARGETED_SOLUTIONS : "api/v1/programsSolutionsMap/targetedSolutionsByProgram/"
+    SAMIKSHA_USER_TARGETED_PROGRAMS : "api/v1/programs/autoTargeted"
 }

@@ -591,5 +591,86 @@ module.exports = class Users extends Abstract {
     });
   }
 
+
+/**
+     * @api {post} /kendra/api/v1/users/programs?page=:page&limit=:limit&search=:search 
+     * Program List
+     * @apiVersion 1.0.0
+     * @apiGroup Users
+     * @apiHeader {String} X-authenticated-user-token Authenticity token
+     * @apiSampleRequest /kendra/api/v1/users/programs?page=:page&limit=:limit&search=:search 
+     * @apiUse successBody
+     * @apiUse errorBody
+     * @apiParamExample {json} Request:
+     * {
+        "role" : "HM",
+        "state" : "5c0bbab881bdbe330655da7f",
+        "block" : "5c0bbab881bdbe330655da7f",
+        "cluster" : "5c0bbab881bdbe330655da7f",
+        "school" : "5c0bbab881bdbe330655da7f"
+      }
+      * @apiParamExample {json} Response:
+      * {
+         "status" : 200,
+         "message" : "Users programs fetched successfully",
+         "result" : {
+              "description" : "Programs description",
+              "data" : 
+              [{
+                "_id" : "5b98d7b6d4f87f317ff615ee",
+                "externalId" : "PROGID01",
+                "name" : "DCPCR School Development",
+                "solutions" :  4
+              }],
+            "count" : 1
+          }
+      }
+
+    */
+
+    /**
+      * Get program list
+      * @method
+      * @name programs
+      * @param  {Request} req request body.
+      * @param {String} req.pageNo - pageNo
+      * @param {String} req.pageSize - pageSize
+      * @param {String} req.searchText - searchText
+      * @returns {JSON} Returns success as true or false.
+     */
+
+    programs(req) {
+      return new Promise(async (resolve, reject) => {
+
+        try {
+          
+          let programs = 
+          await usersHelper.programs( 
+              req.body, 
+              req.userDetails.userToken, 
+              req.pageNo,
+              req.pageSize,
+              req.searchText
+          );
+         
+          return resolve(programs);
+
+        } catch (error) {
+
+            return reject({
+                status: 
+                error.status || 
+                httpStatusCode["internal_server_error"].status,
+
+                message: 
+                error.message || 
+                httpStatusCode["internal_server_error"].message
+            })
+
+        }
+
+      })
+    }
+   
 };
 
