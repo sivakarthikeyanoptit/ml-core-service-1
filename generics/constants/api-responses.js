@@ -128,6 +128,7 @@ module.exports = {
   "PROGRAM_ID_REQUIRED" : "Program Id is required",
   "PROGRAMS_CREATED" : "Programs created successfully",
   "PROGRAMS_UPDATED" : "Programs updated successfully",
+  "PROGRAM_NOT_UPDATED" : "Could not update program",
   "ERROR_CREATING_PROGRAM" : "Error creating program",
   "PROGRAM_NOT_FOUND" : "Program not found" ,
   "PROGRAM_EXIST" : "Program exist",

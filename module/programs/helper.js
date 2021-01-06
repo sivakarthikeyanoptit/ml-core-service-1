@@ -371,4 +371,59 @@ module.exports = class ProgramsHelper {
     })
   }
 
+   /**
+   * Update program
+   * @method
+   * @name update
+   * @param {String} programId - program id.
+   * @param {Array} data 
+   * @param {String} userId
+   * @returns {JSON} - update program.
+   */
+
+  static update(programId,data,userId) {
+
+    return new Promise(async (resolve, reject) => {
+
+      try {
+
+        if( Object.keys(_.omit(data,["scope"])).length > 0 ) {
+          
+          data.updatedBy = userId;
+          data.updatedAt = new Date();
+
+          let program = await database.models.programs.findOneAndUpdate({
+            _id : programId
+          },{ $set : data }, { new: true });
+
+          if( !program || program._id ) {
+            throw {
+              message : constants.apiResponses.PROGRAM_NOT_UPDATED
+            };
+          }
+        }
+
+        if( data.scope ) {
+          let programScope = await this.addScope( programId,data.scope );
+        }
+
+        return resolve({
+          success : true,
+          message : constants.apiResponses.PROGRAMS_UPDATED,
+          data : {
+            _id : programId
+          }
+        });
+
+      } catch (error) {
+          return resolve({
+            success : false,
+            message : error.message,
+            data : {}
+          });
+      }
+
+    })
+  }
+
 };
