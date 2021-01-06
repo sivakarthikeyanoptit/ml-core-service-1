@@ -166,13 +166,13 @@ module.exports = class SolutionsHelper {
 
    /**
    * Create solution.
-   * @method create
-   * @name create
+   * @method 
+   * @name createSolution
    * @param {Object} data - solution creation data.
    * @returns {JSON} solution creation data. 
    */
   
-  static create(data) {
+  static createSolution(data) {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -264,8 +264,6 @@ module.exports = class SolutionsHelper {
                 solutionData._id,
                 data.scope ? data.scope : {}
               );
-
-              console.log(solutionScope)
 
             }
             
@@ -360,29 +358,29 @@ module.exports = class SolutionsHelper {
 
             let entityIds = [];
 
-            // for( let entity = 0; entity < entities.length; entity ++ ) {
+            for( let entity = 0; entity < entities.length; entity ++ ) {
               
-            //   let entityQuery = {
-            //     _id : { $in : currentSolutionScope.entities },
-            //     [`groups.${currentSolutionScope.entityType}`] : entities[entity]._id
-            //   }
+              let entityQuery = {
+                _id : { $in : currentSolutionScope.entities },
+                [`groups.${currentSolutionScope.entityType}`] : entities[entity]._id
+              }
 
-            //   let entityInParent = 
-            //   await entitiesHelper.entityDocuments(entityQuery);
+              let entityInParent = 
+              await entitiesHelper.entityDocuments(entityQuery);
 
-            //   if( entityInParent.length > 0 ) {
-            //     entityIds.push(ObjectId(entities[entity]._id));
-            //   }
-            // }
+              if( entityInParent.length > 0 ) {
+                entityIds.push(ObjectId(entities[entity]._id));
+              }
+            }
 
-            // if( !entityIds.length > 0 ) {
+            if( !entityIds.length > 0 ) {
               
-            //   return resolve({
-            //     status : httpStatusCode.bad_request.status,
-            //     message : constants.apiResponses.SCOPE_ENTITY_INVALID
-            //   });
+              return resolve({
+                status : httpStatusCode.bad_request.status,
+                message : constants.apiResponses.SCOPE_ENTITY_INVALID
+              });
 
-            // }
+            }
 
             currentSolutionScope.entities = entityIds;
 

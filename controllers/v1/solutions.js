@@ -74,7 +74,7 @@ module.exports = class Solutions extends Abstract {
     return new Promise(async (resolve, reject) => {
       try {
 
-        let solutionData = await solutionsHelper.create(
+        let solutionData = await solutionsHelper.createSolution(
           req.body
         );
 
