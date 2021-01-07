@@ -762,18 +762,18 @@ module.exports = class EntitiesHelper {
             }
             
             let result = [];
-            
-            await Promise.all(entitiesFromEs.map (async entity => {
-                if (entity.data.roles && Object.keys(entity.data.roles).length > 0) {
-                    await Promise.all(entity.data.roles[role].map(userId => {
+        
+            for (let entity = 0; entity < entitiesFromEs.length; entity++) {
+                if (entitiesFromEs[entity].data.roles && Object.keys(entitiesFromEs[entity].data.roles).length > 0) {
+                    for (let user = 0; user < entitiesFromEs[entity].data.roles[role].length; user++) {
                         result.push({
-                            entityId: entity.id,
-                            entityExternalId: entity.data.externalId,
-                            userId: userId
+                            entityId: entitiesFromEs[entity].id,
+                            entityExternalId: entitiesFromEs[entity].data.externalId ? entitiesFromEs[entity].data.externalId : "",
+                            userId: entitiesFromEs[entity].data.roles[role][user]
                         })
-                    }))
+                    }
                 }
-            }))
+            }
            
             resolve({
                 success: true,
