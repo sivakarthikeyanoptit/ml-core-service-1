@@ -4,7 +4,8 @@
  * created-date : 03-Sep-2020
  * Description : Solution related information.
  */
-
+// Dependencies
+const solutionsHelper = require(MODULES_BASE_PATH + "/solutions/helper");
 module.exports = class Solutions extends Abstract {
     
     constructor() {
