@@ -507,7 +507,7 @@ module.exports = class UserExtensionHelper {
                      
                     let entities = [];
 
-                    if (rolesData[0].code == constants.common.SPD ) {
+                    if ( requestedData.roles[pointerToRole].entities.length == 0 ) {
                         entities.push(requestedData.stateId);
                     } 
 
@@ -569,6 +569,8 @@ module.exports = class UserExtensionHelper {
                  if (requestedData.roles.length > 0) {
                     await this.updateUserRolesInEntitiesElasticSearch(userId, requestedData.roles);
                   }   
+
+                  await this.pushUserToElasticSearch(userId);
 
                 resolve({
                     message: constants.apiResponses.USER_EXTENSION_UPDATED,
@@ -944,7 +946,7 @@ static updateUserRolesInEntitiesElasticSearch(userId = "", userRoles = []) {
                                 process.env.ELASTICSEARCH_ENTITIES_INDEX,
                                 "_doc",
                                 entity,
-                                {roles: entityDocument.roles }
+                                {data: entityDocument }
                             )
                         }
                     }
@@ -956,7 +958,7 @@ static updateUserRolesInEntitiesElasticSearch(userId = "", userRoles = []) {
                             process.env.ELASTICSEARCH_ENTITIES_INDEX,
                             "_doc",
                             entity,
-                            {roles: entityDocument.roles }
+                            {data: entityDocument }
                         )
                     }
                 }
@@ -973,6 +975,56 @@ static updateUserRolesInEntitiesElasticSearch(userId = "", userRoles = []) {
     }
 })
 }
+
+
+/**
+   * Push user data to elastic search
+   * @method
+   * @name pushUserToElasticSearch
+   * @name userData - created or modified user data.
+   * @returns {Object} 
+   */
+
+  static pushUserToElasticSearch(userId) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+         let userInformation = await this.userExtensionDocument
+         (
+             { userId: userId },
+             [ "_id",
+             "status", 
+             "isDeleted",
+             "deleted",
+             "roles",
+             "userId",
+             "externalId",
+             "updatedBy",
+             "createdBy",
+             "updatedAt",
+             "createdAt"]
+         )
+              
+         await elasticSearch.createOrUpdateDocumentInIndex(
+            process.env.ELASTICSEARCH_USER_EXTENSION_INDEX,
+            "_doc",
+            userId,
+            {
+                data : userInformation
+            }
+        );
+
+        return resolve({
+            success : true
+        });
+            
+    }
+        catch(error) {
+            return reject(error);
+        }
+    })
+
+   }
 };
 
 
