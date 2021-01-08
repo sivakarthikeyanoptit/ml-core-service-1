@@ -507,11 +507,11 @@ module.exports = class UserExtensionHelper {
 
                     let entities = [];
 
-                    if ( !requestedData.roles[pointerToRole].entities || requestedData.roles[pointerToRole].entities.length == 0 ) {
+                    if ( !requestedData.roles[pointerToRole].entities || (requestedData.roles[pointerToRole].entities && requestedData.roles[pointerToRole].entities.length == 0 )) {
                         entities.push(requestedData.stateId);
                     } 
                     
-                    if (requestedData.roles[pointerToRole].entities.length > 0) {
+                    if (requestedData.roles[pointerToRole].entities && requestedData.roles[pointerToRole].entities.length > 0) {
                         const entitiesData = await entitiesHelper.entityDocuments({
                             _id: { $in: requestedData.roles[pointerToRole].entities },
                             entityType: { $in: entityTypes }
