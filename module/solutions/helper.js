@@ -318,13 +318,8 @@ module.exports = class SolutionsHelper {
               });
             }
 
-            let code = [];
-            for(var pointerToCode = 0; pointerToCode < scopeData.roles.length; pointerToCode++){
-              code.push(scopeData.roles[pointerToCode].code)
-            }
-
             let userRoles = await userRolesHelper.roleDocuments({
-              code : { $in : code }
+              code : { $in : scopeData.roles }
             },["_id","code"]);
 
             if( !userRoles.length > 0 ) {
@@ -438,3 +433,19 @@ module.exports = class SolutionsHelper {
   }
 
 };
+
+/**
+    * List of solution types.
+    * @method
+    * @name solutionTypes
+    * @returns {Object} - List of solution types.
+*/
+
+function solutionTypes() {
+  return [
+    constants.common.ASSESSMENT,
+    constants.common.OBSERVATION,
+    constants.common.IMPROVEMENT_PROJECT,
+    constants.common.SURVEY
+  ]
+}

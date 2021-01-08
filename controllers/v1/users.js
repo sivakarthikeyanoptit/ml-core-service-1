@@ -744,6 +744,8 @@ module.exports = class Users extends Abstract {
               req.pageSize,
               req.searchText
           );
+
+          programs.result = programs.data;
          
           return resolve(programs);
 

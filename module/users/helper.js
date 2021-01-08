@@ -12,6 +12,7 @@ const solutionsHelper = require(MODULES_BASE_PATH + "/solutions/helper");
 const sunbirdService = require(ROOT_PATH + "/generics/services/sunbird");
 const userRolesHelper = require(MODULES_BASE_PATH + "/user-roles/helper");
 const entitiesHelper = require(MODULES_BASE_PATH + "/entities/helper");
+const assessmentService = require(ROOT_PATH + "/generics/services/samiksha");
 
 /**
     * UsersHelper
@@ -569,13 +570,15 @@ module.exports = class UsersHelper {
                 );
 
                 if (!programs.success) {
-                    throw new Error(constants.apiResponses.PROGRAM_NOT_FOUND)
+                    throw {
+                        message : constants.apiResponses.PROGRAM_NOT_FOUND
+                    }
                 }
 
                 return resolve({
                     success: true,
                     message: constants.apiResponses.USER_TARGETED_PROGRAMS_FETCHED,
-                    result: programs.data
+                    data : programs.data
                 });
 
             } catch (error) {

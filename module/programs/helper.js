@@ -253,14 +253,9 @@ module.exports = class ProgramsHelper {
             message : constants.apiResponses.ROLE_REQUIRED_IN_SCOPE
           });
         }
-
-        let code = [];
-        for(var pointerToCode = 0; pointerToCode < scopeData.roles.length; pointerToCode++){
-          code.push(scopeData.roles[pointerToCode].code)
-        }
         
         let userRoles = await userRolesHelper.roleDocuments({
-          code : { $in : code }
+          code : { $in : scopeData.roles }
         },["_id","code"]
         );
         

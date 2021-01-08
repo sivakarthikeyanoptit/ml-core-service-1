@@ -24,7 +24,11 @@ module.exports = {
         type : [String],
         default : []
       },
-      scope : Object
+      scope : Object,
+      isDeleted: {
+        default : false,
+        type : Boolean
+      }
     }
   };
   
