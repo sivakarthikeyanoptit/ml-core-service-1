@@ -14,6 +14,7 @@
 const entityTypesHelper = require(MODULES_BASE_PATH + "/entityTypes/helper");
 const entitiesHelper = require(MODULES_BASE_PATH + "/entities/helper");
 const userRolesHelper = require(MODULES_BASE_PATH + "/user-roles/helper");
+const elasticSearch = require(GENERIC_HELPERS_PATH + "/elastic-search");
 
 module.exports = class UserExtensionHelper {
 
@@ -504,18 +505,24 @@ module.exports = class UserExtensionHelper {
                         return roleData.entityType;
                     })
 
-                    const entitiesData = await entitiesHelper.entityDocuments({
-                        _id: { $in: requestedData.roles[pointerToRole].entities },
-                        entityType: { $in: entityTypes }
-                    }, ["_id"]);
-
                     let entities = [];
 
-                    if (entitiesData.length > 0) {
+                    if ( !requestedData.roles[pointerToRole].entities || requestedData.roles[pointerToRole].entities.length == 0 ) {
+                        entities.push(requestedData.stateId);
+                    } 
+                    
+                    if (requestedData.roles[pointerToRole].entities.length > 0) {
+                        const entitiesData = await entitiesHelper.entityDocuments({
+                            _id: { $in: requestedData.roles[pointerToRole].entities },
+                            entityType: { $in: entityTypes }
+                        }, ["_id"]);
 
-                        entities = entitiesData.map(entity => {
-                            return entity._id
-                        });
+                        if (entitiesData.length > 0) {
+
+                            entities = entitiesData.map(entity => {
+                                return entity._id
+                            });
+                        }
                     }
 
                     requestedData.roles[pointerToRole].roleId = rolesData[0]._id;
@@ -556,6 +563,13 @@ module.exports = class UserExtensionHelper {
                     status: constants.common.ACTIVE,
                     isDeleted: false
                 });
+
+                //update user role in elasticsearch
+                if (requestedData.roles.length > 0) {
+                   await this.updateUserRolesInEntitiesElasticSearch(userId, requestedData.roles);
+                }   
+
+                await this.pushUserToElasticSearch(userId);
 
                 resolve({
                     message: constants.apiResponses.USER_EXTENSION_UPDATED,
@@ -718,10 +732,12 @@ module.exports = class UserExtensionHelper {
 
                         if (userExtensionData[0].roles[userExtensionRoleCounter].entities && userExtensionData[0].roles[userExtensionRoleCounter].entities.length > 0) {
                             for (let userExtenionRoleEntityCounter = 0; userExtenionRoleEntityCounter < userExtensionData[0].roles[userExtensionRoleCounter].entities.length; userExtenionRoleEntityCounter++) {
+                                if (entityMap[userExtensionData[0].roles[userExtensionRoleCounter].entities[userExtenionRoleEntityCounter].toString()]) {
                                 userExtensionData[0].roles[userExtensionRoleCounter].entities[userExtenionRoleEntityCounter] = {
                                     _id: entityMap[userExtensionData[0].roles[userExtensionRoleCounter].entities[userExtenionRoleEntityCounter].toString()]._id,
                                     ...entityMap[userExtensionData[0].roles[userExtensionRoleCounter].entities[userExtenionRoleEntityCounter].toString()].metaInformation
                                 };
+                              }
                             }
                             roleMap[userExtensionData[0].roles[userExtensionRoleCounter].roleId.toString()].immediateSubEntityType = (userExtensionData[0].roles[userExtensionRoleCounter].entities[0] && userExtensionData[0].roles[userExtensionRoleCounter].entities[0].entityType) ? userExtensionData[0].roles[userExtensionRoleCounter].entities[0].entityType : "";
                             roleMap[userExtensionData[0].roles[userExtensionRoleCounter].roleId.toString()].entities = userExtensionData[0].roles[userExtensionRoleCounter].entities;
@@ -886,6 +902,124 @@ module.exports = class UserExtensionHelper {
             }
         })
     }
+
+    /**
+ * Update user roles in entities elastic search 
+ * @method
+ * @name updateUserRolesInEntitiesElasticSearch
+ * @name userId - user id
+ * @name userRoles - array of userRoles.
+ */
+static updateUserRolesInEntitiesElasticSearch(userId = "", userRoles = []) {
+    return new Promise(async (resolve, reject) => {
+        try {
+        
+        await Promise.all(userRoles.map( async role => {
+            await Promise.all(role.entities.map(async entity => {
+
+                let entityDocument = await elasticSearch.getData
+                ({
+                    id : entity,
+                    index : process.env.ELASTICSEARCH_ENTITIES_INDEX,
+                    type : "_doc"
+                })
+               
+                if (entityDocument.statusCode == httpStatusCode.ok.status) {
+
+                    entityDocument = entityDocument.body["_source"].data;
+                    
+                    if (!entityDocument.roles) {
+                        entityDocument.roles = {};
+                    }
+                    
+                    if (entityDocument.roles[role.code]) {
+                        if (!entityDocument.roles[role.code].includes(userId)) {
+                            entityDocument.roles[role.code].push(userId);
+
+                            await elasticSearch.createOrUpdateDocumentInIndex
+                            (
+                                process.env.ELASTICSEARCH_ENTITIES_INDEX,
+                                "_doc",
+                                entity,
+                                {data: entityDocument }
+                            )
+                        }
+                    }
+                    else {
+                        entityDocument.roles[role.code] = [userId];
+
+                        await elasticSearch.createOrUpdateDocumentInIndex
+                        (
+                            process.env.ELASTICSEARCH_ENTITIES_INDEX,
+                            "_doc",
+                            entity,
+                            {data: entityDocument }
+                        )
+                    }
+                }
+            }))
+        }))
+
+        return resolve({
+            success: true
+        });
+
+    }
+    catch (error) {
+        return reject(error);
+    }
+})
+}
+
+
+/**
+   * Push user data to elastic search
+   * @method
+   * @name pushUserToElasticSearch
+   * @name userData - created or modified user data.
+   * @returns {Object} 
+   */
+
+  static pushUserToElasticSearch(userId) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+         let userInformation = await this.userExtensionDocument
+         (
+             { userId: userId },
+             [ "_id",
+             "status", 
+             "isDeleted",
+             "deleted",
+             "roles",
+             "userId",
+             "externalId",
+             "updatedBy",
+             "createdBy",
+             "updatedAt",
+             "createdAt"]
+         )
+              
+         await elasticSearch.createOrUpdateDocumentInIndex(
+            process.env.ELASTICSEARCH_USER_EXTENSION_INDEX,
+            "_doc",
+            userId,
+            {
+                data : userInformation
+            }
+        );
+
+        return resolve({
+            success : true
+        });
+            
+    }
+        catch(error) {
+            return reject(error);
+        }
+    })
+
+   }
 };
 
 
