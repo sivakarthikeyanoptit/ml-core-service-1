@@ -728,41 +728,52 @@ module.exports = class EntitiesHelper {
                 throw new Error(constants.apiResponses.USERS_NOT_FOUND);
             }
 
-            let queryObject = {
-                "query": {
-                  "ids" : {
-                    "values" : entityDocument[0].groups[entityType]
-                  }
-                },
-                "_source":  [`data.roles.${role}`,"data.externalId"]
-              }
+            let chunkOfEntities = _.chunk(entityDocument[0].groups[entityType], 1000);
 
-            let entities = await elasticSearch.searchDocumentFromIndex
-            (
-                process.env.ELASTICSEARCH_ENTITIES_INDEX,
-                "_doc",
-                queryObject,
-                "all",
-                "all"
-            )
+            let entitiesFromEs = [];
 
-            if (!entities.length) {
+            for(let entities = 0; entities < chunkOfEntities.length; entities++) {
+                
+                let queryObject = {
+                    "query": {
+                      "ids" : {
+                        "values" : chunkOfEntities[entities]
+                      }
+                    },
+                    "_source":  [`data.roles.${role}`,"data.externalId"]
+                }
+
+                let entityDocuments = await elasticSearch.searchDocumentFromIndex
+                (
+                    process.env.ELASTICSEARCH_ENTITIES_INDEX,
+                    "_doc",
+                    queryObject,
+                    "all",
+                    1000
+                )
+                
+                if (entityDocuments && entityDocuments.length > 0) {
+                  entitiesFromEs = [...entitiesFromEs, ...entityDocuments]
+                }
+            } 
+
+            if (!entitiesFromEs.length) {
                 throw new Error(constants.apiResponses.USERS_NOT_FOUND)
             }
             
             let result = [];
-            
-            await Promise.all(entities.map (async entity => {
-                if (entity.data.roles && Object.keys(entity.data.roles).length > 0) {
-                    await Promise.all(entity.data.roles[role].map(userId => {
+        
+            for (let entity = 0; entity < entitiesFromEs.length; entity++) {
+                if (entitiesFromEs[entity].data.roles && Object.keys(entitiesFromEs[entity].data.roles).length > 0) {
+                    for (let user = 0; user < entitiesFromEs[entity].data.roles[role].length; user++) {
                         result.push({
-                            entityId: entity.id,
-                            entityExternalId: entity.data.externalId,
-                            userId: userId
+                            entityId: entitiesFromEs[entity].id,
+                            entityExternalId: entitiesFromEs[entity].data.externalId ? entitiesFromEs[entity].data.externalId : "",
+                            userId: entitiesFromEs[entity].data.roles[role][user]
                         })
-                    }))
+                    }
                 }
-            }))
+            }
            
             resolve({
                 success: true,

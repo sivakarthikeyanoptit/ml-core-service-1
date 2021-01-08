@@ -46,5 +46,6 @@ module.exports = {
   "INSTITUTIONAL" : "institutional",
   "USER_ORGANISATIONS_FETCHED" : "User organisations fetched successfully",
   "LEARNING_RESOURCE_FILTER_FORM_NAME":"learning-resource-filters",
-  "PROJECT" : "project"
+  "PROJECT" : "project",
+  "SPD" : "SPD"
 };
