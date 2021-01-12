@@ -507,12 +507,11 @@ module.exports = class UserExtensionHelper {
                      
                     let entities = [];
 
-                    if (!requestedData.roles[pointerToRole].entities || (requestedData.roles[pointerToRole].entities && requestedData.roles[pointerToRole].entities.length == 0 )) {
+                    if ( !requestedData.roles[pointerToRole].entities || (requestedData.roles[pointerToRole].entities && requestedData.roles[pointerToRole].entities.length == 0 )) {
                         entities.push(requestedData.stateId);
                     } 
-
+                    
                     if (requestedData.roles[pointerToRole].entities && requestedData.roles[pointerToRole].entities.length > 0) {
-
                         const entitiesData = await entitiesHelper.entityDocuments({
                             _id: { $in: requestedData.roles[pointerToRole].entities },
                             entityType: { $in: entityTypes }
@@ -565,12 +564,12 @@ module.exports = class UserExtensionHelper {
                     isDeleted: false
                 });
 
-                 //update user role in elasticsearch
-                 if (requestedData.roles.length > 0) {
-                    await this.updateUserRolesInEntitiesElasticSearch(userId, requestedData.roles);
-                  }   
+                //update user role in elasticsearch
+                if (requestedData.roles.length > 0) {
+                   await this.updateUserRolesInEntitiesElasticSearch(userId, requestedData.roles);
+                }   
 
-                  await this.pushUserToElasticSearch(userId);
+                await this.pushUserToElasticSearch(userId);
 
                 resolve({
                     message: constants.apiResponses.USER_EXTENSION_UPDATED,
@@ -908,7 +907,7 @@ module.exports = class UserExtensionHelper {
         })
     }
 
-/**
+    /**
  * Update user roles in entities elastic search 
  * @method
  * @name updateUserRolesInEntitiesElasticSearch
