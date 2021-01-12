@@ -713,22 +713,44 @@ module.exports = class EntitiesHelper {
             }
 
             let entityType = userRole[0].entityTypes[0].entityType;
-            
-            let entityDocument = await this.entityDocuments
+
+            let entityTypeOfInputEntityId = await this.entityDocuments
             (
-                {
-                    _id: entityId
-                },
-                [
-                    `groups.${entityType}` 
-                ]
+                { _id: entityId },
+                ["entityType"]
             )
+
+            if (entityTypeOfInputEntityId.length == 0) {
+                throw new Error(constants.apiResponses.ENTITY_NOT_FOUND);
+            }
             
-            if (!entityDocument.length) {
+            let entityDocument = [];
+            let entityIds = [];
+
+            if (entityType == entityTypeOfInputEntityId[0].entityType) {
+                entityIds.push(entityId)
+            }
+            else {
+                entityDocument = await this.entityDocuments
+                    (
+                        {
+                            _id: entityId
+                        },
+                        [
+                            `groups.${entityType}`
+                        ]
+                )
+                
+                if (entityDocument.length > 0) {
+                    entityIds = entityDocument[0].groups[entityType]
+                }
+            }
+
+            if (!entityIds.length) {
                 throw new Error(constants.apiResponses.USERS_NOT_FOUND);
             }
 
-            let chunkOfEntities = _.chunk(entityDocument[0].groups[entityType], 1000);
+            let chunkOfEntities = _.chunk(entityIds, 1000);
 
             let entitiesFromEs = [];
 
