@@ -162,7 +162,7 @@ module.exports = class SolutionsHelper {
               }
             }
 
-            data.status = constants.common.ACTIVE_STATUS;
+            data.status = constants.common.ACTIVE;
     
             let solutionData = 
             await database.models.solutions.create(
