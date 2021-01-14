@@ -141,5 +141,6 @@ module.exports = {
   "ENTITIES_REQUIRED_IN_SCOPE" : "Entities required in scope",
   "ENTITY_TYPE_REQUIRED_IN_SCOPE" : "Required entity type in scope",
   "SCOPE_ENTITY_INVALID" : "Scope entity is invalid",
-  "USER_TARGETED_SOLUTION_FETCHED" : "Successfully fetched user targeted solution"
+  "USER_TARGETED_SOLUTION_FETCHED" : "Successfully fetched user targeted solution",
+  "SCOPE_NOT_UPDATED_IN_PROGRAM" : "Could not update scope in program"
 };

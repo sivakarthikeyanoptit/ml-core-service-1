@@ -218,7 +218,8 @@ module.exports = class SolutionsHelper {
 
       try {
 
-        let programData = await programsHelper.programDocuments({ _id : programId },["_id","scope"]);
+        let programData = 
+        await programsHelper.programDocuments({ _id : programId },["_id","scope"]);
  
         if( !programData.length > 0 ) {
           return resolve({

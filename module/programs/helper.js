@@ -118,10 +118,17 @@ module.exports = class ProgramsHelper {
         }
 
         if( data.scope ) {
-          let programScope = await this.addScope(
+          
+          let programScopeUpdated = await this.addScope(
             program._id,
             data.scope
           );
+
+          if( !programScopeUpdated.success ) {
+            throw {
+              message : constants.apiResponses.SCOPE_NOT_UPDATED_IN_PROGRAM
+            }
+          }
 
         }
 
@@ -307,28 +314,36 @@ module.exports = class ProgramsHelper {
 
   static update(programId,data,userId) {
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise( async (resolve, reject) => {
 
       try {
 
-        if( Object.keys(_.omit(data,["scope"])).length > 0 ) {
-          
-          data.updatedBy = userId;
-          data.updatedAt = new Date();
+        data.updatedBy = userId;
+        data.updatedAt = new Date();
 
-          let program = await database.models.programs.findOneAndUpdate({
-            _id : programId
-          },{ $set : data }, { new: true });
+        let program = await database.models.programs.findOneAndUpdate({
+          _id : programId
+        },{ $set : _.omit(data,["scope"]) }, { new: true });
 
-          if( !program ) {
-            throw {
-              message : constants.apiResponses.PROGRAM_NOT_UPDATED
-            };
-          }
+        if( !program ) {
+          throw {
+            message : constants.apiResponses.PROGRAM_NOT_UPDATED
+          };
         }
 
         if( data.scope ) {
-          let programScope = await this.addScope( programId,data.scope );
+          
+          let programScopeUpdated = await this.addScope(
+            programId,
+            data.scope
+          );
+
+          if( !programScopeUpdated.success ) {
+            throw {
+              message : constants.apiResponses.SCOPE_NOT_UPDATED_IN_PROGRAM
+            }
+          }
+
         }
 
         return resolve({

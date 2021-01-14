@@ -215,14 +215,14 @@ var completedObservations = function () {
   * @returns {Promise} returns a promise.
 */
 
-var autoTargetedSolutions = function (bodyData,token,pageSize,pageNo,search) {
+var autoTargetedSolutions = function (bodyData,programId,token,pageSize,pageNo,search) {
 
     const autoTargetedSolutionsUrl = 
     process.env.ASSESSMENT_APPLICATION_ENDPOINT+
     process.env.SAMIKSHA_SERVICE_BASE_URL+
     process.env.URL_PREFIX + "/" +
-    constants.endpoints.USER_TARGETED_SOLUTIONS+
-    "?page=" + pageNo + "&limit=" + pageSize+ "&search=" + search;
+    constants.endpoints.USER_TARGETED_SOLUTIONS + 
+    "?programId="+ programId + "&page=" + pageNo + "&limit=" + pageSize+ "&search=" + search;
 
      return new Promise((resolve, reject) => {
         try {
