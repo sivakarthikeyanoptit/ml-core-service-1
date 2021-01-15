@@ -507,10 +507,6 @@ module.exports = class UsersHelper {
         return new Promise(async (resolve, reject) => {
             try {
                 
-                // requestedData["filter"] = {
-                //     programId : programId
-                // };
-
                 let autoTargetedSolutions = 
                 await assessmentService.autoTargetedSolutions(
                     requestedData,
