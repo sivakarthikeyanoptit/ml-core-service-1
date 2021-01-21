@@ -139,8 +139,14 @@ module.exports = {
   "SOLUTION_TYPE_INVALID" : "Solution type is invalid",
   "SOLUTION_NOT_CREATED" : "Solution not created",
   "ENTITIES_REQUIRED_IN_SCOPE" : "Entities required in scope",
-  "ENTITY_TYPE_REQUIRED_IN_SCOPE" : "Required entity type in scope",
   "SCOPE_ENTITY_INVALID" : "Scope entity is invalid",
-  "USER_TARGETED_SOLUTION_FETCHED" : "Successfully fetched user targeted solution",
-  "SCOPE_NOT_UPDATED_IN_PROGRAM" : "Could not update scope in program"
+  "PROGRAM_SOLUTIONS_FETCHED" : "Program solutions fetched successfully",
+  "SCOPE_NOT_UPDATED_IN_PROGRAM" : "Could not update scope in program",
+  "PROGRAM_LIST" : "Program lists fetched successfully",
+  "SOLUTIONS_LIST" : "Solutions lists fetched successfully",
+  "COULD_NOT_UPDATE_SCOPE" : "Could not update scope in solution",
+  "TARGETED_SOLUTIONS_FETCHED": "Successfully targeted solutions fetched",
+  "NO_ENTITY_FOUND_IN_LOCATION": "Entity not found in location",
+  "TARGETED_PROGRAMS_FETCHED": "Targeted programs fetched successfully",
+  "PROGRAM_DESCRIPTION": "View and participate in educational programs active in your location and designed for your role"
 };

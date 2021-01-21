@@ -813,5 +813,34 @@ module.exports = class EntitiesHelper {
     })
   }
 
+   /**
+   * Get users by entityId and role
+   * @method
+   * @name getUsersByEntityAndRole
+   * @param {Object} requestedData - requested data.
+   * @param {String} entityId - entity id.
+   * @param {String} role - role code.
+   * @returns {Array}  - List of userIds and entityIds
+   */
+
+  static getUsersByEntityAndRole( entityId= "", role= "" ) {
+    return new Promise(async (resolve, reject) => {
+        try {
+           
+            resolve({
+                success: true,
+                message : constants.apiResponses.USERS_AND_ENTITIES_FETCHED,
+                data : result
+            });
+
+        } catch (error) {
+            return resolve({
+                success: false,
+                message: error.message,
+                data: false
+            });
+        }
+    })
+  }
 
 }

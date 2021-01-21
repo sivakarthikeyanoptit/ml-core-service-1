@@ -119,7 +119,7 @@ module.exports = class ProgramsHelper {
 
         if( data.scope ) {
           
-          let programScopeUpdated = await this.addScope(
+          let programScopeUpdated = await this.setScope(
             program._id,
             data.scope
           );
@@ -179,15 +179,15 @@ module.exports = class ProgramsHelper {
   }
 
     /**
-   * add scope in program
+   * set scope in program
    * @method
-   * @name addScope
+   * @name setScope
    * @param {String} programId - program id.
    * @param {Object} scopeData - scope data. 
-   * @returns {JSON} - Added scope data.
+   * @returns {JSON} - Set scope data.
    */
 
-  static addScope( programId,scopeData ) {
+  static setScope( programId,scopeData ) {
 
     return new Promise(async (resolve, reject) => {
 
@@ -202,78 +202,67 @@ module.exports = class ProgramsHelper {
           });
         }
 
-        if( !scopeData.entityType ) {
-          return resolve({
-            status : httpStatusCode.bad_request.status,
-            message : constants.apiResponses.ENTITY_TYPE_REQUIRED_IN_SCOPE
+        let scope = {};
+
+        if( scopeData.entityType ) {
+          
+          let entityTypeData =  await entityTypesHelper.entityTypesDocument(
+            {
+              name : scopeData.entityType
+            },
+            ["name","_id"]
+          );
+          
+          if( !entityTypeData.length > 0 ) {
+            return resolve({
+              status : httpStatusCode.bad_request.status,
+              message : constants.apiResponses.ENTITY_TYPES_NOT_FOUND
+            });
+          }
+
+          scope["entityType"] = entityTypeData[0].name;
+          scope["entityTypeId"] = entityTypeData[0]._id;
+        }
+
+        if( scopeData.entities && scopeData.entities.length > 0 ) {
+          let entities = 
+          await entitiesHelper.entityDocuments(
+            {
+              _id : { $in : scopeData.entities },
+              entityTypeId : entityTypeData[0]._id
+            },["_id"]
+          );
+          
+          if( !entities.length > 0 ) {
+            return resolve({
+              status : httpStatusCode.bad_request.status,
+              message : constants.apiResponses.ENTITIES_NOT_FOUND
+            });
+          }
+  
+          scope["entities"] = entities.map(entity => {
+            return entity._id;
           });
+
         }
 
-        let entityTypeData =  await entityTypesHelper.entityTypesDocument(
-          {
-            name : scopeData.entityType
-          },
-          ["name","_id"]
-        );
-        
-        if( !entityTypeData.length > 0 ) {
-          return resolve({
-            status : httpStatusCode.bad_request.status,
-            message : constants.apiResponses.ENTITY_TYPES_NOT_FOUND
-          });
-        }
+        if( scopeData.roles && scopeData.roles.length > 0 ) {
 
-        let scope = {
-          entityType : entityTypeData[0].name,
-          entityTypeId : entityTypeData[0]._id
-        }
+          let userRoles = await userRolesHelper.roleDocuments({
+            code : { $in : scopeData.roles }
+          },["_id","code"]
+          );
+          
+          if( !userRoles.length > 0 ) {
+            return resolve({
+              status : httpStatusCode.bad_request.status,
+              message : constants.apiResponses.INVALID_ROLE_CODE
+            });
+          }
+  
+          scope["roles"] = userRoles;
 
-        if( !scopeData.entities && !scopeData.entities.length > 0 ) {
-          return resolve({
-            status : httpStatusCode.bad_request.status,
-            message : constants.apiResponses.ENTITIES_REQUIRED_IN_SCOPE
-          });
         }
-
-        let entities = 
-        await entitiesHelper.entityDocuments(
-          {
-            _id : { $in : scopeData.entities },
-            entityTypeId : entityTypeData[0]._id
-          },["_id"]
-        );
-        
-        if( !entities.length > 0 ) {
-          return resolve({
-            status : httpStatusCode.bad_request.status,
-            message : constants.apiResponses.ENTITIES_NOT_FOUND
-          });
-        }
-
-        scope["entities"] = entities.map(entity => {
-          return entity._id;
-        });
-
-        if( !scopeData.roles ) {
-          return resolve({
-            status : httpStatusCode.bad_request.status,
-            message : constants.apiResponses.ROLE_REQUIRED_IN_SCOPE
-          });
-        }
-        
-        let userRoles = await userRolesHelper.roleDocuments({
-          code : { $in : scopeData.roles }
-        },["_id","code"]
-        );
-        
-        if( !userRoles.length > 0 ) {
-          return resolve({
-            status : httpStatusCode.bad_request.status,
-            message : constants.apiResponses.INVALID_ROLE_CODE
-          });
-        }
-
-        scope["roles"] = userRoles;
 
         let updateProgram = 
         await database.models.programs.findOneAndUpdate(
@@ -333,7 +322,7 @@ module.exports = class ProgramsHelper {
 
         if( data.scope ) {
           
-          let programScopeUpdated = await this.addScope(
+          let programScopeUpdated = await this.setScope(
             programId,
             data.scope
           );
@@ -364,5 +353,225 @@ module.exports = class ProgramsHelper {
 
     })
   }
+
+  /**
+   * List program
+   * @method
+   * @name list
+   * @param {Number} pageNo - page no.
+   * @param {Nmber} pageSize - page size. 
+   * @param {String} searchText - text to search.
+   * @returns {Object} - Programs list. 
+   */
+
+  static list(pageNo,pageSize,searchText,filter = {},projection) {
+
+    return new Promise( async (resolve, reject) => {
+
+      try {
+
+        let programDocument = [];
+
+        let matchQuery = { status : constants.common.ACTIVE };
+
+        if( Object.keys(filter).length > 0 ) {
+          matchQuery = _.merge(matchQuery,filter);
+        }
+
+        if ( searchText !== "" ) {
+          matchQuery["$or"] = [];
+          matchQuery["$or"].push(
+            { 
+              "externalId": new RegExp(searchText, 'i') 
+            }, { 
+            "description": new RegExp(searchText, 'i') 
+          });
+        } 
+
+        let projection1 = {};
+
+        if( projection && projection.length > 0 ) {
+
+          projection.forEach(projectedData => {
+            projection1[projectedData] = 1;
+          });
+
+        } else {
+          
+          projection1 = {
+            description : 1,
+            externalId : 1,
+            isAPrivateProgram : 1
+          };
+        }
+
+        let facetQuery = {};
+        facetQuery["$facet"] = {};
+
+        facetQuery["$facet"]["totalCount"] = [
+          { "$count": "count" }
+        ];
+
+        facetQuery["$facet"]["data"] = [
+          { $skip: pageSize * (pageNo - 1) },
+          { $limit: pageSize }
+        ];
+
+        let projection2 = {};
+        projection2["$project"] = {
+          "data": 1,
+          "count": {
+            $arrayElemAt: ["$totalCount.count", 0]
+          }
+        };
+       
+        programDocument.push({ $match : matchQuery }, { $project : projection1 }, facetQuery, projection2);
+       
+        let programDocuments = 
+        await database.models.programs.aggregate(programDocument);
+
+        return resolve({
+          success : true,
+          message : constants.apiResponses.PROGRAM_LIST,
+          data : programDocuments[0]
+        });
+
+      } catch (error) {
+          return resolve({
+            success : false,
+            message : error.message,
+            data : []
+          });
+      }
+
+    })
+  }
+
+    /**
+   * List of programs based on role and location.
+   * @method
+   * @name forUserRoleAndLocation
+   * @param {String} bodyData - Requested body data.
+   * @param {String} pageSize - Page size.
+   * @param {String} pageNo - Page no.
+   * @param {String} searchText - search text.
+   * @returns {JSON} - List of programs based on role and location.
+   */
+
+  static forUserRoleAndLocation( bodyData, pageSize, pageNo,searchText = "" ) {
+
+    return new Promise(async (resolve, reject) => {
+
+      try {
+
+        let queryData = await this.queryBasedOnRoleAndLocation(
+          bodyData
+        );
+
+        if( !queryData.success ) {
+          return resolve(queryData);
+        }
+
+        let targetedPrograms = await this.list(
+          pageNo,
+          pageSize,
+          searchText,
+          queryData.data,
+          ["name", "externalId","components"]
+        );
+             
+        if ( targetedPrograms.success && targetedPrograms.data && targetedPrograms.data.data.length > 0) {
+            targetedPrograms.data.data = targetedPrograms.data.data.map( program => {
+                program.solutions = program.components.length;
+                delete program.components;
+                return program;
+            })
+        }
+      
+        return resolve({
+          success: true,
+          message: constants.apiResponses.TARGETED_PROGRAMS_FETCHED,
+          data: targetedPrograms.data
+        });
+
+      } catch (error) {
+
+        return resolve({
+          success : false,
+          message : error.message,
+          data : {}
+        });
+
+      }
+
+    })
+  }
+
+  /**
+   * Query data based on role and location.
+   * @method
+   * @name queryBasedOnRoleAndLocation
+   * @param {Object} data - Requested body data.
+   * @returns {JSON} - Query data based on role and location.
+   */
+
+  static queryBasedOnRoleAndLocation( data ) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        let locationIds = 
+        Object.values(_.omit(data,["role","filter"])).map(locationId => {
+          return locationId;
+        });
+
+        let entities = await entitiesHelper.entityDocuments({
+          "registryDetails.locationId" : { $in : locationIds }
+        },["_id"]); 
+
+        if( !entities.length > 0 ) {
+          throw {
+            message : constants.apiResponses.NO_ENTITY_FOUND_IN_LOCATION
+          }
+        }
+
+        let entityIds = entities.map(entity => {
+          return entity._id;
+        });
+
+        let filterQuery = {
+          "scope.roles.code" : data.role,
+          "scope.entities" : { $in : entityIds },
+          "isDeleted" : false,
+          status : constants.common.ACTIVE
+        }
+
+        if( data.filter && Object.keys(data.filter).length > 0 ) {
+
+          Object.keys(data.filter).forEach( filterKey => {
+            
+            if( gen.utils.isValidMongoId(data.filter[filterKey]) ) {
+              data.filter[filterKey] = ObjectId(data.filter[filterKey]);
+            }
+          });
+    
+          filterQuery = _.merge(filterQuery,data.filter);
+        }
+
+        return resolve({
+          success : true,
+          data : filterQuery
+        });
+
+      } catch(error) {
+        return resolve({
+          success : false,
+          status : error.status ? 
+          error.status : httpStatusCode['internal_server_error'].status,
+          message : error.message,
+          data : {}
+        })
+      }
+    })
+  } 
 
 };

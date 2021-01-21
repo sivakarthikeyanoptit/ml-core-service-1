@@ -15,33 +15,31 @@ module.exports = class Programs extends Abstract {
     }
 
     /**
-   * @api {post} /kendra/api/v1/programs/list
+   * @api {post} /kendra/api/v1/programs/list?page=:page&limit=:limit&search=:search
    * programs lists.
    * @apiVersion 0.0.1
    * @apiName programs lists.
-   * @apiGroup programs
+   * @apiGroup Programs
    * @apiHeader {String} X-authenticated-user-token Authenticity token
-   * @apiParamExample {json} Request-Body:
-   * {
-    "query" : {
-        "externalId" : "PROGID01"
-    },
-    "projection" : ["_id","name"]
-    }
-   * @apiSampleRequest /kendra/api/v1/programs/list
+   * @apiSampleRequest /kendra/api/v1/programs/list?page=1&limit=5&search=Apple
    * @apiUse successBody
    * @apiUse errorBody
    * @apiParamExample {json} Response: 
    * {
-   * "message": "Programs fetched successfully",
-   * "status": 200,
-    "result": [
-        {
-            "_id": "5b98fa069f664f7e1ae7498c",
-            "name": "DCPCR Assessment Framework 2018"
-        }
-      ]
+    "message": "Program lists fetched successfully",
+    "status": 200,
+    "result": {
+        "data": [
+            {
+                "_id": "5beaaaa6af0065f0e0a10605",
+                "externalId": "APPLE-ASSESSMENT-PROGRAM",
+                "description": "Apple Program 2018",
+                "isAPrivateProgram": false
+            }
+        ],
+        "count": 1
     }
+  }
    */
 
   /**
@@ -49,9 +47,9 @@ module.exports = class Programs extends Abstract {
    * @method
    * @name list
    * @param {Object} req - Requested data.
-   * @param {Object} req.body.query - Filtered data.
-   * @param {Array} req.body.projection - Projected data.
-   * @param {Array} req.body.skipFields - Field to skip.
+   * @param {Array} req.query.page - Page number.
+   * @param {Array} req.query.limit - Page Limit.
+   * @param {Array} req.query.search - Search text.
    * @returns {JSON} List programs data.
   */
 
@@ -59,11 +57,15 @@ module.exports = class Programs extends Abstract {
     return new Promise(async (resolve, reject) => {
       try {
   
-        const programs = await programsHelper.list(
-            req.body
+        let listOfPrograms = await programsHelper.list(
+          req.pageNo,
+          req.pageSize,
+          req.searchText
         );
+
+        listOfPrograms["result"] = listOfPrograms.data;
   
-        return resolve(programs);
+        return resolve(listOfPrograms);
   
       } catch (error) {
         return reject({
@@ -80,7 +82,7 @@ module.exports = class Programs extends Abstract {
   * @api {post} /kendra/api/v1/programs/create Create Program
   * @apiVersion 1.0.0
   * @apiName create
-  * @apiGroup programs
+  * @apiGroup Programs
   * @apiSampleRequest /kendra/api/v1/programs/create
   * @apiHeader {String} internal-access-token internal access token  
   * @apiHeader {String} X-authenticated-user-token Authenticity token 
@@ -107,19 +109,12 @@ module.exports = class Programs extends Abstract {
           "quality" : 10
       },
       "components" : [ 
-          ObjectId("5b98fa069f664f7e1ae7498c")
+          "5b98fa069f664f7e1ae7498c"
       ],
       "scope" : {
           "entityType" : "state",
-          "entities" : [ 
-              ObjectId("5d6609ef81a57a6173a79e78")
-          ],
-          "roles" : [
-              {
-                "_id" : "5d6e521066a9a45df3aa891e",
-                "code" : "HM"
-              }
-          ]
+          "entities" : ["5d6609ef81a57a6173a79e78"],
+          "roles" : ["HM"]
       }
     }
   * @apiParamExample {json} Response:
@@ -171,8 +166,9 @@ module.exports = class Programs extends Abstract {
   * @api {post} /kendra/api/v1/programs/update/:programId Update Program
   * @apiVersion 1.0.0
   * @apiName Update
-  * @apiGroup programs
+  * @apiGroup Programs
   * @apiSampleRequest /kendra/api/v1/programs/update/5ff09aa4a43c952a32279234
+  * @apiHeader {String} internal-access-token internal access token  
   * @apiHeader {String} X-authenticated-user-token Authenticity token 
   * @apiParamExample {json} Request-Body:
   * {
@@ -197,19 +193,12 @@ module.exports = class Programs extends Abstract {
           "quality" : 10
       },
       "components" : [ 
-          ObjectId("5b98fa069f664f7e1ae7498c")
+          "5b98fa069f664f7e1ae7498c"
       ],
       "scope" : {
           "entityType" : "state",
-          "entities" : [ 
-              ObjectId("5d6609ef81a57a6173a79e78")
-          ],
-          "roles" : [
-              {
-                "_id" : "5d6e521066a9a45df3aa891e",
-                "code" : "HM"
-              }
-          ]
+          "entities" : ["5d6609ef81a57a6173a79e78"],
+          "roles" : ["HM"]
       }
     }
   * @apiParamExample {json} Response:
@@ -255,6 +244,71 @@ module.exports = class Programs extends Abstract {
         })
       }
     })
-  }  
+  }
+  
+     /**
+    * @api {post} /assessment/api/v1/programs/forUserRoleAndLocation?page=:page&limit=:limit Auto targeted programs
+    * @apiVersion 1.0.0
+    * @apiName Auto targeted programs
+    * @apiGroup programs
+    * @apiParamExample {json} Request-Body:
+    * {
+        "role" : "HM",
+        "state" : "236f5cff-c9af-4366-b0b6-253a1789766a",
+        "district" : "1dcbc362-ec4c-4559-9081-e0c2864c2931",
+        "school" : "c5726207-4f9f-4f45-91f1-3e9e8e84d824"
+    }
+    * @apiHeader {String} X-authenticated-user-token Authenticity token
+    * @apiSampleRequest /assessment/api/v1/programs/forUserRoleAndLocation?page=1&limit=5
+    * @apiUse successBody
+    * @apiUse errorBody
+    * @apiParamExample {json} Response:
+    * {
+    "message": "Targeted programs fetched successfully",
+    "status": 200,
+    "result": {
+        "data": [
+            {
+                "_id": "5ff438b04698083dbfab7284",
+                "externalId": "TEST_SCOPE_PROGRAM",
+                "name": "TEST scope in program",
+                "solutions": 16
+            }
+        ],
+        "count": 1
+    }}
+    */
+
+     /**
+   * Lists of programs based on role and location.
+   * @method
+   * @name forUserRoleAndLocation
+   * @param {Object} req - requested data.
+   * @returns {Array} List of programs.
+   */
+
+  async forUserRoleAndLocation(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        let targetedPrograms = await programsHelper.forUserRoleAndLocation(
+          req.body,
+          req.pageSize,
+          req.pageNo,
+          req.searchText
+        );
+          
+        targetedPrograms.result = targetedPrograms.data;
+        return resolve(targetedPrograms);
+
+      } catch (error) {
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error
+        });
+      }
+    });
+  }
 
 }

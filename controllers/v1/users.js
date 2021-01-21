@@ -593,7 +593,7 @@ module.exports = class Users extends Abstract {
   }
 
    /**
-  * @api {get} /kendra/api/v1/users/solutions/:programId?page=:page&limit=:limit&search=:searchText
+  * @api {post} /kendra/api/v1/users/solutions/:programId?page=:page&limit=:limit&search=:searchText
   * @apiVersion 1.0.0
   * @apiName User solutions
   * @apiGroup Users
@@ -611,36 +611,36 @@ module.exports = class Users extends Abstract {
   * @apiUse errorBody
   * @apiParamExample {json} Response:
   * {
-    "message": "Successfully fetched user targeted solution",
+    "message": "Program solutions fetched successfully",
     "status": 200,
     "result": {
         "data": [
             {
                 "_id": "5fc3dff14ea9b44f3340afe2",
-                "programId": "5ff438b04698083dbfab7284",
-                "programName": "TEST_SCOPE_PROGRAM",
-                "externalId": "f449823a-06bb-4a3f-9d49-edbe1524ebbb-1606672337956"
-            },
-            {
-                "_id": "5ff447e127ef425953bd8306",
-                "externalId": "TEST_SOLUTION_SCOPE",
-                "programId": "5ff438b04698083dbfab7284",
-                "programName": "TEST scope in program"
+                "type": "improvementProject",
+                "externalId": "f449823a-06bb-4a3f-9d49-edbe1524ebbb-1606672337956",
+                "projectTemplateId": "5ff4a46aa87a5c721f9eb664"
             },
             {
                 "_id": "5ff482737f768d2de902e912",
                 "externalId": "SCOPE_OBSERVATION_TEST",
                 "name": "observation testing",
                 "description": "Testing observation",
-                "programId": "5ff438b04698083dbfab7284",
-                "programName": "TEST scope in program"
+                "type": "observation"
+            },
+            {
+                "_id": "5f7dc24543b6eb39bb0c6b95",
+                "type": "survey",
+                "name": "survey and feedback solution",
+                "externalId": "d499f27c-08a0-11eb-b97f-4201ac1f0004-1602077253905",
+                "description": "test survey and feedback solution"
             }
         ],
         "count": 3,
         "programName": "TEST_SCOPE_PROGRAM",
+        "programId": "5ff438b04698083dbfab7284",
         "description": "View and participate in educational programs active in your location and designed for your role."
-    }
-    }
+    }}
   **/
 
   /**
@@ -658,7 +658,6 @@ module.exports = class Users extends Abstract {
         let targetedSolutions = await usersHelper.solutions(
             req.params._id,
             req.body,
-            req.userDetails.userToken,
             req.pageSize,
             req.pageNo,
             req.searchText
@@ -702,20 +701,21 @@ module.exports = class Users extends Abstract {
       }
       * @apiParamExample {json} Response:
       * {
-         "status" : 200,
-         "message" : "Users programs fetched successfully",
-         "result" : {
-              "description" : "Programs description",
-              "data" : 
-              [{
-                "_id" : "5b98d7b6d4f87f317ff615ee",
-                "externalId" : "PROGID01",
-                "name" : "DCPCR School Development",
-                "solutions" :  4
-              }],
-            "count" : 1
-          }
-      }
+      * "message": "Users programs fetched successfully",
+        "status": 200,
+        "result": {
+            "data": [
+                {
+                    "_id": "5ff438b04698083dbfab7284",
+                    "externalId": "TEST_SCOPE_PROGRAM",
+                    "name": "TEST scope in program",
+                    "solutions": 16
+                }
+            ],
+            "count": 1,
+            "description": "View and participate in educational programs active in your location and designed for your role"
+        }
+    }
     */
 
     /**
@@ -736,8 +736,7 @@ module.exports = class Users extends Abstract {
           
           let programs = 
           await usersHelper.programs( 
-              req.body, 
-              req.userDetails.userToken, 
+              req.body,
               req.pageNo,
               req.pageSize,
               req.searchText

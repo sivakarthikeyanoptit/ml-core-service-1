@@ -12,7 +12,6 @@ const solutionsHelper = require(MODULES_BASE_PATH + "/solutions/helper");
 const sunbirdService = require(ROOT_PATH + "/generics/services/sunbird");
 const userRolesHelper = require(MODULES_BASE_PATH + "/user-roles/helper");
 const entitiesHelper = require(MODULES_BASE_PATH + "/entities/helper");
-const assessmentService = require(ROOT_PATH + "/generics/services/samiksha");
 
 /**
     * UsersHelper
@@ -101,7 +100,6 @@ module.exports = class UsersHelper {
             }
         })
     }
-
 
     /**
   * List of all private programs created by user
@@ -346,6 +344,7 @@ module.exports = class UsersHelper {
             }
         })
     }
+
     /**
       * Entities mapping form data.
       * @method
@@ -496,22 +495,22 @@ module.exports = class UsersHelper {
       * @name solutions
       * @param {String} programId - program id.
       * @param {Object} requestedData requested data.
-      * @param {Object} token Token.
       * @param {String} pageSize page size.
       * @param {String} pageNo page no.
       * @param {String} search search text.
       * @returns {Object} targeted user solutions.
      */
 
-    static solutions( programId,requestedData,token,pageSize,pageNo,search ) {
+    static solutions( programId,requestedData,pageSize,pageNo,search ) {
         return new Promise(async (resolve, reject) => {
             try {
                 
                 let autoTargetedSolutions = 
-                await assessmentService.autoTargetedSolutions(
+                await solutionsHelper.autoTargeted(
                     requestedData,
+                    "",
+                    "",
                     programId,
-                    token,
                     pageSize,
                     pageNo,
                     search
@@ -519,12 +518,20 @@ module.exports = class UsersHelper {
 
                 if( autoTargetedSolutions.data.data && autoTargetedSolutions.data.data.length > 0 ) {
                     autoTargetedSolutions.data["programName"] = autoTargetedSolutions.data.data[0].programName;
+                    autoTargetedSolutions.data["programId"] = autoTargetedSolutions.data.data[0].programId;
+
+                    autoTargetedSolutions.data.data = 
+                    autoTargetedSolutions.data.data.map( targetedData => {
+                        delete targetedData.programId;
+                        delete targetedData.programName;
+                        return targetedData;
+                    });
                 }
 
                 autoTargetedSolutions.data["description"] = constants.common.TARGETED_SOLUTION_TEXT;
 
                 return resolve({
-                    message : constants.apiResponses.USER_TARGETED_SOLUTION_FETCHED,
+                    message : constants.apiResponses.PROGRAM_SOLUTIONS_FETCHED,
                     success : true,
                     data : autoTargetedSolutions.data
                 })
@@ -546,36 +553,35 @@ module.exports = class UsersHelper {
     * @method
     * @name programs
     * @param {Object} bodyData - request body data.
-    * @param {String} userToken - Logged in user token.
     * @param {String} pageNo - Page number.
     * @param {String} pageSize - Page size.
     * @param {String} searchText - Search text.
     * @returns {Array} - Get user targeted programs.
     */
 
-   static programs(bodyData, userToken, pageNo, pageSize,searchText) {
+   static programs(bodyData, pageNo, pageSize,searchText) {
        return new Promise(async (resolve, reject) => {
             try {
 
-                let programs = await assessmentService.autoTargetedPrograms
-                ( 
-                    userToken,
-                    bodyData, 
-                    pageNo,
+                let targetedProgrms = await programsHelper.autoTargeted(
+                    bodyData,
                     pageSize,
+                    pageNo,
                     searchText
                 );
 
-                if (!programs.success) {
+                if (!targetedProgrms.success) {
                     throw {
                         message : constants.apiResponses.PROGRAM_NOT_FOUND
                     }
                 }
+                    
+                targetedProgrms.data["description"] = constants.apiResponses.PROGRAM_DESCRIPTION;
 
                 return resolve({
                     success: true,
                     message: constants.apiResponses.USER_TARGETED_PROGRAMS_FETCHED,
-                    data : programs.data
+                    data : targetedProgrms.data
                 });
 
             } catch (error) {

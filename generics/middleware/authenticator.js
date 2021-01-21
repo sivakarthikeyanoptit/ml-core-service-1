@@ -136,7 +136,7 @@ module.exports = async function (req, res, next) {
     }
   }
 
-  let mandatoryInternalAccessApiPaths = ["keywords"];
+  let mandatoryInternalAccessApiPaths = ["keywords","/programs/create","/programs/update","/solutions/create","/solutions/update"];
 
   for(let path = 0; path < mandatoryInternalAccessApiPaths.length ; path++ ) {
     if( 
