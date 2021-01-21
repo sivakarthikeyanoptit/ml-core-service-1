@@ -148,5 +148,6 @@ module.exports = {
   "TARGETED_SOLUTIONS_FETCHED": "Successfully targeted solutions fetched",
   "NO_ENTITY_FOUND_IN_LOCATION": "Entity not found in location",
   "TARGETED_PROGRAMS_FETCHED": "Targeted programs fetched successfully",
-  "PROGRAM_DESCRIPTION": "View and participate in educational programs active in your location and designed for your role"
+  "PROGRAM_DESCRIPTION": "View and participate in educational programs active in your location and designed for your role",
+  "ENTITIES_NOT_EXIST_IN_LOCATION" : "Entities does not belongs in the location"
 };

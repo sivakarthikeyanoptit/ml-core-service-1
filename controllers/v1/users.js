@@ -762,5 +762,66 @@ module.exports = class Users extends Abstract {
 
       })
     }
+
+       /**
+     * @api {get} /kendra/api/v1/users/entityTypesByLocationAndRole/:stateLocationId?role=:role
+     * List of entity type by location and role.
+     * @apiVersion 1.0.0
+     * @apiGroup Users
+     * @apiHeader {String} X-authenticated-user-token Authenticity token
+     * @apiSampleRequest /kendra/api/v1/users/entityTypesByLocationAndRole/5ca3abc3-7a0b-4d36-a090-37509903c96d?role=DEO
+     * @apiUse successBody
+     * @apiUse errorBody
+     * @apiParamExample {json} Response:
+     * {
+     * "message": "Entity types fetched successfully",
+     * "status": 200,
+     * "result": [
+        "district",
+        "block",
+        "cluster"
+    ]}
+    */
+
+    /**
+      * Lists of entity types based on location and role.
+      * @method
+      * @name entityTypesByLocationAndRole
+      * @param  {Request} req request body.
+      * @returns {JSON} List of entiites mapping form.
+     */
+
+    entityTypesByLocationAndRole(req) {
+
+        return new Promise(async (resolve, reject) => {
+
+            try {
+
+                const entitiesMappingData = 
+                await usersHelper.entityTypesByLocationAndRole(
+                    req.params._id,
+                    req.query.role
+                );
+
+                entitiesMappingData["result"] = entitiesMappingData.data;
+                resolve(entitiesMappingData);
+
+            } catch (error) {
+
+                return reject({
+                    status: 
+                    error.status || 
+                    httpStatusCode["internal_server_error"].status,
+
+                    message: 
+                    error.message || 
+                    httpStatusCode["internal_server_error"].message
+                })
+
+            }
+
+
+        })
+    }
 };
 

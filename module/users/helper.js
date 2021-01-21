@@ -598,4 +598,64 @@ module.exports = class UsersHelper {
         })
     }
 
+      /**
+      * List of entity types by location and role.
+      * @method
+      * @name entityTypesByLocationAndRole
+      * @param {String} stateLocationId - state location id.
+      * @param {String} role - role.
+      * @returns {Object} returns a list of entity type by location and role.
+     */
+
+    static entityTypesByLocationAndRole(stateLocationId, role) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                const entitiesData = await entitiesHelper.entityDocuments({
+                    "registryDetails.locationId" : stateLocationId
+                }, ["_id"]);
+
+                if (!entitiesData.length > 0) {
+                    throw {
+                        message: constants.apiResponses.ENTITIES_NOT_EXIST_IN_LOCATION
+                    }
+                }
+
+                const rolesDocument = await userRolesHelper.roleDocuments({
+                    code : role.toUpperCase()
+                },["_id"]);
+
+                if (!rolesDocument.length > 0) {
+                    throw {
+                        message: constants.apiResponses.USER_ROLES_NOT_FOUND
+                    }
+                }
+
+                let entitiesMappingForm = 
+                await this.entitiesMappingForm(
+                    entitiesData[0]._id,
+                    rolesDocument[0]._id
+                );
+
+                let entityTypes = [];
+
+                entitiesMappingForm.result.forEach( entitiesMappingData => {
+                    entityTypes.push(entitiesMappingData.field)
+                });
+
+                return resolve({
+                    success : true,
+                    message : constants.apiResponses.ENTITY_TYPES_FETCHED,
+                    data : entityTypes
+                });
+
+            } catch (error) {
+                return resolve({
+                    success : false,
+                    message : error.message
+                });
+            }
+        })
+    }
+
 };

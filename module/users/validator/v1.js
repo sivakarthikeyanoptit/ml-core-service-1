@@ -18,6 +18,10 @@ module.exports = (req) => {
         },
         solutions : function () {
             req.checkParams('_id').exists().withMessage("required Program id");
+        },
+        entityTypesByLocationAndRole : function () {
+            req.checkParams('_id').exists().withMessage("required location id");
+            req.checkQuery('role').exists().withMessage("required role code");
         }
 
     }
