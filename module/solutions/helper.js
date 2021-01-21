@@ -201,7 +201,10 @@ module.exports = class SolutionsHelper {
    * @name setScope
    * @param {String} programId - program id.
    * @param {String} solutionId - solution id.
-   * @param {Object} scopeData - scope data. 
+   * @param {Object} scopeData - scope data.
+   * @param {String} scopeData.entityType - scope entity type
+   * @param {Array} scopeData.entities - scope entities
+   * @param {Array} scopeData.roles - roles in scope 
    * @returns {JSON} - scope in solution.
    */
 

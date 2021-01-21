@@ -184,6 +184,9 @@ module.exports = class ProgramsHelper {
    * @name setScope
    * @param {String} programId - program id.
    * @param {Object} scopeData - scope data. 
+   * @param {String} scopeData.entityType - entity type
+   * @param {Array} scopeData.entities - entities in scope
+   * @param {Array} scopeData.roles - roles in scope
    * @returns {JSON} - Set scope data.
    */
 
