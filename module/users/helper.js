@@ -506,7 +506,7 @@ module.exports = class UsersHelper {
             try {
                 
                 let autoTargetedSolutions = 
-                await solutionsHelper.autoTargeted(
+                await solutionsHelper.forUserRoleAndLocation(
                     requestedData,
                     "",
                     "",
@@ -563,7 +563,7 @@ module.exports = class UsersHelper {
        return new Promise(async (resolve, reject) => {
             try {
 
-                let targetedProgrms = await programsHelper.autoTargeted(
+                let targetedProgrms = await programsHelper.forUserRoleAndLocation(
                     bodyData,
                     pageSize,
                     pageNo,

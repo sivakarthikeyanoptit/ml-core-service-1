@@ -460,13 +460,24 @@ module.exports = class SolutionsHelper {
           }
 
           if ( searchText !== "" ) {
-            
-            matchQuery["$or"] = [];
-            matchQuery["$or"].push({ 
+
+            let searchData = [{ 
               "externalId": new RegExp(searchText, 'i') 
             }, { 
               "description": new RegExp(searchText, 'i') 
-            });
+            }]
+
+            if( matchQuery["$or"] ) {
+              matchQuery["$and"] = [
+                { $or : matchQuery.$or },
+                { $or : searchData }
+              ]
+
+              delete matchQuery.$or;
+            } else {
+              matchQuery["$or"] = [];
+              matchQuery["$or"].push(searchData);
+            }
           }
 
           let projection1 = {};
@@ -549,9 +560,7 @@ module.exports = class SolutionsHelper {
     pageNo,
     searchText = "" 
   ) {
-
     return new Promise(async (resolve, reject) => {
-
       try {
 
         let queryData = await this.queryBasedOnRoleAndLocation(
