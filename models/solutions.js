@@ -67,6 +67,20 @@ module.exports = {
       },
       project : Object,
       referenceFrom : String,
-      scope : Object
+      scope : {
+        entityType : String,
+        entityTypeId : "ObjectId",
+        entities : {
+          type : Array,
+          index : true
+        },
+        roles : [{
+          _id : "ObjectId",
+          code : {
+            type : String,
+            index : true
+          }
+        }]
+      }
     }
   };
