@@ -656,10 +656,19 @@ module.exports = class EntitiesHelper {
    static subEntityTypeList( entityId ) {   
     return new Promise(async (resolve, reject) => {
         try {
+            
+            let query = {}
+            if( gen.utils.isValidMongoId(entityId) ) {
+                query = {
+                    _id : entityId,
+                }
+            } else {
+                query = {
+                    "registryDetails.locationId" : entityId
+                }
+            }
 
-             const entityDocuments = await this.entityDocuments({
-                 _id : entityId
-             },["childHierarchyPath"]);
+             const entityDocuments = await this.entityDocuments(query,["childHierarchyPath"]);
 
              if( !entityDocuments.length > 0 ) {
                  return resolve({
