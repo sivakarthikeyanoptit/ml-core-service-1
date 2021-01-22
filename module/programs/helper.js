@@ -228,11 +228,12 @@ module.exports = class ProgramsHelper {
         }
 
         if( scopeData.entities && scopeData.entities.length > 0 ) {
+
           let entities = 
           await entitiesHelper.entityDocuments(
             {
               _id : { $in : scopeData.entities },
-              entityTypeId : entityTypeData[0]._id
+              entityTypeId : scope.entityTypeId
             },["_id"]
           );
           
