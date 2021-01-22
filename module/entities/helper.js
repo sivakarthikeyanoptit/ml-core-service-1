@@ -39,7 +39,8 @@ module.exports = class EntitiesHelper {
                         if(!queryObject.registryDetails) {
                             queryObject.registryDetails = {}
                         }
-                        queryObject.registryDetails.locationId = queryObject._id
+                        queryObject.registryDetails.locationId = queryObject._id;
+                        delete queryObject._id
                     }
                 }
                 
