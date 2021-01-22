@@ -1,3 +1,5 @@
+const { query } = require("express-validator/check");
+
 const entityTypesHelper = require(MODULES_BASE_PATH + "/entityTypes/helper");
 const userRolesHelper = require(MODULES_BASE_PATH + "/user-roles/helper");
 const elasticSearch = require(GENERIC_HELPERS_PATH + "/elastic-search");
@@ -33,6 +35,12 @@ module.exports = class EntitiesHelper {
                 
                 if (findQuery != "all") {
                     queryObject = findQuery;
+                    if( queryObject._id && !gen.utils.isValidMongoId(queryObject._id) ) {
+                        if(!queryObject.registryDetails) {
+                            queryObject.registryDetails = {}
+                        }
+                        queryObject.registryDetails.locationId = queryObject._id
+                    }
                 }
                 
                 let projectionObject = {};
@@ -656,19 +664,10 @@ module.exports = class EntitiesHelper {
    static subEntityTypeList( entityId ) {   
     return new Promise(async (resolve, reject) => {
         try {
-            
-            let query = {}
-            if( gen.utils.isValidMongoId(entityId) ) {
-                query = {
-                    _id : entityId,
-                }
-            } else {
-                query = {
-                    "registryDetails.locationId" : entityId
-                }
-            }
 
-             const entityDocuments = await this.entityDocuments(query,["childHierarchyPath"]);
+             const entityDocuments = await this.entityDocuments({
+                 _id : entityId
+             },["childHierarchyPath"]);
 
              if( !entityDocuments.length > 0 ) {
                  return resolve({
