@@ -35,8 +35,7 @@ module.exports = class EntitiesHelper {
                 
                 if (findQuery != "all") {
                     queryObject = findQuery;
-                    if( queryObject._id && !gen.utils.isValidMongoId(queryObject._id.toString()) ) {
-                        
+                    if( queryObject._id && typeof queryObject._id != "object" && !gen.utils.isValidMongoId(queryObject._id.toString()) ) {
                         queryObject["registryDetails.locationId"] = queryObject._id;
                         delete queryObject._id
                     }
