@@ -185,7 +185,7 @@ module.exports = class SolutionsHelper {
           return resolve({
             message : constants.apiResponses.SOLUTION_CREATED,
             data : {
-              _id : solutionData._id
+              _id : solutionCreation._id
             }
           });
             
@@ -475,8 +475,7 @@ module.exports = class SolutionsHelper {
 
               delete matchQuery.$or;
             } else {
-              matchQuery["$or"] = [];
-              matchQuery["$or"].push(searchData);
+              matchQuery["$or"] = searchData;
             }
           }
 
