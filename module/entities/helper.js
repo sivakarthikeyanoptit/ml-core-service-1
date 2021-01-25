@@ -188,7 +188,8 @@ module.exports = class EntitiesHelper {
                     {
                         $project: {
                             name: "$metaInformation.name",
-                            externalId: "$metaInformation.externalId"
+                            externalId: "$metaInformation.externalId",
+                            locationId : "$registryDetails.locationId"
                         }
                     }
                 ];
