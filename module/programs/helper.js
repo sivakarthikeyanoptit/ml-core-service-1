@@ -387,7 +387,9 @@ module.exports = class ProgramsHelper {
           matchQuery["$or"].push(
             { 
               "externalId": new RegExp(searchText, 'i') 
-            }, { 
+            }, {
+              "name" : new RegExp(searchText,'i')
+            },{ 
             "description": new RegExp(searchText, 'i') 
           });
         } 
