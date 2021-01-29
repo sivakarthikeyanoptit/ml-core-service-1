@@ -18,9 +18,21 @@ module.exports = (req) => {
         update : function () {
             req.checkParams("_id").exists().withMessage("required program id");
         },
-        addRoles : function () {
+        addRolesInScope : function () {
             req.checkParams("_id").exists().withMessage("required program id");
             req.checkBody("roles").exists().withMessage("required program roles to be added");
+        },
+        addEntitiesInScope : function () {
+            req.checkParams("_id").exists().withMessage("required program id");
+            req.checkBody("entities").exists().withMessage("required entities to be added");
+        },
+        removeRolesInScope : function () {
+            req.checkParams("_id").exists().withMessage("required program id");
+            req.checkBody("roles").exists().withMessage("required program roles to be added");
+        },
+        removeEntitiesInScope : function () {
+            req.checkParams("_id").exists().withMessage("required program id");
+            req.checkBody("entities").exists().withMessage("required entities to be added");
         }
     }
 

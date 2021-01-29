@@ -717,4 +717,71 @@ module.exports = class ProgramsHelper {
     })
   } 
 
+   /**
+   * remove roles in program.
+   * @method
+   * @name removeRolesInScope
+   * @param {String} programId - Program Id.
+   * @param {Array} roles - roles data.
+   * @returns {JSON} - Added roles data.
+   */
+
+  static removeRolesInScope( programId,roles ) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        let programData = 
+        await this.programDocuments({ 
+          _id : programId,
+          scope : { $exists : true },
+          isAPrivateProgram : false 
+        },["_id"]);
+
+        if( !programData.length > 0 ) {
+          return resolve({
+            status : httpStatusCode.bad_request.status,
+            message : constants.apiResponses.PROGRAM_NOT_FOUND
+          });
+        }
+
+        let userRoles = await userRolesHelper.roleDocuments({
+          code : { $in : roles }
+        },["_id","code"]
+        );
+        
+        if( !userRoles.length > 0 ) {
+          return resolve({
+            status : httpStatusCode.bad_request.status,
+            message : constants.apiResponses.INVALID_ROLE_CODE
+          });
+        }
+
+        let updateProgram = await database.models.programs.findOneAndUpdate({
+          _id : programId
+        },{
+          $pull : { "scope.roles" : { $in : userRoles } }
+        },{ new : true }).lean();
+
+        if( !updateProgram || !updateProgram._id ) {
+          throw {
+            message : constants.apiResponses.PROGRAM_NOT_UPDATED
+          }
+        }
+
+        return resolve({
+          message : constants.apiResponses.ROLES_REMOVED_IN_PROGRAM,
+          success : true
+        });
+
+      } catch(error) {
+        return resolve({
+          success : false,
+          status : error.status ? 
+          error.status : httpStatusCode['internal_server_error'].status,
+          message : error.message
+        })
+      }
+    })
+  } 
+
 };

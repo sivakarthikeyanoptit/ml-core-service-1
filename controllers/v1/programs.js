@@ -413,4 +413,55 @@ module.exports = class Programs extends Abstract {
     });
   }
 
+       /**
+    * @api {post} /assessment/api/v1/programs/removeRolesInScope/:programId Add roles in programs
+    * @apiVersion 1.0.0
+    * @apiName 
+    * @apiGroup Programs
+    * @apiParamExample {json} Request-Body:
+    * {
+    * "roles" : ["DEO","SPD"]
+    }
+    * @apiHeader {String} X-authenticated-user-token Authenticity token
+    * @apiSampleRequest /assessment/api/v1/programs/removeRolesInScope/5ffbf8909259097d48017bbf
+    * @apiUse successBody
+    * @apiUse errorBody
+    * @apiParamExample {json} Response:
+    * {
+        "message": "Successfully removed roles in program scope",
+        "status": 200
+      }
+    */
+
+     /**
+   * Add roles in program scope
+   * @method
+   * @name removeRolesInScope
+   * @param {Object} req - requested data.
+   * @param {String} req.params._id - program id.
+   * @param {Array} req.body.roles - Roles to be added.
+   * @returns {Array} Program scope roles.
+   */
+
+  async removeRolesInScope(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        let programUpdated = await programsHelper.removeRolesInScope(
+          req.params._id,
+          req.body.roles
+        );
+    
+        return resolve(programUpdated);
+
+      } catch (error) {
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error
+        });
+      }
+    });
+  }
+
 }
