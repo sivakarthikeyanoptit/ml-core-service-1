@@ -250,7 +250,7 @@ module.exports = class Programs extends Abstract {
     * @api {post} /assessment/api/v1/programs/forUserRoleAndLocation?page=:page&limit=:limit Auto targeted programs
     * @apiVersion 1.0.0
     * @apiName Auto targeted programs
-    * @apiGroup programs
+    * @apiGroup Programs
     * @apiParamExample {json} Request-Body:
     * {
         "role" : "HM",
@@ -300,6 +300,108 @@ module.exports = class Programs extends Abstract {
           
         targetedPrograms.result = targetedPrograms.data;
         return resolve(targetedPrograms);
+
+      } catch (error) {
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error
+        });
+      }
+    });
+  }
+
+       /**
+    * @api {post} /assessment/api/v1/programs/addRolesInScope/:programId Add roles in programs
+    * @apiVersion 1.0.0
+    * @apiName 
+    * @apiGroup Programs
+    * @apiParamExample {json} Request-Body:
+    * {
+    * "roles" : ["DEO","SPD"]
+    }
+    * @apiHeader {String} X-authenticated-user-token Authenticity token
+    * @apiSampleRequest /assessment/api/v1/programs/addRolesInScope/5ffbf8909259097d48017bbf
+    * @apiUse successBody
+    * @apiUse errorBody
+    * @apiParamExample {json} Response:
+    * {
+        "message": "Successfully added roles in program scope",
+        "status": 200
+      }
+    */
+
+     /**
+   * Add roles in program scope
+   * @method
+   * @name addRolesInScope
+   * @param {Object} req - requested data.
+   * @param {String} req.params._id - program id.
+   * @param {Array} req.body.roles - Roles to be added.
+   * @returns {Array} Program scope roles.
+   */
+
+  async addRolesInScope(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        let programUpdated = await programsHelper.addRolesInScope(
+          req.params._id,
+          req.body.roles
+        );
+    
+        return resolve(programUpdated);
+
+      } catch (error) {
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error
+        });
+      }
+    });
+  }
+
+  /**
+    * @api {post} /assessment/api/v1/programs/addEntitiesInScope/:programId Add roles in programs
+    * @apiVersion 1.0.0
+    * @apiName 
+    * @apiGroup Programs
+    * @apiParamExample {json} Request-Body:
+    * {
+      "entities" : ["5f33c3d85f637784791cd830"]
+    }
+    * @apiHeader {String} X-authenticated-user-token Authenticity token
+    * @apiSampleRequest /assessment/api/v1/programs/addEntitiesInScope/5ffbf8909259097d48017bbf
+    * @apiUse successBody
+    * @apiUse errorBody
+    * @apiParamExample {json} Response:
+    * {
+        "message": "Successfully added entities in program scope",
+        "status": 200
+      }
+    */
+
+     /**
+   * Add entities in program scope
+   * @method
+   * @name addEntitiesInScope
+   * @param {Object} req - requested data.
+   * @param {String} req.params._id - program id.
+   * @param {Array} req.body.entities - Entities to be added.
+   * @returns {Array} Program scope roles.
+   */
+
+  async addEntitiesInScope(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        let programUpdated = await programsHelper.addEntitiesInScope(
+          req.params._id,
+          req.body.entities
+        );
+    
+        return resolve(programUpdated);
 
       } catch (error) {
         return reject({

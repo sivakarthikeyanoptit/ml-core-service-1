@@ -17,6 +17,10 @@ module.exports = (req) => {
         },
         update : function () {
             req.checkParams("_id").exists().withMessage("required program id");
+        },
+        addRoles : function () {
+            req.checkParams("_id").exists().withMessage("required program id");
+            req.checkBody("roles").exists().withMessage("required program roles to be added");
         }
     }
 

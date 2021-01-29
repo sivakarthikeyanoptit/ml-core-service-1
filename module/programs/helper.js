@@ -578,4 +578,143 @@ module.exports = class ProgramsHelper {
     })
   } 
 
+  /**
+   * Add roles in program.
+   * @method
+   * @name addRolesInScope
+   * @param {String} programId - Program Id.
+   * @param {Array} roles - roles data.
+   * @returns {JSON} - Added roles data.
+   */
+
+  static addRolesInScope( programId,roles ) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        let programData = 
+        await this.programDocuments({ 
+          _id : programId,
+          scope : { $exists : true },
+          isAPrivateProgram : false 
+        },["_id"]);
+
+        if( !programData.length > 0 ) {
+          return resolve({
+            status : httpStatusCode.bad_request.status,
+            message : constants.apiResponses.PROGRAM_NOT_FOUND
+          });
+        }
+
+        let userRoles = await userRolesHelper.roleDocuments({
+          code : { $in : roles }
+        },["_id","code"]
+        );
+        
+        if( !userRoles.length > 0 ) {
+          return resolve({
+            status : httpStatusCode.bad_request.status,
+            message : constants.apiResponses.INVALID_ROLE_CODE
+          });
+        }
+
+        let updateProgram = await database.models.programs.findOneAndUpdate({
+          _id : programId
+        },{
+          $addToSet : { "scope.roles" : { $each : userRoles } }
+        },{ new : true }).lean();
+
+        if( !updateProgram || !updateProgram._id ) {
+          throw {
+            message : constants.apiResponses.PROGRAM_NOT_UPDATED
+          }
+        }
+
+        return resolve({
+          message : constants.apiResponses.ROLES_ADDED_IN_PROGRAM,
+          success : true
+        });
+
+      } catch(error) {
+        return resolve({
+          success : false,
+          status : error.status ? 
+          error.status : httpStatusCode['internal_server_error'].status,
+          message : error.message
+        })
+      }
+    })
+  } 
+
+   /**
+   * Add entities in program.
+   * @method
+   * @name addEntitiesInScope
+   * @param {String} programId - Program Id.
+   * @param {Array} entities - entities data.
+   * @returns {JSON} - Added entities data.
+   */
+
+  static addEntitiesInScope( programId,entities ) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        let programData = 
+        await this.programDocuments({ 
+          _id : programId,
+          scope : { $exists : true },
+          isAPrivateProgram : false 
+        },["_id","scope.entityTypeId"]);
+
+        if( !programData.length > 0 ) {
+          throw {
+            message : constants.apiResponses.PROGRAM_NOT_FOUND
+          };
+        }
+
+        let entitiesData = 
+        await entitiesHelper.entityDocuments({
+          _id : { $in : entities },
+          entityTypeId : programData[0].scope.entityTypeId
+        },["_id"]);
+          
+        if( !entitiesData.length > 0 ) {
+            throw {
+              message : constants.apiResponses.ENTITIES_NOT_FOUND
+            };
+        }
+
+        let entityIds = [];
+        
+        entitiesData.forEach(entity => {
+          entityIds.push(entity._id);
+        });
+
+        let updateProgram = await database.models.programs.findOneAndUpdate({
+          _id : programId
+        },{
+          $addToSet : { "scope.entities" : { $each : entityIds } }
+        },{ new : true }).lean();
+
+        if( !updateProgram || !updateProgram._id ) {
+          throw {
+            message : constants.apiResponses.PROGRAM_NOT_UPDATED
+          }
+        }
+
+        return resolve({
+          message : constants.apiResponses.ENTITIES_ADDED_IN_PROGRAM,
+          success : true
+        });
+
+      } catch(error) {
+        return resolve({
+          success : false,
+          status : error.status ? 
+          error.status : httpStatusCode['internal_server_error'].status,
+          message : error.message
+        })
+      }
+    })
+  } 
+
 };

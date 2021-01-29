@@ -149,5 +149,7 @@ module.exports = {
   "NO_ENTITY_FOUND_IN_LOCATION": "Entity not found in location",
   "TARGETED_PROGRAMS_FETCHED": "Targeted programs fetched successfully",
   "PROGRAM_DESCRIPTION": "View and participate in educational programs active in your location and designed for your role",
-  "ENTITIES_NOT_EXIST_IN_LOCATION" : "Entities does not belongs in the location"
+  "ENTITIES_NOT_EXIST_IN_LOCATION" : "Entities does not belongs in the location",
+  "ROLES_ADDED_IN_PROGRAM" : "Successfully added roles in program scope",
+  "ENTITIES_ADDED_IN_PROGRAM" : "Successfully added entities in program scope"
 };

@@ -623,7 +623,7 @@ module.exports = class UsersHelper {
 
                 const rolesDocument = await userRolesHelper.roleDocuments({
                     code : role.toUpperCase()
-                },["_id"]);
+                },["_id","entityTypes.entityType"]);
 
                 if (!rolesDocument.length > 0) {
                     throw {
@@ -632,8 +632,15 @@ module.exports = class UsersHelper {
                 }
 
                 let entityTypes = [];
+                let stateEntityExists = false;
 
-                if( role.toUpperCase() === constants.common.STATE_PROJECT_DIRECTOR ) {
+                rolesDocument[0].entityTypes.forEach( roleDocument => {
+                    if( roleDocument.entityType === constants.common.STATE_ENTITY_TYPE ) {
+                        stateEntityExists = true;
+                    }
+                });
+
+                if( stateEntityExists ) {
                     entityTypes = [constants.common.STATE_ENTITY_TYPE]
                 } else {
                     
