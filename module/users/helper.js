@@ -391,7 +391,7 @@ module.exports = class UsersHelper {
                 })
 
                 let entityTypeIndex =
-                    entitiesData[0].childHierarchyPath.findIndex(path => path === roleEntityType);
+                entitiesData[0].childHierarchyPath.findIndex(path => path === roleEntityType);
 
                 let form = {
                     "field": "",
@@ -631,17 +631,22 @@ module.exports = class UsersHelper {
                     }
                 }
 
-                let entitiesMappingForm = 
-                await this.entitiesMappingForm(
-                    entitiesData[0]._id,
-                    rolesDocument[0]._id
-                );
-
                 let entityTypes = [];
 
-                entitiesMappingForm.result.forEach( entitiesMappingData => {
-                    entityTypes.push(entitiesMappingData.field)
-                });
+                if( role.toUpperCase() === constants.common.STATE_PROJECT_DIRECTOR ) {
+                    entityTypes = [constants.common.STATE_ENTITY_TYPE]
+                } else {
+                    
+                    let entitiesMappingForm = 
+                    await this.entitiesMappingForm(
+                        entitiesData[0]._id,
+                        rolesDocument[0]._id
+                    );
+
+                    entitiesMappingForm.result.forEach( entitiesMappingData => {
+                        entityTypes.push(entitiesMappingData.field)
+                    });
+                }
 
                 return resolve({
                     success : true,
