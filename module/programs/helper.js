@@ -784,4 +784,76 @@ module.exports = class ProgramsHelper {
     })
   } 
 
+   /**
+   * remove entities in program scope.
+   * @method
+   * @name removeEntitiesInScope
+   * @param {String} programId - Program Id.
+   * @param {Array} entities - entities.
+   * @returns {JSON} - Removed entities data.
+   */
+
+  static removeEntitiesInScope( programId,entities ) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        let programData = 
+        await this.programDocuments({ 
+          _id : programId,
+          scope : { $exists : true },
+          isAPrivateProgram : false 
+        },["_id","scope.entityTypeId"]);
+
+        if( !programData.length > 0 ) {
+          throw {
+            message : constants.apiResponses.PROGRAM_NOT_FOUND
+          };
+        }
+
+        let entitiesData = 
+        await entitiesHelper.entityDocuments({
+          _id : { $in : entities },
+          entityTypeId : programData[0].scope.entityTypeId
+        },["_id"]);
+          
+        if( !entitiesData.length > 0 ) {
+            throw {
+              message : constants.apiResponses.ENTITIES_NOT_FOUND
+            };
+        }
+
+        let entityIds = [];
+        
+        entitiesData.forEach(entity => {
+          entityIds.push(entity._id);
+        });
+
+        let updateProgram = await database.models.programs.findOneAndUpdate({
+          _id : programId
+        },{
+          $pull : { "scope.entities" : { $pull : entityIds } }
+        },{ new : true }).lean();
+
+        if( !updateProgram || !updateProgram._id ) {
+          throw {
+            message : constants.apiResponses.PROGRAM_NOT_UPDATED
+          }
+        }
+
+        return resolve({
+          message : constants.apiResponses.ENTITIES_REMOVED_IN_PROGRAM,
+          success : true
+        });
+
+      } catch(error) {
+        return resolve({
+          success : false,
+          status : error.status ? 
+          error.status : httpStatusCode['internal_server_error'].status,
+          message : error.message
+        })
+      }
+    })
+  } 
+
 };

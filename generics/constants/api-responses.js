@@ -152,5 +152,6 @@ module.exports = {
   "ENTITIES_NOT_EXIST_IN_LOCATION" : "Entities does not belongs in the location",
   "ROLES_ADDED_IN_PROGRAM" : "Successfully added roles in program scope",
   "ENTITIES_ADDED_IN_PROGRAM" : "Successfully added entities in program scope",
-  "ROLES_REMOVED_IN_PROGRAM" : "Successfully removed roles in program scope"
+  "ROLES_REMOVED_IN_PROGRAM" : "Successfully removed roles in program scope",
+  "ENTITIES_REMOVED_IN_PROGRAM" : "Successfully removed entities in program scope",
 };
