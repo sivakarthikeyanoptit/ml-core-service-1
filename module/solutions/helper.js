@@ -381,7 +381,7 @@ module.exports = class SolutionsHelper {
 
           let solutionUpdateData = solutionData;
 
-          Object.keys(solutionUpdateData).forEach(updationData=>{
+          Object.keys(_.omit(solutionUpdateData,["scope"])).forEach(updationData=>{
             updateObject["$set"][updationData] = solutionUpdateData[updationData];
           });
 
