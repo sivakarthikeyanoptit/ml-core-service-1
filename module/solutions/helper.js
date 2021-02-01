@@ -389,7 +389,7 @@ module.exports = class SolutionsHelper {
 
           let solutionUpdatedData = await database.models.solutions.findOneAndUpdate({
             _id: solutionDocument[0]._id
-          }, _.omit(updateObject,["scope"])).lean();
+          }, updateObject,{ new : true }).lean();
 
           if( !solutionUpdatedData._id ) {
             throw {
@@ -400,7 +400,11 @@ module.exports = class SolutionsHelper {
           if( solutionData.scope && Object.keys(solutionData.scope).length > 0 ) {
 
             let solutionScope = 
-            await this.setScope(solutionData.programId,solutionUpdatedData._id,solutionData.scope);
+            await this.setScope(
+              solutionUpdatedData.programId,
+              solutionUpdatedData._id,
+              solutionData.scope
+            );
 
             if( !solutionScope.success ) {
               throw {
