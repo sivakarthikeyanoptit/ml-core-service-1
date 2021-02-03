@@ -154,4 +154,10 @@ module.exports = {
   "ENTITIES_ADDED_IN_PROGRAM" : "Successfully added entities in program scope",
   "ROLES_REMOVED_IN_PROGRAM" : "Successfully removed roles in program scope",
   "ENTITIES_REMOVED_IN_PROGRAM" : "Successfully removed entities in program scope",
+  "ROLES_ADDED_IN_SOLUTION" : "Successfully added roles in solution scope",
+  "ENTITIES_ADDED_IN_SOLUTION" : "Successfully added entities in solution scope",
+  "ROLES_REMOVED_IN_SOLUTION" : "Successfully removed roles from solution scope",
+  "ENTITIES_REMOVED_IN_SOLUTION" : "Successfully removed entities from solution scope",
+  "ENTITY_NOT_EXISTS_IN_PARENT" : "Entity could not found in parent entities",
+  "SOLUTION_NOT_UPDATED" : "Could not update solution"
 };

@@ -273,7 +273,7 @@ module.exports = class Solutions extends Abstract {
   }
 
   /**
-    * @api {post} /assessment/api/v1/solutions/detailsBasedOnRoleAndLocation/:solutionId Solution details based on role and location.
+    * @api {post} /kendra/api/v1/solutions/detailsBasedOnRoleAndLocation/:solutionId Solution details based on role and location.
     * @apiVersion 1.0.0
     * @apiName Targeted solution details
     * @apiGroup Solutions
@@ -285,7 +285,7 @@ module.exports = class Solutions extends Abstract {
         "school" : "c5726207-4f9f-4f45-91f1-3e9e8e84d824"
       }
     * @apiHeader {String} X-authenticated-user-token Authenticity token
-    * @apiSampleRequest /assessment/api/v1/solutions/detailsBasedOnRoleAndLocation/5fc3dff14ea9b44f3340afe2
+    * @apiSampleRequest /kendra/api/v1/solutions/detailsBasedOnRoleAndLocation/5fc3dff14ea9b44f3340afe2
     * @apiUse successBody
     * @apiUse errorBody
     * @apiParamExample {json} Response:
@@ -326,6 +326,210 @@ module.exports = class Solutions extends Abstract {
           
         solutionDetails.result = solutionDetails.data;
         return resolve(solutionDetails);
+
+      } catch (error) {
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error
+        });
+      }
+    });
+  }
+
+      /**
+    * @api {post} /kendra/api/v1/solutions/addRolesInScope/:solutionId Add roles in solutions
+    * @apiVersion 1.0.0
+    * @apiName Add roles in solutions
+    * @apiGroup Solutions
+    * @apiParamExample {json} Request-Body:
+    * {
+    * "roles" : ["DEO","SPD"]
+    }
+    * @apiHeader {String} X-authenticated-user-token Authenticity token
+    * @apiSampleRequest /kendra/api/v1/solutions/addRolesInScope/5ffbf8909259097d48017bbf
+    * @apiUse successBody
+    * @apiUse errorBody
+    * @apiParamExample {json} Response:
+    * {
+        "message": "Successfully added roles in solutions scope",
+        "status": 200
+      }
+    */
+
+     /**
+   * Add roles in solution scope
+   * @method
+   * @name addRolesInScope
+   * @param {Object} req - requested data.
+   * @param {String} req.params._id - solution id.
+   * @param {Array} req.body.roles - Roles to be added.
+   * @returns {Array} solution scope roles.
+   */
+
+  async addRolesInScope(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        let solutionUpdated = await solutionsHelper.addRolesInScope(
+          req.params._id,
+          req.body.roles
+        );
+    
+        return resolve(solutionUpdated);
+
+      } catch (error) {
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error
+        });
+      }
+    });
+  }
+
+  /**
+    * @api {post} /kendra/api/v1/solutions/addEntitiesInScope/:solutionId Add entities in solutions
+    * @apiVersion 1.0.0
+    * @apiName Add entities in solutions
+    * @apiGroup Solutions
+    * @apiParamExample {json} Request-Body:
+    * {
+      "entities" : ["5f33c3d85f637784791cd830"]
+    }
+    * @apiHeader {String} X-authenticated-user-token Authenticity token
+    * @apiSampleRequest /kendra/api/v1/solutions/addEntitiesInScope/5ffbf8909259097d48017bbf
+    * @apiUse successBody
+    * @apiUse errorBody
+    * @apiParamExample {json} Response:
+    * {
+        "message": "Successfully added entities in solution scope",
+        "status": 200
+      }
+    */
+
+     /**
+   * Add entities in solution scope
+   * @method
+   * @name addEntitiesInScope
+   * @param {Object} req - requested data.
+   * @param {String} req.params._id - solution id.
+   * @param {Array} req.body.entities - Entities to be added.
+   * @returns {Array} Solution scope entities updation.
+   */
+
+  async addEntitiesInScope(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        let solutionUpdated = await solutionsHelper.addEntitiesInScope(
+          req.params._id,
+          req.body.entities
+        );
+    
+        return resolve(solutionUpdated);
+
+      } catch (error) {
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error
+        });
+      }
+    });
+  }
+
+       /**
+    * @api {post} /kendra/api/v1/solutions/removeRolesInScope/:solutionId Remove roles from solutions scope
+    * @apiVersion 1.0.0
+    * @apiName 
+    * @apiGroup Solutions
+    * @apiParamExample {json} Request-Body:
+    * {
+    * "roles" : ["DEO","SPD"]
+    }
+    * @apiHeader {String} X-authenticated-user-token Authenticity token
+    * @apiSampleRequest /kendra/api/v1/solutions/removeRolesInScope/5ffbf8909259097d48017bbf
+    * @apiUse successBody
+    * @apiUse errorBody
+    * @apiParamExample {json} Response:
+    * {
+        "message": "Successfully removed roles in solution scope",
+        "status": 200
+      }
+    */
+
+     /**
+   * Remove roles in solution scope
+   * @method
+   * @name removeRolesInScope
+   * @param {Object} req - requested data.
+   * @param {String} req.params._id - solution id.
+   * @param {Array} req.body.roles - Roles to be added.
+   * @returns {Array} Removed solution scope roles.
+   */
+
+  async removeRolesInScope(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        let programUpdated = await solutionsHelper.removeRolesInScope(
+          req.params._id,
+          req.body.roles
+        );
+    
+        return resolve(programUpdated);
+
+      } catch (error) {
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error
+        });
+      }
+    });
+  }
+
+    /**
+    * @api {post} /kendra/api/v1/solutions/removeEntitiesInScope/:solutionId Remove entities from solution scope.
+    * @apiVersion 1.0.0
+    * @apiName Remove entities from solution scope.
+    * @apiGroup Solutions
+    * @apiParamExample {json} Request-Body:
+    * {
+      "entities" : ["5f33c3d85f637784791cd830"]
+    }
+    * @apiHeader {String} X-authenticated-user-token Authenticity token
+    * @apiSampleRequest /kendra/api/v1/solutions/removeEntitiesInScope/5ffbf8909259097d48017bbf
+    * @apiUse successBody
+    * @apiUse errorBody
+    * @apiParamExample {json} Response:
+    * {
+        "message": "Successfully removed entities in solution scope",
+        "status": 200
+      }
+    */
+
+     /**
+   * Remove entities in slution scope
+   * @method
+   * @name removeEntitiesInScope
+   * @param {Object} req - requested data.
+   * @param {String} req.params._id - solution id.
+   * @param {Array} req.body.entities - Entities to be added.
+   * @returns {Array} Program scope roles.
+   */
+
+  async removeEntitiesInScope(req) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        let programUpdated = await solutionsHelper.removeEntitiesInScope(
+          req.params._id,
+          req.body.entities
+        );
+    
+        return resolve(programUpdated);
 
       } catch (error) {
         return reject({

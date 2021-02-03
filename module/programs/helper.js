@@ -833,7 +833,7 @@ module.exports = class ProgramsHelper {
         let updateProgram = await database.models.programs.findOneAndUpdate({
           _id : programId
         },{
-          $pull : { "scope.entities" : { $pull : entityIds } }
+          $pull : { "scope.entities" : { $in : entityIds } }
         },{ new : true }).lean();
 
         if( !updateProgram || !updateProgram._id ) {
