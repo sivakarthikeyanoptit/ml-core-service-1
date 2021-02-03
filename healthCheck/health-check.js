@@ -7,11 +7,12 @@
 
 // Dependencies
 
-const mongoose = require("mongoose");
-const kafka = require('kafka-node');
 const { v1 : uuidv1 } = require('uuid');
-const assessmentHealthCheck = require("./assessmentService");
-const sunbirdHealthCheck = require("./sunbirdService");
+const assessmentHealthCheck = require("./assessments");
+const sunbirdHealthCheck = require("./sunbird");
+const mongodbHealthCheck = require("./mongodb");
+const kafkaHealthCheck = require("./kafka");
+const elasticSearchHealthCheck = require("./elastic-search");
 
 const obj = {
     MONGO_DB: {
@@ -34,53 +35,28 @@ const obj = {
         FAILED_CODE: 'SUNBIRD_SERVICE_HEALTH_FAILED',
         FAILED_MESSAGE: 'sunbird service is not healthy'
     },
-    NAME: 'ImprovementServiceHealthCheck',
+    ELASTIC_SEARCH : {
+        NAME: 'ElasticSearch.db',
+        FAILED_CODE: 'ELASTIC_SEARCH_HEALTH_FAILED',
+        FAILED_MESSAGE: 'Elastic search is not connected'
+    },
+    NAME: 'KendraServiceHealthCheck',
     API_VERSION: '1.0'
 }
 
-function mongodb_connect() {
-    return new Promise( async (resolve,reject) => {
-
-        const db = mongoose.createConnection(process.env.MONGODB_URL + "/" + process.env.DB);
-          
-        db.on("error", function () {
-            return resolve(false)
-        });
-        db.once("open", function() {
-            return resolve(true);    
-        });
-    })
-}
-
-function kafka_connect() {
-    return new Promise( async (resolve,reject) => {
-
-        const client = new kafka.KafkaClient({
-            kafkaHost : process.env.KAFKA_URL
-        });
-
-        const producer = new kafka.Producer(client);
-
-        producer.on("error", function (err) {
-            return resolve(false);
-        })
-        producer.on('ready', function () {
-            return resolve(true);
-        });
-    })
-}
-
-let checkHealth = async function(req,res) {
+let health_check = async function(req,res) {
 
     let checks = [];
-    let mongodbConnection = await mongodb_connect();
-    let kafkaConnection = await kafka_connect();
+    let mongodbConnection = await mongodbHealthCheck.health_check();
+    let kafkaConnection = await kafkaHealthCheck.health_check();
     let assessmentServiceStatus = await assessmentHealthCheck.health_check();
     let sunbirdServiceStatus = await sunbirdHealthCheck.health_check();
-    checks.push(singleCheckObj("KAFKA",kafkaConnection));
-    checks.push(singleCheckObj("MONGO_DB",mongodbConnection));
-    checks.push(singleCheckObj("ASSESSMENT_SERVICE",assessmentServiceStatus));
-    checks.push(singleCheckObj("SUNBIRD_SERVICE",sunbirdServiceStatus));
+    let elasticSearchConnection = await elasticSearchHealthCheck.health_check();
+    checks.push(checkResult("KAFKA",kafkaConnection));
+    checks.push(checkResult("MONGO_DB",mongodbConnection));
+    checks.push(checkResult("ASSESSMENT_SERVICE",assessmentServiceStatus));
+    checks.push(checkResult("SUNBIRD_SERVICE",sunbirdServiceStatus));
+    checks.push(checkResult("ELASTIC_SEARCH",elasticSearchConnection));
 
     let checkServices = checks.filter( check => check.healthy === false);
 
@@ -95,7 +71,7 @@ let checkHealth = async function(req,res) {
     res.status(200).json(responseData);
 }
 
-let singleCheckObj = function( serviceName,isHealthy ) {
+let checkResult = function( serviceName,isHealthy ) {
     return {
         name : obj[serviceName].NAME,
         healthy : isHealthy,
@@ -128,5 +104,5 @@ let response = function ( req,result = {} ) {
 
 module.exports = {
     healthCheckStatus : healthCheckStatus,
-    checkHealth: checkHealth
+    health_check : health_check
 }

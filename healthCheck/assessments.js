@@ -6,7 +6,6 @@
 */
 
 // Dependencies 
-
 const request = require('request');
 
 /**

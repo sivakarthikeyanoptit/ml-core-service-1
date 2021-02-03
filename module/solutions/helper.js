@@ -471,11 +471,15 @@ module.exports = class SolutionsHelper {
 
           if ( searchText !== "" ) {
 
-            let searchData = [{ 
-              "externalId": new RegExp(searchText, 'i') 
-            }, { 
-              "description": new RegExp(searchText, 'i') 
-            }]
+            let searchData = [
+              { 
+                "name" : new RegExp(searchText, 'i') 
+              },{ 
+                "externalId" : new RegExp(searchText, 'i') 
+              }, { 
+                "description" : new RegExp(searchText, 'i') 
+              }
+            ]
 
             if( matchQuery["$or"] ) {
               matchQuery["$and"] = [
