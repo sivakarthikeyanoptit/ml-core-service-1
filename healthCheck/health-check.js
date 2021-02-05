@@ -13,6 +13,7 @@ const sunbirdHealthCheck = require("./sunbird");
 const mongodbHealthCheck = require("./mongodb");
 const kafkaHealthCheck = require("./kafka");
 const elasticSearchHealthCheck = require("./elastic-search");
+const gotenbergHealthCheck = require("./gotenberg");
 
 const obj = {
     MONGO_DB: {
@@ -40,6 +41,11 @@ const obj = {
         FAILED_CODE: 'ELASTIC_SEARCH_HEALTH_FAILED',
         FAILED_MESSAGE: 'Elastic search is not connected'
     },
+    GOTENBERG : {
+        NAME: 'Gotenberg',
+        FAILED_CODE: 'GOTENBERG_HEALTH_FAILED',
+        FAILED_MESSAGE: 'Gotenberg service is not healthy'
+    },
     NAME: 'KendraServiceHealthCheck',
     API_VERSION: '1.0'
 }
@@ -52,11 +58,14 @@ let health_check = async function(req,res) {
     let assessmentServiceStatus = await assessmentHealthCheck.health_check();
     let sunbirdServiceStatus = await sunbirdHealthCheck.health_check();
     let elasticSearchConnection = await elasticSearchHealthCheck.health_check();
+    let gotenbergStatus = await gotenbergHealthCheck.health_check();
+
     checks.push(checkResult("KAFKA",kafkaConnection));
     checks.push(checkResult("MONGO_DB",mongodbConnection));
     checks.push(checkResult("ASSESSMENT_SERVICE",assessmentServiceStatus));
     checks.push(checkResult("SUNBIRD_SERVICE",sunbirdServiceStatus));
     checks.push(checkResult("ELASTIC_SEARCH",elasticSearchConnection));
+    checks.push(checkResult("GOTENBERG",gotenbergStatus));
 
     let checkServices = checks.filter( check => check.healthy === false);
 
