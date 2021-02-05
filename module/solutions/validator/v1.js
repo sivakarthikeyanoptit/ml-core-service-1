@@ -40,6 +40,9 @@ module.exports = (req) => {
         removeEntitiesInScope : function () {
             req.checkParams("_id").exists().withMessage("required program id");
             req.checkBody("entities").exists().withMessage("required entities to be added");
+        },
+        details : function () {
+            req.checkParams("_id").exists().withMessage("required solution id");
         }
     }
 

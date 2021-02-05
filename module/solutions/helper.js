@@ -469,17 +469,17 @@ module.exports = class SolutionsHelper {
             matchQuery = _.merge(matchQuery,filter);
           }
 
-          if ( searchText !== "" ) {
+          let searchData = [
+            { 
+              "name" : new RegExp(searchText, 'i') 
+            },{ 
+              "externalId" : new RegExp(searchText, 'i') 
+            }, { 
+              "description" : new RegExp(searchText, 'i') 
+            }
+          ]
 
-            let searchData = [
-              { 
-                "name" : new RegExp(searchText, 'i') 
-              },{ 
-                "externalId" : new RegExp(searchText, 'i') 
-              }, { 
-                "description" : new RegExp(searchText, 'i') 
-              }
-            ]
+          if ( searchText !== "" ) {
 
             if( matchQuery["$or"] ) {
               matchQuery["$and"] = [
@@ -1103,6 +1103,45 @@ module.exports = class SolutionsHelper {
         return resolve({
           message : constants.apiResponses.ENTITIES_REMOVED_IN_SOLUTION,
           success : true
+        });
+
+      } catch(error) {
+        return resolve({
+          success : false,
+          status : error.status ? 
+          error.status : httpStatusCode['internal_server_error'].status,
+          message : error.message
+        })
+      }
+    })
+  } 
+
+   /**
+   * Solution details.
+   * @method
+   * @name details
+   * @param {String} solutionId - Program Id.
+   * @returns {Object} - Details of the solution.
+   */
+
+  static details( solutionId ) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        let solutionData = 
+        await this.solutionDocuments({ _id : solutionId,isDeleted : false });
+
+        if( !solutionData.length > 0 ) {
+          return resolve({
+            status : httpStatusCode.bad_request.status,
+            message : constants.apiResponses.SOLUTION_NOT_FOUND
+          });
+        }
+
+        return resolve({
+          message : constants.apiResponses.SOLUTION_DETAILS_FETCHED,
+          success : true,
+          data : solutionData[0]
         });
 
       } catch(error) {

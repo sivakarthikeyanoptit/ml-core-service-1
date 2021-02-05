@@ -487,11 +487,32 @@ module.exports = class ProgramsHelper {
         );
              
         if ( targetedPrograms.success && targetedPrograms.data && targetedPrograms.data.data.length > 0) {
-            targetedPrograms.data.data = targetedPrograms.data.data.map( program => {
-                program.solutions = program.components.length;
-                delete program.components;
-                return program;
-            })
+
+            for ( 
+              let targetedProgram = 0; 
+              targetedProgram < targetedPrograms.data.data.length;
+              targetedProgram ++ 
+            ) {
+              
+              let currentTargetedProgram = targetedPrograms.data.data[targetedProgram];
+
+              if( currentTargetedProgram.components.length > 0 ) {
+                
+                let solutions = await database.models.solutions.find({
+                  _id : { $in : currentTargetedProgram.components },
+                  isDeleted : false,
+                  status : constants.common.ACTIVE
+                },{
+                  _id : 1
+                });
+
+                if( solutions.length > 0 ) {
+                  currentTargetedProgram["solutions"] = solutions.length;
+                  delete currentTargetedProgram.components;
+                }
+
+              }
+            }
         }
       
         return resolve({
