@@ -504,7 +504,7 @@ module.exports = class UserExtensionHelper {
                     let entityTypes = rolesData[0].entityTypes.map(roleData => {
                         return roleData.entityType;
                     })
-
+                     
                     let entities = [];
 
                     if ( !requestedData.roles[pointerToRole].entities || (requestedData.roles[pointerToRole].entities && requestedData.roles[pointerToRole].entities.length == 0 )) {
@@ -651,7 +651,11 @@ module.exports = class UserExtensionHelper {
                 if (!userExtensionData.length > 0) {
                     return resolve({
                         message: constants.apiResponses.USER_EXTENSION_NOT_FOUND,
-                        result: {}
+                        result : {
+                            "_id" : "",
+                            "externalId" : "",
+                            "roles" : []
+                        }
                     });
                 }
 
