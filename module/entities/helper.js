@@ -1,5 +1,3 @@
-const { query } = require("express-validator/check");
-
 const entityTypesHelper = require(MODULES_BASE_PATH + "/entityTypes/helper");
 const userRolesHelper = require(MODULES_BASE_PATH + "/user-roles/helper");
 const elasticSearch = require(GENERIC_HELPERS_PATH + "/elastic-search");
