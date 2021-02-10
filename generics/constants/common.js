@@ -46,5 +46,9 @@ module.exports = {
   "INSTITUTIONAL" : "institutional",
   "USER_ORGANISATIONS_FETCHED" : "User organisations fetched successfully",
   "LEARNING_RESOURCE_FILTER_FORM_NAME":"learning-resource-filters",
-  "PROJECT" : "project"
+  "PROJECT" : "project",
+  "OBSERVATION" : "observation",
+  "IMPROVEMENT_PROJECT" : "improvementProject",
+  "SURVEY" : "survey",
+  "TARGETED_SOLUTION_TEXT" : "View and participate in educational programs active in your location and designed for your role."
 };
