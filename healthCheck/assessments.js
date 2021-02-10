@@ -20,7 +20,7 @@ function health_check() {
         try {
 
             let healthCheckUrl = 
-            process.env.ASSESSMENT_SERIVCE_HOST +  "/healthCheckStatus";
+            process.env.ASSESSMENT_SERVICE_HOST +  "/healthCheckStatus";
 
             const options = {
                 headers : {
