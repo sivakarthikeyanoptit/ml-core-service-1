@@ -22,8 +22,8 @@ require(ROOT_PATH + "/generics/helpers/slack-communications");
 var pendingAssessments = function () {
 
     const samikshaServiceUrl = 
-    process.env.APPLICATION_BASE_HOST + 
-    process.env.SAMIKSHA_SERVICE_BASE_URL + 
+    process.env.ASSESSMENT_SERIVCE_HOST + 
+    process.env.ASSESSMENT_SERVICE_BASE_URL + 
     process.env.SAMIKSHA_PENDING_ASSESSMENTS;
 
     return new Promise((resolve, reject) => {
@@ -69,8 +69,8 @@ var pendingAssessments = function () {
 var pendingObservations = function () {
 
     const samikshaServiceUrl = 
-    process.env.APPLICATION_BASE_HOST + 
-    process.env.SAMIKSHA_SERVICE_BASE_URL + 
+    process.env.ASSESSMENT_SERIVCE_HOST + 
+    process.env.ASSESSMENT_SERVICE_BASE_URL + 
     process.env.SAMIKSHA_PENDING_OBSERVATIONS;
 
     return new Promise((resolve, reject) => {
@@ -120,7 +120,7 @@ var completedAssessments = function () {
     let fromDate = `01-${currentMonth}-${currentYear}`;
     let toDate = `${lastDateOfMonth}-${currentMonth}-${currentYear}`;
 
-    const completedAssessmentsUrl = `${process.env.APPLICATION_BASE_HOST}${process.env.SAMIKSHA_SERVICE_BASE_URL}${process.env.SAMIKSHA_COMPLETED_ASSESSMENTS}?fromDate=${fromDate}&toDate=${toDate}`;
+    const completedAssessmentsUrl = `${process.env.ASSESSMENT_SERIVCE_HOST}${process.env.ASSESSMENT_SERVICE_BASE_URL}${process.env.SAMIKSHA_COMPLETED_ASSESSMENTS}?fromDate=${fromDate}&toDate=${toDate}`;
     
     return new Promise((resolve, reject) => {
         try {
@@ -169,7 +169,7 @@ var completedObservations = function () {
     let fromDate = `01-${currentMonth}-${currentYear}`;
     let toDate = `${lastDateOfMonth}-${currentMonth}-${currentYear}`;
 
-    const completedObservationsUrl = `${process.env.APPLICATION_BASE_HOST}${process.env.SAMIKSHA_SERVICE_BASE_URL}${process.env.SAMIKSHA_COMPLETED_OBSERVATIONS}?fromDate=${fromDate}&toDate=${toDate}`;
+    const completedObservationsUrl = `${process.env.ASSESSMENT_SERIVCE_HOST}${process.env.ASSESSMENT_SERVICE_BASE_URL}${process.env.SAMIKSHA_COMPLETED_OBSERVATIONS}?fromDate=${fromDate}&toDate=${toDate}`;
 
     return new Promise((resolve, reject) => {
         try {
