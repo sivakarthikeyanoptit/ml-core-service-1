@@ -235,7 +235,7 @@ module.exports = class SolutionsHelper {
 
         if( programData[0].scope ) {
           
-          let currentSolutionScope = programData[0].scope;
+          let currentSolutionScope = JSON.parse(JSON.stringify(programData[0].scope));
 
           if( Object.keys(scopeData).length > 0 ) {
 
@@ -306,7 +306,7 @@ module.exports = class SolutionsHelper {
             }
 
             if( scopeData.roles ) {
-              if( scopeData.roles.length > 0 ) {
+              if( Array.isArray(scopeData.roles) && scopeData.roles.length > 0 ) {
                 
                 let userRoles = await userRolesHelper.roleDocuments({
                   code : { $in : scopeData.roles }
@@ -382,7 +382,7 @@ module.exports = class SolutionsHelper {
           let solutionDocument = 
           await this.solutionDocuments(queryObject, ["_id"]);
 
-          if (!solutionDocument) {
+          if (!solutionDocument.length > 0 ) {
             return resolve({
               status: httpStatusCode.bad_request.status,
               message: constants.apiResponses.SOLUTION_NOT_FOUND
