@@ -235,7 +235,7 @@ module.exports = class SolutionsHelper {
 
         if( programData[0].scope ) {
           
-          let currentSolutionScope = programData[0].scope;
+          let currentSolutionScope = JSON.parse(JSON.stringify(programData[0].scope));
 
           if( Object.keys(scopeData).length > 0 ) {
 
@@ -305,21 +305,29 @@ module.exports = class SolutionsHelper {
             currentSolutionScope.entities = entityIds;
             }
 
-            if( scopeData.roles.length > 0 ) {
-              
-              let userRoles = await userRolesHelper.roleDocuments({
-                code : { $in : scopeData.roles }
-              },["_id","code"]);
+            if( scopeData.roles ) {
+              if( Array.isArray(scopeData.roles) && scopeData.roles.length > 0 ) {
+                
+                let userRoles = await userRolesHelper.roleDocuments({
+                  code : { $in : scopeData.roles }
+                },["_id","code"]);
+    
+                if( !userRoles.length > 0 ) {
+                  return resolve({
+                    status : httpStatusCode.bad_request.status,
+                    message : constants.apiResponses.INVALID_ROLE_CODE
+                  });
+                }
+    
+                currentSolutionScope["roles"] = userRoles;
   
-              if( !userRoles.length > 0 ) {
-                return resolve({
-                  status : httpStatusCode.bad_request.status,
-                  message : constants.apiResponses.INVALID_ROLE_CODE
-                });
+              } else {
+                if( scopeData.roles === constants.common.ALL_ROLES ) {
+                  currentSolutionScope["roles"] = [{
+                    "code" : constants.common.ALL_ROLES
+                  }]; 
+                }
               }
-  
-              currentSolutionScope["roles"] = userRoles;
-
             }
           }
 
@@ -374,7 +382,7 @@ module.exports = class SolutionsHelper {
           let solutionDocument = 
           await this.solutionDocuments(queryObject, ["_id"]);
 
-          if (!solutionDocument) {
+          if (!solutionDocument.length > 0 ) {
             return resolve({
               status: httpStatusCode.bad_request.status,
               message: constants.apiResponses.SOLUTION_NOT_FOUND
@@ -694,7 +702,7 @@ module.exports = class SolutionsHelper {
         });
 
         let filterQuery = {
-          "scope.roles.code" : data.role,
+          "scope.roles.code" : { $in : [constants.common.ALL_ROLES,data.role] },
           "scope.entities" : { $in : entityIds },
           "scope.entityType" : { $in : entityTypes },
           isReusable : false,
@@ -834,23 +842,41 @@ module.exports = class SolutionsHelper {
           });
         }
 
-        let userRoles = await userRolesHelper.roleDocuments({
-          code : { $in : roles }
-        },["_id","code"]
-        );
-        
-        if( !userRoles.length > 0 ) {
-          return resolve({
-            status : httpStatusCode.bad_request.status,
-            message : constants.apiResponses.INVALID_ROLE_CODE
-          });
+        let updateQuery = {};
+
+        if( Array.isArray(roles) && roles.length > 0 ) {
+          
+          let userRoles = await userRolesHelper.roleDocuments({
+            code : { $in : roles }
+          },["_id","code"]
+          );
+          
+          if( !userRoles.length > 0 ) {
+            return resolve({
+              status : httpStatusCode.bad_request.status,
+              message : constants.apiResponses.INVALID_ROLE_CODE
+            });
+          }
+
+          await database.models.solutions.findOneAndUpdate({
+            _id : solutionId
+          },{ $pull : { "scope.roles" : { code : constants.common.ALL_ROLES }}},{ new : true }).lean();
+
+          updateQuery["$addToSet"] = {
+            "scope.roles" : { $each : userRoles } 
+          };
+
+        } else {
+          if( roles === constants.common.ALL_ROLES ) {
+            updateQuery["$set"] = { 
+              "scope.roles" : [{ "code" : constants.common.ALL_ROLES }]
+            };
+          }
         }
 
         let updateSolution = await database.models.solutions.findOneAndUpdate({
           _id : solutionId
-        },{
-          $addToSet : { "scope.roles" : { $each : userRoles } }
-        },{ new : true }).lean();
+        },updateQuery,{ new : true }).lean();
 
         if( !updateSolution || !updateSolution._id ) {
           throw {
