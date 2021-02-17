@@ -50,5 +50,6 @@ module.exports = {
   "OBSERVATION" : "observation",
   "IMPROVEMENT_PROJECT" : "improvementProject",
   "SURVEY" : "survey",
-  "TARGETED_SOLUTION_TEXT" : "View and participate in educational programs active in your location and designed for your role."
+  "TARGETED_SOLUTION_TEXT" : "View and participate in educational programs active in your location and designed for your role.",
+  "ALL_ROLES" : "all"
 };
