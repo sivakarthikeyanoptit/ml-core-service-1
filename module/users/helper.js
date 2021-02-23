@@ -202,7 +202,7 @@ module.exports = class UsersHelper {
                     isAPrivateProgram: userPrivateProgram.isAPrivateProgram
                 };
 
-                if (data.entities && data.entities.length > 0) {
+                if ( Array.isArray(data.entities) && data.entities && data.entities.length > 0) {
 
                     let entityData = await entitiesHelper.entityDocuments(
                         {
@@ -218,7 +218,10 @@ module.exports = class UsersHelper {
                         })
                     }
 
-                    solutionDataToBeUpdated["entities"] = entityData.map(entity => entity._id);
+                    if( data.type && data.type !== constants.common.IMPROVEMENT_PROJECT ) {
+                        solutionDataToBeUpdated["entities"] = entityData.map(entity => entity._id);
+                    }
+
                     solutionDataToBeUpdated["entityType"] = entityData[0].entityType;
                     solutionDataToBeUpdated["entityTypeId"] = entityData[0].entityTypeId;
                 }
