@@ -1191,8 +1191,7 @@ module.exports = class SolutionsHelper {
    */
 
 function _targetedSolutionTypes() {
-  return [
-    constants.common.ASSESSMENT, 
+  return [ 
     constants.common.OBSERVATION,
     constants.common.SURVEY,
     constants.common.IMPROVEMENT_PROJECT
