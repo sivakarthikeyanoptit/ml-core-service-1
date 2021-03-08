@@ -144,44 +144,5 @@ module.exports = function () {
     }]
   });
 
-  global.sessions = {};
-
-  // <- Dirty fix. Not required currently.
-   
-  // let versions = new Promise(async function(resolve, reject) {
-    
-  //   let versions = await database.models.appReleases.find({
-  //     status:"active"
-  //   }).lean();
-
-  //   resolve(versions);
-
-  // });
-  
-  // versions.then(function( versionData ) {
-    
-  //   if( versionData.length > 0 ) {
-  //     versionData.forEach(value=>{
-        
-  //       global.sessions[`allAppVersion-${value.appName}-${value.os}`] = {
-  //         is_read : false,
-  //         internal : true,
-  //         action : "versionUpdate",
-  //         appName : value.appName,
-  //         text : value.text,
-  //         title : value.title,
-  //         type : "Information",
-  //         payload : {
-  //             appVersion : value.version,
-  //             updateType : value.releaseType,
-  //             type : "appUpdate",
-  //             os : value.os,
-  //             releaseNotes : value.releaseNotes
-  //         },
-  //         appType : value.appType
-  //       };
-  //     })
-  //   }
-  // });
 
 };
