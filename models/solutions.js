@@ -83,7 +83,7 @@ module.exports = {
         }]
       },
       pageHeading: {
-        default : "Domain",
+        default : "Domains",
         type : String
       }
     }
