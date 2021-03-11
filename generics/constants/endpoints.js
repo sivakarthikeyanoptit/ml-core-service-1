@@ -23,5 +23,6 @@ module.exports = {
     SUNBIRD_ORGANISATION_LISTS : "/organisations/list",
     GET_USER_PROFILE : "/users/getProfile",
     SUNBIRD_LEARNING_RESOURCE_LIST : "/learningResources/list",
-    SUNBIRD_USER_SEARCH :"/users/search"
+    SUNBIRD_USER_SEARCH :"/users/search",
+    GET_OBSERVATION : '/observations/getObservation'
 }

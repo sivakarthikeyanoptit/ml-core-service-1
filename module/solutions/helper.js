@@ -11,6 +11,7 @@ const programsHelper = require(MODULES_BASE_PATH + "/programs/helper");
 const entityTypesHelper = require(MODULES_BASE_PATH + "/entityTypes/helper");
 const entitiesHelper = require(MODULES_BASE_PATH + "/entities/helper");
 const userRolesHelper = require(MODULES_BASE_PATH + "/user-roles/helper");
+const assessmentService = require(ROOT_PATH + '/generics/services/samiksha');
 
 /**
     * SolutionsHelper
@@ -1179,7 +1180,136 @@ module.exports = class SolutionsHelper {
         })
       }
     })
-  } 
+  }
+  
+   /**
+   * List of solutions and targeted ones.
+   * @method
+   * @name getSolutions
+   * @param {String} solutionId - Program Id.
+   * @returns {Object} - Details of the solution.
+   */
+
+  static getSolutions(requestedData,solutionType,userToken,pageSize,pageNo,search) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+          let userAssignedSolutions = {};
+          if ( solutionType ===  constants.common.OBSERVATION ) {
+            
+            userAssignedSolutions = 
+            await assessmentService.getObservation(
+              requestedData,
+              userToken
+            );
+
+          } else if ( solutionType === constants.common.SURVEY) {
+
+          } else {
+            
+          }
+
+          let totalCount = 0;
+          let mergedData = [];
+          let solutionIds = [];
+
+          if( userAssignedSolutions.success && userAssignedSolutions.data ) {
+
+            totalCount = userAssignedSolutions.data.count;
+            mergedData = userAssignedSolutions.data.data;
+
+            if( mergedData.length > 0 ) {
+
+                let programIds = [];
+
+                mergedData.forEach( mergeSolutionData => {
+                    if( mergeSolutionData.solutionId ) {
+                        solutionIds.push(mergeSolutionData.solutionId);
+                    }
+
+                    if( mergeSolutionData.programId ) {
+                        programIds.push(mergeSolutionData.programId);
+                    }
+                });
+
+                let programsData = await programsHelper.list({
+                    _id : { $in : programIds }
+                },["name"]);
+
+                if( programsData.length > 0 ) {
+                    
+                    let programs = 
+                    programsData.reduce(
+                        (ac, program) => 
+                        ({ ...ac, [program._id.toString()]: program }), {}
+                    );
+
+                    mergedData = mergedData.map( data => {
+                        if( programs[data.programId.toString()]) {
+                            data.programName = programs[data.programId.toString()].name;
+                        }
+                        return data;
+                    })
+                }
+            }
+          }
+
+          if( solutionIds.length > 0 ) {
+            requestedData["filter"] = {};
+            requestedData["filter"]["skipSolutions"] = solutionIds; 
+          }
+
+          let targetedSolutions = 
+          await this.forUserRoleAndLocation(
+            requestedData,
+            solutionType
+          )
+
+        if( targetedSolutions.success ) {
+
+            if( targetedSolutions.data.data && targetedSolutions.data.data.length > 0 ) {
+                totalCount += targetedSolutions.data.count;
+
+                if( mergedData.length !== pageSize ) {
+
+                    targetedSolutions.data.data.forEach(targetedSolution => {
+                        targetedSolution.solutionId = targetedSolution._id;
+                        targetedSolution._id = "";
+                        mergedData.push(targetedSolution);
+                        delete targetedSolution.type; 
+                        delete targetedSolution.externalId;
+                    });
+                }
+            }
+
+        }
+
+        if( mergedData.length > 0 ) {
+            let startIndex = pageSize * (pageNo - 1);
+            let endIndex = startIndex + pageSize;
+            mergedData = mergedData.slice(startIndex,endIndex) 
+        }
+
+        return resolve({
+            success : true,
+            message : messageConstants.apiResponses.TARGETED_OBSERVATION_FETCHED,
+            data : {
+                data : mergedData,
+                count : totalCount
+            }
+        });
+
+
+
+        } catch (error) {
+            return reject({
+                status: error.status || httpStatusCode.internal_server_error.status,
+                message: error.message || httpStatusCode.internal_server_error.message,
+                errorObject: error
+            });
+        }
+    })
+}
 
 };
 

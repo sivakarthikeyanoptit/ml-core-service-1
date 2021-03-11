@@ -205,9 +205,65 @@ var completedObservations = function () {
 
 }
 
+/**
+  * Get user assigned observation
+  * @function
+  * @name getObservation
+  * @param {String} token - logged in user token.
+  * @param {Object} requestedData - Request body data.
+  * @returns {Promise} returns a promise.
+*/
+
+var getObservation = function ( requestedData,token ) {
+
+    const getObservationUrl = urlPrefix + constants.endpoints.GET_OBSERVATION;
+    
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            function assessmentCallback(err, data) {
+
+                let result = {
+                    success : true
+                };
+
+                if (err) {
+                    result.success = false;
+                } else {
+                    
+                    let response = data.body;
+                    
+                    if( response.status === httpStatusCode['ok'].status ) {
+                        result["data"] = response.result;
+                    } else {
+                        result.success = false;
+                    }
+                }
+
+                return resolve(result);
+            }
+
+            const options = {
+                headers : {
+                    "content-type": "application/json",
+                    "x-authenticated-user-token" : token
+                },
+                json : requestedData
+            };
+
+            request.post(getObservationUrl,options,assessmentCallback)
+
+        } catch (error) {
+            return reject(error);
+        }
+    })
+
+}
+
 module.exports = {
     pendingAssessments: pendingAssessments,
     completedAssessments: completedAssessments,
     pendingObservations: pendingObservations,
-    completedObservations: completedObservations
+    completedObservations: completedObservations,
+    getObservation : getObservation
 };

@@ -675,4 +675,79 @@ module.exports = class Solutions extends Abstract {
     });
   }
 
+    /**
+    * @api {post} /assessment/api/v1/solutions/getSolutions?type=:solutionType&page=:page&limit=:limit&search=:search
+    * List of assigned solutions and targetted ones.
+    * @apiVersion 1.0.0
+    * @apiGroup Solutions
+    * @apiSampleRequest /assessment/api/v1/solutions/getSolutions?type=observation&page=1&limit=10&search=a
+    * @apiParamExample {json} Request:
+    * {
+    *   "role" : "HM",
+   		  "state" : "236f5cff-c9af-4366-b0b6-253a1789766a",
+        "district" : "1dcbc362-ec4c-4559-9081-e0c2864c2931",
+        "school" : "c5726207-4f9f-4f45-91f1-3e9e8e84d824"
+    }
+    * @apiParamExample {json} Response:
+    {
+    "message": "Solutions fetched successfully",
+    "status": 200,
+    "result": {
+        "data": [
+            {
+                "_id": "5f9288fd5e25636ce6dcad66",
+                "name": "obs1",
+                "description": "observation1",
+                "solutionId": "5f9288fd5e25636ce6dcad65",
+                "programId": "5d287326652f311044f41dbb"
+            },
+            {
+                "_id": "5fc7aa9e73434430731f6a10",
+                "solutionId": "5fb4fce4c7439a3412ff013b",
+                "programId": "5f5b216a9c70bd2973aee29f",
+                "name": "My Solution",
+                "description": "My Solution Description"
+            }
+        ],
+        "count": 2
+    }}
+    * @apiUse successBody
+    * @apiUse errorBody
+    */
+
+    /**
+      * List of solutions and targetted ones.
+      * @method
+      * @name getSolutions
+      * @param {Object} req - request data.
+      * @returns {JSON} List of solutions with targetted ones.
+     */
+
+  async getSolutions(req) {
+      return new Promise(async (resolve, reject) => {
+          try {
+
+              let observations = await solutionsHelper.getSolutions(
+                  req.body,
+                  req.query.type,
+                  req.userDetails.userToken,
+                  req.pageSize,
+                  req.pageNo,
+                  req.searchText
+              );
+
+              observations["result"] = observations.data;
+
+              return resolve(observations);
+
+          } catch (error) {
+              return reject({
+                  status: error.status || httpStatusCode.internal_server_error.status,
+                  message: error.message || httpStatusCode.internal_server_error.message,
+                  errorObject: error
+              });
+          }
+      })
+  }
+
 }
