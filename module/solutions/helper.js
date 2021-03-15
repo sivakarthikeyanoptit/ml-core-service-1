@@ -1247,9 +1247,17 @@ module.exports = class SolutionsHelper {
             }
           }
 
+          requestedData["filter"] = {};
           if( solutionIds.length > 0 ) {
-            requestedData["filter"] = {};
             requestedData["filter"]["skipSolutions"] = solutionIds; 
+          }
+
+          if( filter && filter !== "" ) {
+            if( filter === constants.common.CREATED_BY_ME ) {
+              requestedData["filter"]["isAPrivateProgram"] = true;
+            } else {
+              requestedData["filter"]["isAPrivateProgram"] = false;
+            }
           }
 
           let targetedSolutions = 
@@ -1324,7 +1332,8 @@ module.exports = class SolutionsHelper {
           userAssignedSolutions = 
           await assessmentService.assignedObservations(
             userToken,
-            search
+            search,
+            filter
           );
 
         } else if ( solutionType === constants.common.SURVEY) {
@@ -1332,7 +1341,8 @@ module.exports = class SolutionsHelper {
           userAssignedSolutions = 
           await assessmentService.assignedSurveys(
             userToken,
-            search
+            search,
+            filter
           );
 
         } else {

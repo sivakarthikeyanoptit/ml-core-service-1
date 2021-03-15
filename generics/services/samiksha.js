@@ -210,20 +210,21 @@ var completedObservations = function () {
   * @function
   * @name assignedObservations
   * @param {String} token - logged in user token.
-  * @param {String} search - search data.
+  * @param {String} [ search = "" ] - search data.
+  * @param {String} [ filter = "" ] 
   * @returns {Promise} returns a promise.
 */
 
-var assignedObservations = function ( token,search = "" ) {
+var assignedObservations = function ( token,search = "",filter = "" ) {
 
-    const userAssignedUrl = 
+    let userAssignedUrl = 
     process.env.ASSESSMENT_SERVICE_HOST +
     process.env.ASSESSMENT_SERVICE_BASE_URL + "api/v1" +
-    constants.endpoints.GET_USER_ASSIGNED_OBSERVATION;
+    constants.endpoints.GET_USER_ASSIGNED_OBSERVATION + "?search=" + search;
 
-    if( search !== "" ) {
-        getObservationUrl += getObservationUrl + "?search=" + search; 
-    }
+    if( filter !== "" ) {
+        userAssignedUrl = userAssignedUrl + "&filter=" + filter;
+    } 
     
     return new Promise(async (resolve, reject) => {
         try {
@@ -271,20 +272,21 @@ var assignedObservations = function ( token,search = "" ) {
   * @function
   * @name assignedSurveys
   * @param {String} token - logged in user token.
-  * @param {String} search - search data.
+  * @param {String} [search = ""] - search data.
+  * @param {String} [filter = ""] - filter key.
   * @returns {Promise} returns a promise.
 */
 
-var assignedSurveys = function ( token,search = "" ) {
+var assignedSurveys = function ( token,search = "",filter = "" ) {
 
-    const userAssignedUrl = 
+    let userAssignedUrl = 
     process.env.ASSESSMENT_SERVICE_HOST +
     process.env.ASSESSMENT_SERVICE_BASE_URL + "api/v1" +
-    constants.endpoints.GET_USER_ASSIGNED_SURVEY;
+    constants.endpoints.GET_USER_ASSIGNED_SURVEY + "?search=" + search;
 
-    if( search !== "" ) {
-        getObservationUrl += getObservationUrl + "?search=" + search; 
-    }
+    if( filter !== "" ) {
+        userAssignedUrl = userAssignedUrl + "&filter=" + filter;
+    } 
     
     return new Promise(async (resolve, reject) => {
         try {

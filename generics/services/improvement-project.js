@@ -21,22 +21,13 @@ const request = require('request');
 
 var assignedProjects = function ( token,search = "",filter = "" ) {
 
-    const url = 
+    let url = 
     process.env.IMPROVEMENT_SERVICE_HOST +
     process.env.IMPROVEMENT_SERVICE_BASE_URL + "api/v1" +
-    constants.endpoints.GET_USER_ASSIGNED_PROJECT;
-
-    if( search !== "" ) {
-        url += url + "?search=" + search; 
-    }
-
+    constants.endpoints.GET_USER_ASSIGNED_PROJECT + "?search=" + search;
+    
     if( filter !== "" ) {
-
-        if( search !== "" ) {
-            url += url + "&filter=" + filter;
-        } else {
-            url += url + "?filter=" + filter;
-        }
+        url = url + "&filter=" + filter;
     }
     
     return new Promise(async (resolve, reject) => {

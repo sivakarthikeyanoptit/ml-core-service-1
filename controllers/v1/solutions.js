@@ -795,7 +795,7 @@ module.exports = class Solutions extends Abstract {
                   req.pageSize,
                   req.pageNo,
                   req.searchText,
-                  req.body.filter
+                  req.query.filter
               );
 
               observations["result"] = observations.data;
