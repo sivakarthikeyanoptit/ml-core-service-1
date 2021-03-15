@@ -43,6 +43,9 @@ module.exports = (req) => {
         },
         details : function () {
             req.checkParams("_id").exists().withMessage("required solution id");
+        },
+        getSolutions : function () {
+            req.checkQuery("type").exists().withMessage("required solution type")
         }
     }
 

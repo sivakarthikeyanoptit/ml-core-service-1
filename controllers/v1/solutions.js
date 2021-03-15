@@ -733,7 +733,8 @@ module.exports = class Solutions extends Abstract {
                   req.userDetails.userToken,
                   req.pageSize,
                   req.pageNo,
-                  req.searchText
+                  req.searchText,
+                  req.body.filter
               );
 
               observations["result"] = observations.data;

@@ -12,6 +12,7 @@ const entityTypesHelper = require(MODULES_BASE_PATH + "/entityTypes/helper");
 const entitiesHelper = require(MODULES_BASE_PATH + "/entities/helper");
 const userRolesHelper = require(MODULES_BASE_PATH + "/user-roles/helper");
 const assessmentService = require(ROOT_PATH + '/generics/services/samiksha');
+const improvementProjectService = require(ROOT_PATH + '/generics/services/improvement-project');
 
 /**
     * SolutionsHelper
@@ -1190,33 +1191,25 @@ module.exports = class SolutionsHelper {
    * @returns {Object} - Details of the solution.
    */
 
-  static getSolutions(requestedData,solutionType,userToken,pageSize,pageNo,search) {
+  static getSolutions(requestedData,solutionType,userToken,pageSize,pageNo,search,filter) {
     return new Promise(async (resolve, reject) => {
         try {
 
-          let userAssignedSolutions = {};
-          if ( solutionType ===  constants.common.OBSERVATION ) {
-            
-            userAssignedSolutions = 
-            await assessmentService.getObservation(
-              requestedData,
-              userToken
-            );
-
-          } else if ( solutionType === constants.common.SURVEY) {
-
-          } else {
-            
-          }
+          let assignedSolutions = await this.assignedUserSolutions(
+            solutionType,
+            userToken,
+            search,
+            filter
+          );
 
           let totalCount = 0;
           let mergedData = [];
           let solutionIds = [];
 
-          if( userAssignedSolutions.success && userAssignedSolutions.data ) {
+          if( assignedSolutions.success && assignedSolutions.data ) {
 
-            totalCount = userAssignedSolutions.data.count;
-            mergedData = userAssignedSolutions.data.data;
+            totalCount = assignedSolutions.data.count;
+            mergedData = assignedSolutions.data.data;
 
             if( mergedData.length > 0 ) {
 
@@ -1232,7 +1225,7 @@ module.exports = class SolutionsHelper {
                     }
                 });
 
-                let programsData = await programsHelper.list({
+                let programsData = await programsHelper.programDocuments({
                     _id : { $in : programIds }
                 },["name"]);
 
@@ -1262,7 +1255,12 @@ module.exports = class SolutionsHelper {
           let targetedSolutions = 
           await this.forUserRoleAndLocation(
             requestedData,
-            solutionType
+            solutionType,
+            "",
+            "",
+            pageSize,
+            pageNo,
+            search
           )
 
         if( targetedSolutions.success ) {
@@ -1292,24 +1290,70 @@ module.exports = class SolutionsHelper {
 
         return resolve({
             success : true,
-            message : messageConstants.apiResponses.TARGETED_OBSERVATION_FETCHED,
+            message : constants.apiResponses.TARGETED_OBSERVATION_FETCHED,
             data : {
                 data : mergedData,
                 count : totalCount
             }
         });
 
-
-
-        } catch (error) {
-            return reject({
-                status: error.status || httpStatusCode.internal_server_error.status,
-                message: error.message || httpStatusCode.internal_server_error.message,
-                errorObject: error
-            });
-        }
+      } catch (error) {
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error
+        });
+      }
     })
-}
+  }
+     /**
+   * Solution details.
+   * @method
+   * @name assignedUserSolutions
+   * @param {String} solutionId - Program Id.
+   * @returns {Object} - Details of the solution.
+   */
+
+  static assignedUserSolutions(solutionType,userToken,search,filter ) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        let userAssignedSolutions = {};
+        if ( solutionType ===  constants.common.OBSERVATION ) {
+            
+          userAssignedSolutions = 
+          await assessmentService.assignedObservations(
+            userToken,
+            search
+          );
+
+        } else if ( solutionType === constants.common.SURVEY) {
+            
+          userAssignedSolutions = 
+          await assessmentService.assignedSurveys(
+            userToken,
+            search
+          );
+
+        } else {
+          userAssignedSolutions = await improvementProjectService.assignedProjects(
+            userToken,
+            search,
+            filter
+          )
+        }
+
+          return resolve(userAssignedSolutions);
+        } catch(error) {
+          return resolve({
+            success : false,
+            status : error.status ? 
+            error.status : httpStatusCode['internal_server_error'].status,
+            message : error.message
+          })
+        }
+      })
+    }
 
 };
 

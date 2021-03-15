@@ -24,5 +24,7 @@ module.exports = {
     GET_USER_PROFILE : "/users/getProfile",
     SUNBIRD_LEARNING_RESOURCE_LIST : "/learningResources/list",
     SUNBIRD_USER_SEARCH :"/users/search",
-    GET_OBSERVATION : '/observations/getObservation'
+    GET_USER_ASSIGNED_OBSERVATION : "/observations/userAssigned",
+    GET_USER_ASSIGNED_SURVEY : "/surveys/userAssigned",
+    GET_USER_ASSIGNED_PROJECT : "/userProjects/userAssigned"
 }
