@@ -823,5 +823,61 @@ module.exports = class Users extends Abstract {
 
         })
     }
+    
+     /**
+    * @api {post} /kendra/api/v1/users/targetedEntity Targeted entity.
+    * @apiVersion 1.0.0
+    * @apiName Targeted entity.
+    * @apiGroup Users
+    * @apiParamExample {json} Request-Body:
+    * {
+        "state" : "bc75cc99-9205-463e-a722-5326857838f8",
+        "district" : "b54a5c6d-98be-4313-af1c-33040b1703aa",
+        "school" : "2a128c91-a5a2-4e25-aa21-3d9196ad8203",
+        "role" : "DEO"
+    }
+    * @apiHeader {String} X-authenticated-user-token Authenticity token
+    * @apiSampleRequest /kendra/api/v1/users/targetedEntity
+    * @apiUse successBody
+    * @apiUse errorBody
+    * @apiParamExample {json} Response:
+    * {
+    "message": "Targeted entity fetched successfully",
+    "status": 200,
+    "result": {
+        "_id": "5fd098e2e049735a86b748ad",
+        "entityType": "district",
+        "entityName": "VIZIANAGARAM"
+    }}
+    */
+
+     /**
+   * Targeted entity
+   * @method
+   * @name targetedEntity
+   * @param {Object} req - requested data.
+   * @param {Object} req.body - requested bidy data.
+   * @returns {Array} Details entity.
+   */
+
+    async targetedEntity(req) {
+        return new Promise(async (resolve, reject) => {
+          try {
+    
+            let detailEntity = await usersHelper.targetedEntity(req.body);
+    
+            detailEntity["result"] = detailEntity.data;
+    
+            return resolve(detailEntity);
+    
+          } catch (error) {
+            return reject({
+              status: error.status || httpStatusCode.internal_server_error.status,
+              message: error.message || httpStatusCode.internal_server_error.message,
+              errorObject: error
+            });
+          }
+        });
+    }
 };
 
