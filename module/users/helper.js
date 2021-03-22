@@ -677,13 +677,27 @@ module.exports = class UsersHelper {
    * User Targeted entity.
    * @method
    * @name targetedEntity
+   * @param {String} solutionId - solution id
    * @param {Object} requestedData - requested data
    * @returns {Object} - Details of the solution.
    */
 
-   static targetedEntity( requestedData ) {
+   static targetedEntity( solutionId,requestedData ) {
     return new Promise(async (resolve, reject) => {
       try {
+
+        let solutionData = 
+        await solutionsHelper.solutionDocuments({ 
+          _id : solutionId,
+          isDeleted : false 
+        },["entityType","type"]);
+
+        if( !solutionData.length > 0 ) {
+          return resolve({
+            status : httpStatusCode.bad_request.status,
+            message : constants.apiResponses.SOLUTION_NOT_FOUND
+          });
+        }
           
         let rolesDocument = await userRolesHelper.roleDocuments({
             code : requestedData.role
@@ -703,12 +717,29 @@ module.exports = class UsersHelper {
             if( requestedEntityTypes.includes(singleEntityType.entityType) ) {
                 targetedEntityType = singleEntityType.entityType;
             }
-        })
+        });
 
         if( !requestedData[targetedEntityType] ) {
             throw {
                 status : httpStatusCode["bad_request"].status,
                 message: constants.apiResponses.ENTITIES_NOT_ALLOWED_IN_ROLE
+            }
+        }
+
+        if( solutionData[0].entityType === targetedEntityType ) {
+            
+            let entities = await entitiesHelper.entityDocuments({
+                "registryDetails.locationId" : requestedData[targetedEntityType]
+            },["groups"]);
+
+            if( !entities.length > 0 ) {
+                throw {
+                    message : constants.apiResponses.ENTITY_NOT_FOUND
+                }
+            }
+
+            if( entities[0] && entities[0].groups && Object.keys(entities[0].groups).length > 0 ) {
+                targetedEntityType = constants.common.STATE_ENTITY_TYPE;
             }
         }
 

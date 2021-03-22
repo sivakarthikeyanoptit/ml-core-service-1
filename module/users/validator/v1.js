@@ -24,6 +24,7 @@ module.exports = (req) => {
             req.checkQuery('role').exists().withMessage("required role code");
         },
         targetedEntity : function () {
+            req.checkParams("_id").exists().withMessage("required solution id");
             req.checkBody("role").exists().withMessage("required user role");
         }
 

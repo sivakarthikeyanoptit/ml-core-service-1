@@ -825,7 +825,7 @@ module.exports = class Users extends Abstract {
     }
     
      /**
-    * @api {post} /kendra/api/v1/users/targetedEntity Targeted entity.
+    * @api {post} /kendra/api/v1/users/targetedEntity/:solutionId Targeted entity.
     * @apiVersion 1.0.0
     * @apiName Targeted entity.
     * @apiGroup Users
@@ -837,7 +837,7 @@ module.exports = class Users extends Abstract {
         "role" : "DEO"
     }
     * @apiHeader {String} X-authenticated-user-token Authenticity token
-    * @apiSampleRequest /kendra/api/v1/users/targetedEntity
+    * @apiSampleRequest /kendra/api/v1/users/targetedEntity/601d41607d4c835cf8b724ad
     * @apiUse successBody
     * @apiUse errorBody
     * @apiParamExample {json} Response:
@@ -864,7 +864,10 @@ module.exports = class Users extends Abstract {
         return new Promise(async (resolve, reject) => {
           try {
     
-            let detailEntity = await usersHelper.targetedEntity(req.body);
+            let detailEntity = await usersHelper.targetedEntity(
+                req.params._id,
+                req.body
+            );
     
             detailEntity["result"] = detailEntity.data;
     
