@@ -1254,8 +1254,10 @@ module.exports = class SolutionsHelper {
 
           if( filter && filter !== "" ) {
             if( filter === constants.common.CREATED_BY_ME ) {
-              requestedData["filter"]["isAPrivateProgram"] = true;
-            } else if(filter === constants.common.ASSIGN_TO_ME ) {
+              requestedData["filter"]["isAPrivateProgram"] = {
+                $ne : false
+              };
+            } else if( filter === constants.common.ASSIGN_TO_ME ) {
               requestedData["filter"]["isAPrivateProgram"] = false;
             }
           }
