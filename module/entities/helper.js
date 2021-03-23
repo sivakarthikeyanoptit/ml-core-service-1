@@ -853,25 +853,33 @@ module.exports = class EntitiesHelper {
                      })
                  }
 
-                 let targetedEntityType = "";
+                 let result = [];
 
-                 rolesDocument[0].entityTypes.forEach(singleEntityType => {
-                    if( entityDocuments[0].childHierarchyPath.includes(singleEntityType.entityType) ) {
-                        targetedEntityType = singleEntityType.entityType;
+                 if( rolesDocument[0].entityTypes[0].entityType === constants.common.STATE_ENTITY_TYPE ) {
+                    result = entityDocuments[0].childHierarchyPath;
+                    result.unshift(constants.common.STATE_ENTITY_TYPE);
+                 } else {
+
+                    let targetedEntityType = "";
+
+                    rolesDocument[0].entityTypes.forEach(singleEntityType => {
+                       if( entityDocuments[0].childHierarchyPath.includes(singleEntityType.entityType) ) {
+                           targetedEntityType = singleEntityType.entityType;
+                       }
+                    });
+   
+                    let findTargetedEntityIndex = 
+                    entityDocuments[0].childHierarchyPath.findIndex(element => element === targetedEntityType);
+   
+                    if( findTargetedEntityIndex < 0 ) {
+                       throw {
+                           message : constants.apiResponses.SUB_ENTITY_NOT_FOUND,
+                           result : []
+                       }
                     }
-                });
-
-                let findTargetedEntityIndex = 
-                entityDocuments[0].childHierarchyPath.findIndex(element => element === targetedEntityType);
-
-                if( findTargetedEntityIndex < 0 ) {
-                    throw {
-                        message : constants.apiResponses.SUB_ENTITY_NOT_FOUND,
-                        result : []
-                    }
-                }
-
-                let result = entityDocuments[0].childHierarchyPath.slice(findTargetedEntityIndex);
+   
+                    result = entityDocuments[0].childHierarchyPath.slice(findTargetedEntityIndex);
+                 }
                  
                  return resolve({
                      message : constants.apiResponses.ENTITIES_CHILD_HIERACHY_PATH,
