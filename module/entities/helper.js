@@ -818,4 +818,71 @@ module.exports = class EntitiesHelper {
     })
   }
 
+    /** 
+    * Sub entity type list.
+    * @method
+    * @name subEntityListBasedOnRoleAndLocation
+    * @param role - role code
+    * @param stateLocationId - state location id.
+    * @returns {Array} List of sub entity type.
+    */
+
+    static subEntityListBasedOnRoleAndLocation( stateLocationId,role ) {   
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let rolesDocument = await userRolesHelper.roleDocuments({
+                    code : role
+                },["entityTypes.entityType"]);
+                
+                if( !rolesDocument.length > 0 ) {
+                    throw {
+                        status : httpStatusCode["bad_request"].status,
+                        message: constants.apiResponses.USER_ROLES_NOT_FOUND
+                    }
+                }
+
+                const entityDocuments = await this.entityDocuments({
+                     "registryDetails.locationId" : stateLocationId
+                 },["childHierarchyPath"]);
+    
+                 if( !entityDocuments.length > 0 ) {
+                     return resolve({
+                         message : constants.apiResponses.ENTITY_NOT_FOUND,
+                         result : []
+                     })
+                 }
+
+                 let targetedEntityType = "";
+
+                 rolesDocument[0].entityTypes.forEach(singleEntityType => {
+                    if( entityDocuments[0].childHierarchyPath.includes(singleEntityType.entityType) ) {
+                        targetedEntityType = singleEntityType.entityType;
+                    }
+                });
+
+                let findTargetedEntityIndex = 
+                entityDocuments[0].childHierarchyPath.findIndex(element => element === targetedEntityType);
+
+                if( findTargetedEntityIndex < 0 ) {
+                    throw {
+                        message : constants.apiResponses.SUB_ENTITY_NOT_FOUND,
+                        result : []
+                    }
+                }
+
+                let result = entityDocuments[0].childHierarchyPath.slice(findTargetedEntityIndex);
+                 
+                 return resolve({
+                     message : constants.apiResponses.ENTITIES_CHILD_HIERACHY_PATH,
+                     result : result
+                 });
+    
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    
+       }
+
 }
