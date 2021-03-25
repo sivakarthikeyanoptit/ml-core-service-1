@@ -1244,7 +1244,7 @@ module.exports = class SolutionsHelper {
         })
       }
     })
-  } 
+   } 
 
 };
 
