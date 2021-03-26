@@ -80,7 +80,8 @@ module.exports = {
             type : String,
             index : true
           }
-        }]
+        }],
+        criteriaLevelReport : Boolean
       }
     }
   };
