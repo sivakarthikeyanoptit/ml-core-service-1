@@ -10,12 +10,15 @@ module.exports = {
     schema: {
         "code" : {
             type : String,
-            required : true
+            required : true,
+            index : true,
+            unique : true
         },
         "metaInformation" : Object,
         "status" : {
             type : String,
-            default : "active"
+            default : "active",
+            index : true
         },
         "isDeleted" : {
             type : Boolean,
