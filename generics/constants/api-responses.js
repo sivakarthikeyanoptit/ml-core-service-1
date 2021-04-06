@@ -160,5 +160,7 @@ module.exports = {
   "ENTITIES_REMOVED_IN_SOLUTION" : "Successfully removed entities from solution scope",
   "ENTITY_NOT_EXISTS_IN_PARENT" : "Entity could not found in parent entities",
   "SOLUTION_NOT_UPDATED" : "Could not update solution",
-  "SOLUTION_DETAILS_FETCHED" : "Solution details fetched successfully"
+  "SOLUTION_DETAILS_FETCHED" : "Solution details fetched successfully",
+  "ENTITIES_NOT_ALLOWED_IN_ROLE" : "Entities not allowed in role",
+  "SUB_ENTITY_NOT_FOUND" : "Could not found sub entity" 
 };

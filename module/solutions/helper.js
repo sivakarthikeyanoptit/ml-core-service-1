@@ -173,7 +173,7 @@ module.exports = class SolutionsHelper {
               $addToSet: { components : solutionCreation._id } 
           });
 
-          if( programData[0].scope ) {
+          if( !solutionData.excludeScope && programData[0].scope ) {
             
             let solutionScope = 
             await this.setScope(
@@ -1430,7 +1430,7 @@ module.exports = class SolutionsHelper {
         })
       }
     })
-  } 
+   } 
 
 };
 

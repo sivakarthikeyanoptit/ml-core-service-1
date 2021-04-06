@@ -514,7 +514,7 @@ module.exports = class Entities extends Abstract {
     * @apiUse errorBody
     * @apiParamExample {json} Response:
     * {
-    "message": "",
+    "message": "Entities child hierarchy path fetched successfully",
     "status": 200,
     "result": [
         "district",
@@ -539,7 +539,10 @@ module.exports = class Entities extends Abstract {
       try {
 
         const subEntityTypeListData = 
-        await entitiesHelper.subEntityTypeList(req.params._id);
+        await entitiesHelper.subEntityListBasedOnRoleAndLocation(
+          req.params._id,
+          req.query.role
+        );
        
         resolve(subEntityTypeListData);
 

@@ -673,4 +673,106 @@ module.exports = class UsersHelper {
         })
     }
 
+      /**
+   * User Targeted entity.
+   * @method
+   * @name targetedEntity
+   * @param {String} solutionId - solution id
+   * @param {Object} requestedData - requested data
+   * @returns {Object} - Details of the solution.
+   */
+
+   static targetedEntity( solutionId,requestedData ) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        let solutionData = 
+        await solutionsHelper.solutionDocuments({ 
+          _id : solutionId,
+          isDeleted : false 
+        },["entityType","type"]);
+
+        if( !solutionData.length > 0 ) {
+          return resolve({
+            status : httpStatusCode.bad_request.status,
+            message : constants.apiResponses.SOLUTION_NOT_FOUND
+          });
+        }
+          
+        let rolesDocument = await userRolesHelper.roleDocuments({
+            code : requestedData.role
+        },["entityTypes.entityType"]);
+        
+        if( !rolesDocument.length > 0 ) {
+            throw {
+                status : httpStatusCode["bad_request"].status,
+                message: constants.apiResponses.USER_ROLES_NOT_FOUND
+            }
+        }
+
+        let requestedEntityTypes = Object.keys(_.omit(requestedData,["role"]));
+        let targetedEntityType = "";
+
+        rolesDocument[0].entityTypes.forEach(singleEntityType => {
+            if( requestedEntityTypes.includes(singleEntityType.entityType) ) {
+                targetedEntityType = singleEntityType.entityType;
+            }
+        });
+
+        if( !requestedData[targetedEntityType] ) {
+            throw {
+                status : httpStatusCode["bad_request"].status,
+                message: constants.apiResponses.ENTITIES_NOT_ALLOWED_IN_ROLE
+            }
+        }
+
+        if( solutionData[0].entityType === targetedEntityType ) {
+            
+            let entities = await entitiesHelper.entityDocuments({
+                "registryDetails.locationId" : requestedData[targetedEntityType]
+            },["groups"]);
+
+            if( !entities.length > 0 ) {
+                throw {
+                    message : constants.apiResponses.ENTITY_NOT_FOUND
+                }
+            }
+
+            if( entities[0] && entities[0].groups && Object.keys(entities[0].groups).length > 0 ) {
+                targetedEntityType = constants.common.STATE_ENTITY_TYPE;
+            }
+        }
+
+        let entities = await entitiesHelper.entityDocuments({
+          "registryDetails.locationId" : requestedData[targetedEntityType]
+        },["metaInformation.name","entityType"])
+
+        if( !entities.length > 0 ) {
+          throw {
+            message : constants.apiResponses.ENTITY_NOT_FOUND
+          }
+        }
+
+        if( entities[0].metaInformation && entities[0].metaInformation.name ) {
+          entities[0]["entityName"] = entities[0].metaInformation.name;
+          delete entities[0].metaInformation;
+        }
+
+        return resolve({
+          message : constants.apiResponses.SOLUTION_TARGETED_ENTITY,
+          success : true,
+          data : entities[0]
+        });
+
+      } catch(error) {
+        return resolve({
+          success : false,
+          status : error.status ? 
+          error.status : httpStatusCode['internal_server_error'].status,
+          message : error.message
+        })
+      }
+    })
+   } 
+
 };
