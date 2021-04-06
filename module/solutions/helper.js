@@ -539,6 +539,9 @@ module.exports = class SolutionsHelper {
           let solutionDocuments = 
           await database.models.solutions.aggregate([
             { $match : matchQuery },
+            {
+              $sort : { "updatedAt" : -1 }
+            },
             { $project : projection1 },
             facetQuery,
             projection2
@@ -1186,12 +1189,12 @@ module.exports = class SolutionsHelper {
    /**
    * List of solutions and targeted ones.
    * @method
-   * @name getSolutions
+   * @name targetedSolutions
    * @param {String} solutionId - Program Id.
    * @returns {Object} - Details of the solution.
    */
 
-  static getSolutions(requestedData,solutionType,userToken,pageSize,pageNo,search,filter) {
+  static targetedSolutions(requestedData,solutionType,userToken,pageSize,pageNo,search,filter) {
     return new Promise(async (resolve, reject) => {
         try {
 

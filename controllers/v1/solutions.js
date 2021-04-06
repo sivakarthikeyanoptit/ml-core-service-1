@@ -737,11 +737,11 @@ module.exports = class Solutions extends Abstract {
 
 
     /**
-    * @api {post} /kendra/api/v1/solutions/getSolutions?type=:solutionType&page=:page&limit=:limit&search=:search
+    * @api {post} /kendra/api/v1/solutions/targetedSolutions?type=:solutionType&page=:page&limit=:limit&search=:search
     * List of assigned solutions and targetted ones.
     * @apiVersion 1.0.0
     * @apiGroup Solutions
-    * @apiSampleRequest /kendra/api/v1/solutions/getSolutions?type=observation&page=1&limit=10&search=a
+    * @apiSampleRequest /kendra/api/v1/solutions/targetedSolutions?type=observation&page=1&limit=10&search=a
     * @apiParamExample {json} Request:
     * {
     *   "role" : "HM",
@@ -779,16 +779,16 @@ module.exports = class Solutions extends Abstract {
     /**
       * List of solutions and targetted ones.
       * @method
-      * @name getSolutions
+      * @name targetedSolutions
       * @param {Object} req - request data.
       * @returns {JSON} List of solutions with targetted ones.
      */
 
-  async getSolutions(req) {
+  async targetedSolutions(req) {
       return new Promise(async (resolve, reject) => {
           try {
 
-              let observations = await solutionsHelper.getSolutions(
+              let observations = await solutionsHelper.targetedSolutions(
                   req.body,
                   req.query.type,
                   req.userDetails.userToken,
