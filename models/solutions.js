@@ -82,6 +82,10 @@ module.exports = {
           }
         }]
       },
+      pageHeading: {
+        default : "Domains",
+        type : String
+      },
       criteriaLevelReport : Boolean
     }
   };
