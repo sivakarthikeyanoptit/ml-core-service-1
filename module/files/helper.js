@@ -158,10 +158,11 @@ module.exports = class FilesHelper {
    * @param {Array} [fileNames] - fileNames.
    * @param {String} bucket - name of the bucket
    * @param {Array} [storageName] - Storage name if provided.
+   * @param {String} folderPath - folderPath
    * @returns {Array} - consists of all signed urls files.
    */
 
-  static preSignedUrls(fileNames, bucket, storageName = '') {
+  static preSignedUrls(fileNames, bucket, storageName = '',folderPath) {
     return new Promise(async (resolve, reject) => {
       try {
         if (!Array.isArray(fileNames) || fileNames.length < 1) {
@@ -181,7 +182,15 @@ module.exports = class FilesHelper {
           pointerToFileNames < fileNames.length;
           pointerToFileNames++
         ) {
-          const file = fileNames[pointerToFileNames]
+
+          let file = "";
+          
+          if( folderPath && folderPath !== '' ) {
+            file = folderPath + fileNames[pointerToFileNames]; 
+          } else {
+            file = fileNames[pointerToFileNames]
+          }
+          
           let signedUrlResponse
 
           if (cloudStorage === constants.common.GOOGLE_CLOUD_SERVICE) {

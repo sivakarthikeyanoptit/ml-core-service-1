@@ -205,9 +205,135 @@ var completedObservations = function () {
 
 }
 
+/**
+  * List of assigned user observations.
+  * @function
+  * @name assignedObservations
+  * @param {String} token - logged in user token.
+  * @param {String} [ search = "" ] - search data.
+  * @param {String} [ filter = "" ] 
+  * @returns {Promise} returns a promise.
+*/
+
+var assignedObservations = function ( token,search = "",filter = "" ) {
+
+    let userAssignedUrl = 
+    process.env.ASSESSMENT_SERVICE_HOST +
+    process.env.ASSESSMENT_SERVICE_BASE_URL + "api/v1" +
+    constants.endpoints.GET_USER_ASSIGNED_OBSERVATION + "?search=" + search;
+
+    if( filter !== "" ) {
+        userAssignedUrl = userAssignedUrl + "&filter=" + filter;
+    } 
+    
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            function assessmentCallback(err, data) {
+
+                let result = {
+                    success : true
+                };
+
+                if (err) {
+                    result.success = false;
+                } else {
+                    
+                    let response = JSON.parse(data.body);
+                    
+                    if( response.status === httpStatusCode['ok'].status ) {
+                        result["data"] = response.result;
+                    } else {
+                        result.success = false;
+                    }
+                }
+
+                return resolve(result);
+            }
+
+            const options = {
+                headers : {
+                    "content-type": "application/json",
+                    "x-authenticated-user-token" : token
+                }
+            };
+
+            request.get(userAssignedUrl,options,assessmentCallback)
+
+        } catch (error) {
+            return reject(error);
+        }
+    })
+
+}
+
+/**
+  * List of user assigned surveys.
+  * @function
+  * @name assignedSurveys
+  * @param {String} token - logged in user token.
+  * @param {String} [search = ""] - search data.
+  * @param {String} [filter = ""] - filter key.
+  * @returns {Promise} returns a promise.
+*/
+
+var assignedSurveys = function ( token,search = "",filter = "" ) {
+
+    let userAssignedUrl = 
+    process.env.ASSESSMENT_SERVICE_HOST +
+    process.env.ASSESSMENT_SERVICE_BASE_URL + "api/v1" +
+    constants.endpoints.GET_USER_ASSIGNED_SURVEY + "?search=" + search;
+
+    if( filter !== "" ) {
+        userAssignedUrl = userAssignedUrl + "&filter=" + filter;
+    } 
+    
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            function assessmentCallback(err, data) {
+
+                let result = {
+                    success : true
+                };
+
+                if (err) {
+                    result.success = false;
+                } else {
+                    
+                    let response = JSON.parse(data.body);
+                    
+                    if( response.status === httpStatusCode['ok'].status ) {
+                        result["data"] = response.result;
+                    } else {
+                        result.success = false;
+                    }
+                }
+
+                return resolve(result);
+            }
+
+            const options = {
+                headers : {
+                    "content-type": "application/json",
+                    "x-authenticated-user-token" : token
+                }
+            };
+
+            request.get(userAssignedUrl,options,assessmentCallback)
+
+        } catch (error) {
+            return reject(error);
+        }
+    })
+
+}
+
 module.exports = {
     pendingAssessments: pendingAssessments,
     completedAssessments: completedAssessments,
     pendingObservations: pendingObservations,
-    completedObservations: completedObservations
+    completedObservations: completedObservations,
+    assignedObservations : assignedObservations,
+    assignedSurveys : assignedSurveys
 };

@@ -558,9 +558,15 @@ module.exports = class ProgramsHelper {
           return locationId;
         });
 
-        let entities = await entitiesHelper.entityDocuments({
-          "registryDetails.locationId" : { $in : locationIds }
-        },["_id"]); 
+        let filterQuery = {
+          $or : [{
+            "registryDetails.code" : { $in : locationIds }
+          },{
+            "registryDetails.locationId" : { $in : locationIds }
+          }]
+        };
+
+        let entities = await entitiesHelper.entityDocuments(filterQuery,["_id"]); 
 
         if( !entities.length > 0 ) {
           throw {
