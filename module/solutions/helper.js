@@ -11,6 +11,8 @@ const programsHelper = require(MODULES_BASE_PATH + "/programs/helper");
 const entityTypesHelper = require(MODULES_BASE_PATH + "/entityTypes/helper");
 const entitiesHelper = require(MODULES_BASE_PATH + "/entities/helper");
 const userRolesHelper = require(MODULES_BASE_PATH + "/user-roles/helper");
+const assessmentService = require(ROOT_PATH + '/generics/services/samiksha');
+const improvementProjectService = require(ROOT_PATH + '/generics/services/improvement-project');
 
 /**
     * SolutionsHelper
@@ -171,7 +173,7 @@ module.exports = class SolutionsHelper {
               $addToSet: { components : solutionCreation._id } 
           });
 
-          if( programData[0].scope ) {
+          if( !solutionData.excludeScope && programData[0].scope ) {
             
             let solutionScope = 
             await this.setScope(
@@ -537,6 +539,9 @@ module.exports = class SolutionsHelper {
           let solutionDocuments = 
           await database.models.solutions.aggregate([
             { $match : matchQuery },
+            {
+              $sort : { "updatedAt" : -1 }
+            },
             { $project : projection1 },
             facetQuery,
             projection2
@@ -686,10 +691,16 @@ module.exports = class SolutionsHelper {
           registryIds.push(data[requestedDataKey]);
           entityTypes.push(requestedDataKey);
         })
+
+        let filterQuery = {
+          $or : [{
+            "registryDetails.code" : { $in : registryIds }
+          },{
+            "registryDetails.locationId" : { $in : registryIds }
+          }]
+        };
     
-        let entities = await entitiesHelper.entityDocuments({
-          "registryDetails.locationId" : { $in : registryIds }
-        },["_id"]); 
+        let entities = await entitiesHelper.entityDocuments(filterQuery,["_id"]); 
 
         if( !entities.length > 0 ) {
           throw {
@@ -1179,7 +1190,191 @@ module.exports = class SolutionsHelper {
         })
       }
     })
-  } 
+  }
+  
+   /**
+   * List of solutions and targeted ones.
+   * @method
+   * @name targetedSolutions
+   * @param {String} solutionId - Program Id.
+   * @returns {Object} - Details of the solution.
+   */
+
+  static targetedSolutions(requestedData,solutionType,userToken,pageSize,pageNo,search,filter) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+          let assignedSolutions = await this.assignedUserSolutions(
+            solutionType,
+            userToken,
+            search,
+            filter
+          );
+
+          let totalCount = 0;
+          let mergedData = [];
+          let solutionIds = [];
+
+          if( assignedSolutions.success && assignedSolutions.data ) {
+
+            totalCount = assignedSolutions.data.count;
+            mergedData = assignedSolutions.data.data;
+
+            if( mergedData.length > 0 ) {
+
+                let programIds = [];
+
+                mergedData.forEach( mergeSolutionData => {
+                    if( mergeSolutionData.solutionId ) {
+                        solutionIds.push(mergeSolutionData.solutionId);
+                    }
+
+                    if( mergeSolutionData.programId ) {
+                        programIds.push(mergeSolutionData.programId);
+                    }
+                });
+
+                let programsData = await programsHelper.programDocuments({
+                    _id : { $in : programIds }
+                },["name"]);
+
+                if( programsData.length > 0 ) {
+                    
+                    let programs = 
+                    programsData.reduce(
+                        (ac, program) => 
+                        ({ ...ac, [program._id.toString()]: program }), {}
+                    );
+
+                    mergedData = mergedData.map( data => {
+                        if( programs[data.programId.toString()]) {
+                            data.programName = programs[data.programId.toString()].name;
+                        }
+                        return data;
+                    })
+                }
+            }
+          }
+
+          requestedData["filter"] = {};
+          if( solutionIds.length > 0 ) {
+            requestedData["filter"]["skipSolutions"] = solutionIds; 
+          }
+
+          if( filter && filter !== "" ) {
+            if( filter === constants.common.CREATED_BY_ME ) {
+              requestedData["filter"]["isAPrivateProgram"] = {
+                $ne : false
+              };
+            } else if( filter === constants.common.ASSIGN_TO_ME ) {
+              requestedData["filter"]["isAPrivateProgram"] = false;
+            }
+          }
+
+          let targetedSolutions = 
+          await this.forUserRoleAndLocation(
+            requestedData,
+            solutionType,
+            "",
+            "",
+            pageSize,
+            pageNo,
+            search
+          )
+
+        if( targetedSolutions.success ) {
+
+            if( targetedSolutions.data.data && targetedSolutions.data.data.length > 0 ) {
+                totalCount += targetedSolutions.data.count;
+
+                if( mergedData.length !== pageSize ) {
+
+                    targetedSolutions.data.data.forEach(targetedSolution => {
+                        targetedSolution.solutionId = targetedSolution._id;
+                        targetedSolution._id = "";
+                        mergedData.push(targetedSolution);
+                        delete targetedSolution.type; 
+                        delete targetedSolution.externalId;
+                    });
+                }
+            }
+
+        }
+
+        if( mergedData.length > 0 ) {
+            let startIndex = pageSize * (pageNo - 1);
+            let endIndex = startIndex + pageSize;
+            mergedData = mergedData.slice(startIndex,endIndex) 
+        }
+
+        return resolve({
+            success : true,
+            message : constants.apiResponses.TARGETED_OBSERVATION_FETCHED,
+            data : {
+                data : mergedData,
+                count : totalCount
+            }
+        });
+
+      } catch (error) {
+        return reject({
+          status: error.status || httpStatusCode.internal_server_error.status,
+          message: error.message || httpStatusCode.internal_server_error.message,
+          errorObject: error
+        });
+      }
+    })
+  }
+     /**
+   * Solution details.
+   * @method
+   * @name assignedUserSolutions
+   * @param {String} solutionId - Program Id.
+   * @returns {Object} - Details of the solution.
+   */
+
+  static assignedUserSolutions(solutionType,userToken,search,filter ) {
+    return new Promise(async (resolve, reject) => {
+      try {
+
+        let userAssignedSolutions = {};
+        if ( solutionType ===  constants.common.OBSERVATION ) {
+            
+          userAssignedSolutions = 
+          await assessmentService.assignedObservations(
+            userToken,
+            search,
+            filter
+          );
+
+        } else if ( solutionType === constants.common.SURVEY) {
+            
+          userAssignedSolutions = 
+          await assessmentService.assignedSurveys(
+            userToken,
+            search,
+            filter
+          );
+
+        } else {
+          userAssignedSolutions = await improvementProjectService.assignedProjects(
+            userToken,
+            search,
+            filter
+          )
+        }
+
+          return resolve(userAssignedSolutions);
+        } catch(error) {
+          return resolve({
+            success : false,
+            status : error.status ? 
+            error.status : httpStatusCode['internal_server_error'].status,
+            message : error.message
+          })
+        }
+      })
+    }
 
   /**
    * Targeted entity in solution
@@ -1214,9 +1409,17 @@ module.exports = class SolutionsHelper {
           });
         }
 
-        let entities = await entitiesHelper.entityDocuments({
-          "registryDetails.locationId" : requestedData[solutionData[0].entityType]
-        },["metaInformation.name","entityType"])
+        let filterQuery = {
+          "registryDetails.code" : requestedData[solutionData[0].entityType]
+        };
+
+        if( gen.utils.checkValidUUID( requestedData[solutionData[0].entityType] ) ) {
+          filterQuery = {
+            "registryDetails.locationId" : requestedData[solutionData[0].entityType]
+          };
+        } 
+
+        let entities = await entitiesHelper.entityDocuments(filterQuery,["metaInformation.name","entityType"])
 
         if( !entities.length > 0 ) {
           throw {
@@ -1244,7 +1447,7 @@ module.exports = class SolutionsHelper {
         })
       }
     })
-  } 
+   } 
 
 };
 

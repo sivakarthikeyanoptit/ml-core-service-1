@@ -53,7 +53,6 @@ var organisationList = async function (token, limit, offset) {
 }
 
 
-
 /**
   * Get user profile.
   * @function
