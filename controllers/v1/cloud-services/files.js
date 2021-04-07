@@ -7,7 +7,7 @@
 
 
 // dependencies
-let filesHelpers = require(ROOT_PATH+"/module/files/helper");
+let filesHelpers = require(ROOT_PATH+"/module/cloud-services/files/helper");
 
 /**
     * Files service.
@@ -43,28 +43,40 @@ module.exports = class Files {
      * @apiHeader {String} X-authenticated-user-token Authenticity token
      * @apiParamExample {json} Request:
      * {
-     * "fileNames" : [
-     * "N4X6E2/N4X6E2.png"
-     * ],
-     * "bucket":"sl-unnati-storage"
-     * }
+     *  "payload" : {
+     *  "5f72f9998925ec7c60f79a91": {
+     *     "files": ["uploadFile.jpg", "uploadFile2.jpg"]
+        }},
+        "ref" : "survey"
+      }
      * @apiSampleRequest /kendra/api/v1/cloud-services/files/preSignedUrls
      * @apiUse successBody
      * @apiUse errorBody
      * @apiParamExample {json} Response:
-     * {
-     * "message": "Url generated successfully",
-     * "status": 200,
-     * "result": [
-     * {
-     * "file": "T9R6Y8/T9R6Y8.png",
-     * "url": "https://sl-unnati-storage.s3.ap-south-1.amazonaws.com/qrcode/T9R6Y8/T9R6Y8.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAJW4YWQMTNBKD2KTQ%2F20200421%2Fap-south-1%2Fs3%2Faws4_request&X-Amz-Date=20200421T024629Z&X-Amz-Expires=1800&X-Amz-Signature=81d593329c96b318f2924b876854e534bf80aef1f10ca80083d74188b46e69de&X-Amz-SignedHeaders=host",
-     * "payload": {
-     * "sourcePath": "T9R6Y8/T9R6Y8.png"
-     * }
-     * }
-     * ]
-     * }
+     * * {
+        "message": "File upload urls generated successfully.",
+        "status": 200,
+        "result": {
+            "5f72f9998925ec7c60f79a91": {
+                "files": [
+                    {
+                        "file": "uploadFile.jpg",
+                        "url": "https://storage.googleapis.com/sl-dev-storage/01c04166-a65e-4e92-a87b-a9e4194e771d/5f72f9998925ec7c60f79a91/cd6763c9-a64a-4241-9907-4365970e8d11_uploadFile.jpg?GoogleAccessId=sl-dev-storage%40shikshalokam.iam.gserviceaccount.com&Expires=1605698490&Signature=ej6WHNOyx6EvUbAi81pDcYb3YqM7dkAhNT1Ktsf%2FTiRhwL%2ByhS89E1zRspIYlVOutlzoZXgRAl%2Fd0y%2BQcdryWYgfVAKAZmJVZtK3oVisLxhkFCKYeHAbzZ%2FadkCXdU3e1AVJGyRvKoN04Yr84%2BIa%2F1ApszOYDmVT%2Fn%2FOi4JSScbvzhe82bSe5xEr%2FPDwDq48%2FKgUhAc0faP%2FlAA2Wf7V1Ifuxc3quw9OpzvND8CKuugXZ%2FDZ6mhF0O80IXwP%2BFJOn4u9ydHqwXM3zDRDOO0WMh6VBLuvRFBRwJsrJG3v5zZMw0r5cYOIvkW4Tqo%2FefpXUDsvCVBTlZ9zBEdwx2Jshw%3D%3D",
+                        "payload": {
+                            "sourcePath": "01c04166-a65e-4e92-a87b-a9e4194e771d/5f72f9998925ec7c60f79a91/cd6763c9-a64a-4241-9907-4365970e8d11_uploadFile.jpg"
+                        }
+                    },
+                    {
+                        "file": "uploadFile2.jpg",
+                        "url": "https://storage.googleapis.com/sl-dev-storage/01c04166-a65e-4e92-a87b-a9e4194e771d/5f72f9998925ec7c60f79a91/1626ec00-f890-4f8b-9594-4342868e8703_uploadFile2.jpg?GoogleAccessId=sl-dev-storage%40shikshalokam.iam.gserviceaccount.com&Expires=1605698490&Signature=RucBanx70czWdcqNb5R3wTtATUCGl7BH6vUbx6GJqJJnxvVF179XLCgPHUcsv9eXNv9o0ptueFwA%2BHTAOA4d7g6tx2G7BYqua1zMsGIw5%2B57dUaIRfgXQgO%2Br5voQvKMDmSUJMx9nVY0Dfe5xce3xbcn4XjtQKopb%2Fjh1YqnCmnK7EujbU2tfk0ENBKHtEyd%2FdZlpCtQ7IqnZ%2FZJ73OZgX%2FjnFd18iJ2ce7%2FJ%2FwjUBUQnTBLPk7n%2FMFDkLfNMeSYlutwkwcApLj9cuLO%2FbmuEfT%2Fa%2BxzJz1xF639piOpTW6vAFHgXJz%2FLtR9nMUidMTOnhZdhTjjr%2BFiokqK03SGNw%3D%3D",
+                        "payload": {
+                            "sourcePath": "01c04166-a65e-4e92-a87b-a9e4194e771d/5f72f9998925ec7c60f79a91/1626ec00-f890-4f8b-9594-4342868e8703_uploadFile2.jpg"
+                        }
+                    }
+                ]
+            }
+        }
+    }
      */
 
     /**
@@ -81,18 +93,15 @@ module.exports = class Files {
     return new Promise(async (resolve, reject) => {
 
         try {
-            
-            let bucket = req.body.bucket;
-            if(req.body.submissionId){
-                bucket = req.body.submissionId + "/" + req.userDetails.userId + "/";
-            } 
 
             let signedUrl =
             await filesHelpers.preSignedUrls(
-                 req.body.fileNames,
-                 bucket
+                 req.body.payload,
+                 req.body.ref,
+                 req.userDetails.userId
             );
 
+            signedUrl["result"] = signedUrl["data"];
             return resolve(signedUrl);
 
         } catch (error) {
@@ -108,7 +117,6 @@ module.exports = class Files {
 
                 errorObject: error
             })
-
         }
     })
    }

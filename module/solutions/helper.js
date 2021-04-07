@@ -691,10 +691,18 @@ module.exports = class SolutionsHelper {
           registryIds.push(data[requestedDataKey]);
           entityTypes.push(requestedDataKey);
         })
+
+        let filterQuery = {
+          "registryDetails.code" : { $in : registryIds}
+        };
+
+        if( gen.utils.checkValidUUID(registryIds[0]) ) {
+          filterQuery = {
+            "registryDetails.locationId" : { $in : registryIds }
+          };
+        } 
     
-        let entities = await entitiesHelper.entityDocuments({
-          "registryDetails.locationId" : { $in : registryIds }
-        },["_id"]); 
+        let entities = await entitiesHelper.entityDocuments(filterQuery,["_id"]); 
 
         if( !entities.length > 0 ) {
           throw {
@@ -1403,9 +1411,17 @@ module.exports = class SolutionsHelper {
           });
         }
 
-        let entities = await entitiesHelper.entityDocuments({
-          "registryDetails.locationId" : requestedData[solutionData[0].entityType]
-        },["metaInformation.name","entityType"])
+        let filterQuery = {
+          "registryDetails.code" : requestedData[solutionData[0].entityType]
+        };
+
+        if( gen.utils.checkValidUUID( requestedData[solutionData[0].entityType] ) ) {
+          filterQuery = {
+            "registryDetails.locationId" : requestedData[solutionData[0].entityType]
+          };
+        } 
+
+        let entities = await entitiesHelper.entityDocuments(filterQuery,["metaInformation.name","entityType"])
 
         if( !entities.length > 0 ) {
           throw {

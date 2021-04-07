@@ -558,9 +558,17 @@ module.exports = class ProgramsHelper {
           return locationId;
         });
 
-        let entities = await entitiesHelper.entityDocuments({
-          "registryDetails.locationId" : { $in : locationIds }
-        },["_id"]); 
+        let filterQuery = {
+          "registryDetails.code" : { $in : locationIds}
+        };
+
+        if( gen.utils.checkValidUUID(locationIds[0]) ) {
+          filterQuery = {
+            "registryDetails.locationId" : { $in : locationIds }
+          };
+        } 
+
+        let entities = await entitiesHelper.entityDocuments(filterQuery,["_id"]); 
 
         if( !entities.length > 0 ) {
           throw {
