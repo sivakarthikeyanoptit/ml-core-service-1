@@ -6,7 +6,7 @@
  */
 
 // Dependencies
-const uuid = require('uuid/v4');
+const {validate : uuidValidate,v4 : uuidV4} = require('uuid');
 
  /**
   * convert string to camelCaseToTitleCase.
@@ -140,7 +140,7 @@ function convertStringToObjectId(id) {
   */
 
 function generateUniqueId() {
-  return uuid();
+  return uuidV4();
 }
 
  /**
@@ -204,8 +204,8 @@ function valueParser(dataToBeParsed) {
 */
 
 function checkValidUUID(str) {
-  var pattern = /^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i;
-  return pattern.test(str);
+  var validateUUID = uuidValidate(str);
+  return validateUUID;
 }
 
 module.exports = {

@@ -693,14 +693,12 @@ module.exports = class SolutionsHelper {
         })
 
         let filterQuery = {
-          "registryDetails.code" : { $in : registryIds}
-        };
-
-        if( gen.utils.checkValidUUID(registryIds[0]) ) {
-          filterQuery = {
+          $or : [{
+            "registryDetails.code" : { $in : registryIds }
+          },{
             "registryDetails.locationId" : { $in : registryIds }
-          };
-        } 
+          }]
+        };
     
         let entities = await entitiesHelper.entityDocuments(filterQuery,["_id"]); 
 

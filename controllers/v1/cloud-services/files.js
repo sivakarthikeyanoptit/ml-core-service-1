@@ -43,7 +43,7 @@ module.exports = class Files {
      * @apiHeader {String} X-authenticated-user-token Authenticity token
      * @apiParamExample {json} Request:
      * {
-     *  "payload" : {
+     *  "request" : {
      *  "5f72f9998925ec7c60f79a91": {
      *     "files": ["uploadFile.jpg", "uploadFile2.jpg"]
         }},
@@ -96,7 +96,7 @@ module.exports = class Files {
 
             let signedUrl =
             await filesHelpers.preSignedUrls(
-                 req.body.payload,
+                 req.body.request,
                  req.body.ref,
                  req.userDetails.userId
             );

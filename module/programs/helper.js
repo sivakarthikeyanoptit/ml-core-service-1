@@ -559,14 +559,12 @@ module.exports = class ProgramsHelper {
         });
 
         let filterQuery = {
-          "registryDetails.code" : { $in : locationIds}
-        };
-
-        if( gen.utils.checkValidUUID(locationIds[0]) ) {
-          filterQuery = {
+          $or : [{
+            "registryDetails.code" : { $in : locationIds }
+          },{
             "registryDetails.locationId" : { $in : locationIds }
-          };
-        } 
+          }]
+        };
 
         let entities = await entitiesHelper.entityDocuments(filterQuery,["_id"]); 
 
