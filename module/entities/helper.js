@@ -842,9 +842,17 @@ module.exports = class EntitiesHelper {
                     }
                 }
 
-                const entityDocuments = await this.entityDocuments({
-                     "registryDetails.locationId" : stateLocationId
-                 },["childHierarchyPath"]);
+                let filterQuery = {
+                    "registryDetails.code" : stateLocationId
+                };
+
+                if( gen.utils.checkValidUUID(stateLocationId) ) {
+                    filterQuery = {
+                        "registryDetails.locationId" : stateLocationId
+                    };
+                } 
+
+                const entityDocuments = await this.entityDocuments(filterQuery,["childHierarchyPath"]);
     
                  if( !entityDocuments.length > 0 ) {
                      return resolve({

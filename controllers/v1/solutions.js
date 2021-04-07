@@ -675,4 +675,141 @@ module.exports = class Solutions extends Abstract {
     });
   }
 
+    /**
+    * @api {post} /kendra/api/v1/solutions/targetedEntity/:solutionId Targeted entity in solution.
+    * @apiVersion 1.0.0
+    * @apiName Targeted entity in solution.
+    * @apiGroup Solutions
+    * @apiParamExample {json} Request-Body:
+    * {
+        "state" : "bc75cc99-9205-463e-a722-5326857838f8",
+        "district" : "b54a5c6d-98be-4313-af1c-33040b1703aa",
+        "school" : "2a128c91-a5a2-4e25-aa21-3d9196ad8203"
+    }
+    * @apiHeader {String} X-authenticated-user-token Authenticity token
+    * @apiSampleRequest /kendra/api/v1/solutions/targetedEntity/600ac0d1c7de076e6f9943b9
+    * @apiUse successBody
+    * @apiUse errorBody
+    * @apiParamExample {json} Response:
+    * {
+    "message": "Targeted entity in solution fetched successfully",
+    "status": 200,
+    "result": {
+        "_id": "5fd098e2e049735a86b748ad",
+        "entityType": "district",
+        "metaInformation": {
+            "name": "VIZIANAGARAM"
+        }
+    }}
+    */
+
+     /**
+   * Targeted entity in solution
+   * @method
+   * @name targetedEntity
+   * @param {Object} req - requested data.
+   * @param {String} req.params._id - solution id.
+   * @returns {Array} Details entity.
+   */
+
+    async targetedEntity(req) {
+      return new Promise(async (resolve, reject) => {
+        try {
+    
+          let detailEntity = await solutionsHelper.targetedEntity(
+            req.params._id,
+            req.body
+          );
+    
+          detailEntity["result"] = detailEntity.data;
+    
+          return resolve(detailEntity);
+    
+        } catch (error) {
+          return reject({
+            status: error.status || httpStatusCode.internal_server_error.status,
+            message: error.message || httpStatusCode.internal_server_error.message,
+            errorObject: error
+          });
+        }
+      });
+    }
+
+
+    /**
+    * @api {post} /kendra/api/v1/solutions/targetedSolutions?type=:solutionType&page=:page&limit=:limit&search=:search
+    * List of assigned solutions and targetted ones.
+    * @apiVersion 1.0.0
+    * @apiGroup Solutions
+    * @apiSampleRequest /kendra/api/v1/solutions/targetedSolutions?type=observation&page=1&limit=10&search=a
+    * @apiParamExample {json} Request:
+    * {
+    *   "role" : "HM",
+   		  "state" : "236f5cff-c9af-4366-b0b6-253a1789766a",
+        "district" : "1dcbc362-ec4c-4559-9081-e0c2864c2931",
+        "school" : "c5726207-4f9f-4f45-91f1-3e9e8e84d824"
+    }
+    * @apiParamExample {json} Response:
+    {
+    "message": "Solutions fetched successfully",
+    "status": 200,
+    "result": {
+        "data": [
+            {
+                "_id": "5f9288fd5e25636ce6dcad66",
+                "name": "obs1",
+                "description": "observation1",
+                "solutionId": "5f9288fd5e25636ce6dcad65",
+                "programId": "5d287326652f311044f41dbb"
+            },
+            {
+                "_id": "5fc7aa9e73434430731f6a10",
+                "solutionId": "5fb4fce4c7439a3412ff013b",
+                "programId": "5f5b216a9c70bd2973aee29f",
+                "name": "My Solution",
+                "description": "My Solution Description"
+            }
+        ],
+        "count": 2
+    }}
+    * @apiUse successBody
+    * @apiUse errorBody
+    */
+
+    /**
+      * List of solutions and targetted ones.
+      * @method
+      * @name targetedSolutions
+      * @param {Object} req - request data.
+      * @returns {JSON} List of solutions with targetted ones.
+     */
+
+  async targetedSolutions(req) {
+      return new Promise(async (resolve, reject) => {
+          try {
+
+              let observations = await solutionsHelper.targetedSolutions(
+                  req.body,
+                  req.query.type,
+                  req.userDetails.userToken,
+                  req.pageSize,
+                  req.pageNo,
+                  req.searchText,
+                  req.query.filter
+              );
+
+              observations["result"] = observations.data;
+
+              return resolve(observations);
+
+          } catch (error) {
+              return reject({
+                  status: error.status || httpStatusCode.internal_server_error.status,
+                  message: error.message || httpStatusCode.internal_server_error.message,
+                  errorObject: error
+              });
+          }
+      })
+  }
+
 }

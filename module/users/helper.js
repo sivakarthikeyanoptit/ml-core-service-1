@@ -614,9 +614,17 @@ module.exports = class UsersHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                const entitiesData = await entitiesHelper.entityDocuments({
-                    "registryDetails.locationId" : stateLocationId
-                }, ["_id"]);
+                let filterQuery = {
+                    "registryDetails.code" : stateLocationId
+                  };
+          
+                if( gen.utils.checkValidUUID( stateLocationId ) ) {
+                    filterQuery = {
+                      "registryDetails.locationId" : stateLocationId
+                    };
+                } 
+
+                const entitiesData = await entitiesHelper.entityDocuments(filterQuery, ["_id"]);
 
                 if (!entitiesData.length > 0) {
                     throw {
@@ -726,11 +734,20 @@ module.exports = class UsersHelper {
             }
         }
 
+
         if( solutionData[0].entityType === targetedEntityType ) {
+
+            let filterQuery = {
+                "registryDetails.code" : requestedData[targetedEntityType]
+              };
+      
+            if( gen.utils.checkValidUUID( requestedData[targetedEntityType] ) ) {
+                filterQuery = {
+                  "registryDetails.locationId" : requestedData[targetedEntityType]
+                };
+            } 
             
-            let entities = await entitiesHelper.entityDocuments({
-                "registryDetails.locationId" : requestedData[targetedEntityType]
-            },["groups"]);
+            let entities = await entitiesHelper.entityDocuments(filterQuery,["groups"]);
 
             if( !entities.length > 0 ) {
                 throw {
@@ -743,9 +760,17 @@ module.exports = class UsersHelper {
             }
         }
 
-        let entities = await entitiesHelper.entityDocuments({
-          "registryDetails.locationId" : requestedData[targetedEntityType]
-        },["metaInformation.name","entityType"])
+        let filterData = {
+            "registryDetails.code" : requestedData[targetedEntityType]
+          };
+  
+        if( gen.utils.checkValidUUID( requestedData[targetedEntityType] ) ) {
+            filterData = {
+              "registryDetails.locationId" : requestedData[targetedEntityType]
+            };
+        } 
+
+        let entities = await entitiesHelper.entityDocuments(filterData,["metaInformation.name","entityType"])
 
         if( !entities.length > 0 ) {
           throw {
