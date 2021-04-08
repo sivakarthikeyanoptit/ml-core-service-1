@@ -692,7 +692,7 @@ module.exports = class SolutionsHelper {
           entityTypes.push(requestedDataKey);
         })
 
-        let filterQuery = {
+        let filterData = {
           $or : [{
             "registryDetails.code" : { $in : registryIds }
           },{
@@ -700,7 +700,7 @@ module.exports = class SolutionsHelper {
           }]
         };
     
-        let entities = await entitiesHelper.entityDocuments(filterQuery,["_id"]); 
+        let entities = await entitiesHelper.entityDocuments(filterData,["_id"]); 
 
         if( !entities.length > 0 ) {
           throw {
