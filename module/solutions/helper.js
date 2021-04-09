@@ -1247,7 +1247,7 @@ module.exports = class SolutionsHelper {
                     );
 
                     mergedData = mergedData.map( data => {
-                        if( programs[data.programId.toString()]) {
+                        if( data.programId && programs[data.programId.toString()] ) {
                             data.programName = programs[data.programId.toString()].name;
                         }
                         return data;
@@ -1296,7 +1296,7 @@ module.exports = class SolutionsHelper {
                         if ( solutionType === constants.common.SURVEY ) {
                           targetedSolution.isCreator = false;
                         }
-                        
+
                         mergedData.push(targetedSolution);
                         delete targetedSolution.type; 
                         delete targetedSolution.externalId;
