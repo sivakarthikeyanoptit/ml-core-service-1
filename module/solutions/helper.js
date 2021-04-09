@@ -1292,6 +1292,11 @@ module.exports = class SolutionsHelper {
                     targetedSolutions.data.data.forEach(targetedSolution => {
                         targetedSolution.solutionId = targetedSolution._id;
                         targetedSolution._id = "";
+                        
+                        if ( solutionType === constants.common.SURVEY ) {
+                          targetedSolution.isCreator = false;
+                        }
+                        
                         mergedData.push(targetedSolution);
                         delete targetedSolution.type; 
                         delete targetedSolution.externalId;
