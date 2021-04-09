@@ -1277,8 +1277,8 @@ module.exports = class SolutionsHelper {
             solutionType,
             "",
             "",
-            pageSize,
-            pageNo,
+            constants.common.DEFAULT_PAGE_SIZE,
+            constants.common.DEFAULT_PAGE_NO,
             search
           )
 

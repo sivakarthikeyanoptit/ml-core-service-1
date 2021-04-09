@@ -53,5 +53,7 @@ module.exports = {
   "TARGETED_SOLUTION_TEXT" : "View and participate in educational programs active in your location and designed for your role.",
   "ALL_ROLES" : "all",
   "ASSIGN_TO_ME" : "assignedToMe",
-  "CREATED_BY_ME" : "createdByMe"
+  "CREATED_BY_ME" : "createdByMe",
+  "DEFAULT_PAGE_SIZE" : 100,
+  "DEFAULT_PAGE_NO" : 1
 };
