@@ -737,11 +737,11 @@ module.exports = class Solutions extends Abstract {
 
 
     /**
-    * @api {post} /kendra/api/v1/solutions/targetedSolutions?type=:solutionType&page=:page&limit=:limit&search=:search
+    * @api {post} /kendra/api/v1/solutions/targetedSolutions?type=:solutionType&page=:page&limit=:limit&search=:search&filter=:filter
     * List of assigned solutions and targetted ones.
     * @apiVersion 1.0.0
     * @apiGroup Solutions
-    * @apiSampleRequest /kendra/api/v1/solutions/targetedSolutions?type=observation&page=1&limit=10&search=a
+    * @apiSampleRequest /kendra/api/v1/solutions/targetedSolutions?type=observation&page=1&limit=10&search=a&filter=assignedToMe
     * @apiParamExample {json} Request:
     * {
     *   "role" : "HM",
