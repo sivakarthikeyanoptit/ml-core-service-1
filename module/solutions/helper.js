@@ -692,7 +692,7 @@ module.exports = class SolutionsHelper {
           entityTypes.push(requestedDataKey);
         })
 
-        let filterQuery = {
+        let filterData = {
           $or : [{
             "registryDetails.code" : { $in : registryIds }
           },{
@@ -700,7 +700,7 @@ module.exports = class SolutionsHelper {
           }]
         };
     
-        let entities = await entitiesHelper.entityDocuments(filterQuery,["_id"]); 
+        let entities = await entitiesHelper.entityDocuments(filterData,["_id"]); 
 
         if( !entities.length > 0 ) {
           throw {
@@ -1247,7 +1247,7 @@ module.exports = class SolutionsHelper {
                     );
 
                     mergedData = mergedData.map( data => {
-                        if( programs[data.programId.toString()]) {
+                        if( data.programId && programs[data.programId.toString()] ) {
                             data.programName = programs[data.programId.toString()].name;
                         }
                         return data;
@@ -1292,6 +1292,11 @@ module.exports = class SolutionsHelper {
                     targetedSolutions.data.data.forEach(targetedSolution => {
                         targetedSolution.solutionId = targetedSolution._id;
                         targetedSolution._id = "";
+                        
+                        if ( solutionType === constants.common.SURVEY ) {
+                          targetedSolution.isCreator = false;
+                        }
+
                         mergedData.push(targetedSolution);
                         delete targetedSolution.type; 
                         delete targetedSolution.externalId;
