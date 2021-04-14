@@ -12,7 +12,7 @@ RUN npm install
 COPY . /opt/kendra
 
 #expose the application port
-EXPOSE 4202
+EXPOSE 3000
 
 #start the application
 CMD node app.js
