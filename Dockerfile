@@ -1,15 +1,15 @@
 FROM node:12
 
-WORKDIR /opt/kendra
+WORKDIR /opt/core
 
 #copy package.json file
-COPY package.json /opt/kendra
+COPY package.json /opt/core
 
 #install node packges
 RUN npm install
 
 #copy all files 
-COPY . /opt/kendra
+COPY . /opt/core
 
 #expose the application port
 EXPOSE 3000
