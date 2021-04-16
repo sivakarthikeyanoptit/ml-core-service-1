@@ -12,6 +12,7 @@ const solutionsHelper = require(MODULES_BASE_PATH + "/solutions/helper");
 const sunbirdService = require(ROOT_PATH + "/generics/services/sunbird");
 const userRolesHelper = require(MODULES_BASE_PATH + "/user-roles/helper");
 const entitiesHelper = require(MODULES_BASE_PATH + "/entities/helper");
+const improvementProjectService = require(ROOT_PATH + "/generics/services/improvement-project");
 
 /**
     * UsersHelper
@@ -504,39 +505,90 @@ module.exports = class UsersHelper {
       * @returns {Object} targeted user solutions.
      */
 
-    static solutions( programId,requestedData,pageSize,pageNo,search ) {
+    static solutions( programId,requestedData,pageSize,pageNo,search,token ) {
         return new Promise(async (resolve, reject) => {
             try {
-                
+
+                let programData = await programsHelper.programDocuments({
+                    _id : programId
+                },["name"]);
+
+                if( !programData.length > 0 ) {
+                    return resolve({
+                        status : httpStatusCode["bad_request"].status,
+                        message : constants.apiResponses.PROGRAM_NOT_FOUND
+                    })
+                }
+
                 let autoTargetedSolutions = 
                 await solutionsHelper.forUserRoleAndLocation(
                     requestedData,
                     "",
                     "",
                     programId,
-                    pageSize,
-                    pageNo,
+                    constants.common.DEFAULT_PAGE_SIZE,
+                    constants.common.DEFAULT_PAGE_NO,
                     search
                 );
 
-                if( autoTargetedSolutions.data.data && autoTargetedSolutions.data.data.length > 0 ) {
-                    autoTargetedSolutions.data["programName"] = autoTargetedSolutions.data.data[0].programName;
-                    autoTargetedSolutions.data["programId"] = autoTargetedSolutions.data.data[0].programId;
+                let totalCount = 0;
+                let mergedData = [];
 
-                    autoTargetedSolutions.data.data = 
-                    autoTargetedSolutions.data.data.map( targetedData => {
+                if( autoTargetedSolutions.data.data && autoTargetedSolutions.data.data.length > 0 ) {
+                    
+                    totalCount = autoTargetedSolutions.data.count;
+
+                    mergedData = autoTargetedSolutions.data.data;
+
+                    mergedData = 
+                    mergedData.map( targetedData => {
                         delete targetedData.programId;
                         delete targetedData.programName;
                         return targetedData;
                     });
                 }
+                    
+                let importedProjects = 
+                await improvementProjectService.importedProjects(
+                    token,
+                    programId
+                );
 
-                autoTargetedSolutions.data["description"] = constants.common.TARGETED_SOLUTION_TEXT;
+                if( importedProjects.success ) {
+                    
+                    if( importedProjects.data && importedProjects.data.length > 0 ) {
+                        
+                        totalCount += importedProjects.data.length;
+
+
+                        importedProjects.data.forEach(importedProject => {
+                            let data = importedProject.solutionInformation;
+                            data["projectTemplateId"] = importedProject.projectTemplateId;
+                            data["type"] = constants.common.IMPROVEMENT_PROJECT;
+                            mergedData.push(data);
+                        });
+
+                    }
+                }
+
+                if( mergedData.length > 0 ) {
+                    let startIndex = pageSize * (pageNo - 1);
+                    let endIndex = startIndex + pageSize;
+                    mergedData = mergedData.slice(startIndex,endIndex) 
+                }
+
+                let result = {
+                    programName : programData[0].name,
+                    programId : programId,
+                    description : constants.common.TARGETED_SOLUTION_TEXT,
+                    data : mergedData,
+                    count : totalCount
+                }
 
                 return resolve({
                     message : constants.apiResponses.PROGRAM_SOLUTIONS_FETCHED,
                     success : true,
-                    data : autoTargetedSolutions.data
+                    data : result
                 })
             } catch (error) {
                 return resolve({

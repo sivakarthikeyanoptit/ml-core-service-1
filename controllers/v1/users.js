@@ -660,7 +660,8 @@ module.exports = class Users extends Abstract {
             req.body,
             req.pageSize,
             req.pageNo,
-            req.searchText
+            req.searchText,
+            req.userDetails.userToken
         );
 
         targetedSolutions["result"] = targetedSolutions.data;
