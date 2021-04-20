@@ -26,5 +26,6 @@ module.exports = {
     SUNBIRD_USER_SEARCH :"/users/search",
     GET_USER_ASSIGNED_OBSERVATION : "/observations/userAssigned",
     GET_USER_ASSIGNED_SURVEY : "/surveys/userAssigned",
-    GET_USER_ASSIGNED_PROJECT : "/userProjects/userAssigned"
+    GET_USER_ASSIGNED_PROJECT : "/userProjects/userAssigned",
+    IMPORTED_PROJECT : "/userProjects/importedProjects"
 }
