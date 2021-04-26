@@ -688,5 +688,71 @@ module.exports = class Users extends Abstract {
           }
         });
     }
+
+        /**
+     * @api {get} /kendra/api/v1/users/getUserOrganisationsAndRootOrganisations
+     * Get organisation and root organisation
+     * @apiVersion 1.0.0
+     * @apiGroup Users
+     * @apiHeader {String} X-authenticated-user-token Authenticity token
+     * @apiSampleRequest /kendra/api/v1/users/getUserOrganisationsAndRootOrganisations
+     * @apiUse successBody
+     * @apiUse errorBody
+     * @apiParamExample {json} Response:
+     * {
+    "message": "User organisations fetched successfully",
+    "status": 200,
+    "result": {
+        "createdFor": [
+            "01305447637218918413"
+        ],
+        "rootOrganisations": [
+            "01305447637218918413"
+        ]
+    }
+    }
+    */
+
+    /**
+      * Organisations and root organisations.
+      * @method
+      * @name getUserOrganisationsAndRootOrganisations
+      * @param  {Request} req request body.
+      * @returns {JSON} Organisations and root organisations of user.
+     */
+
+    getUserOrganisationsAndRootOrganisations(req) {
+
+        return new Promise(async (resolve, reject) => {
+
+            try {
+
+                const userOrganisations = 
+                await usersHelper.getUserOrganisationsAndRootOrganisations(
+                    (req.params._id && req.params._id != "") ? 
+                    req.params._id : 
+                    req.userDetails.id,
+                    req.userDetails.userToken
+                );
+
+                resolve(userOrganisations);
+
+            } catch (error) {
+
+                return reject({
+                    status: 
+                    error.status || 
+                    httpStatusCode["internal_server_error"].status,
+
+                    message: 
+                    error.message || 
+                    httpStatusCode["internal_server_error"].message
+                })
+
+            }
+
+
+        })
+    }
 };
 

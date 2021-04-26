@@ -127,6 +127,10 @@ let enviromentVariables = {
   "ELASTICSEARCH_ENTITIES_INDEX" : {
     "message" : "Elastic search entities index",
     "optional" : false
+  },
+  "USER_SERVICE_URL" : {
+    "message" : "Sunbird environment base url",
+    "optional" : false
   }
 }
 
