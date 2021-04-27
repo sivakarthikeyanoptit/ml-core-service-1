@@ -98,7 +98,7 @@ module.exports = class Files {
             await filesHelpers.preSignedUrls(
                  req.body.request,
                  req.body.ref,
-                 req.userDetails.userId
+                 req.userDetails ? req.userDetails.userId : ""
             );
 
             signedUrl["result"] = signedUrl["data"];

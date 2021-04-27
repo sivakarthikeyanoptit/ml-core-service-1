@@ -77,7 +77,15 @@ module.exports = class FilesHelper {
                 }
 
           } else {
-            let folderPath = "survey/" + payloadIds[0] + "/" + userId + "/" + gen.utils.generateUniqueId();
+            
+            let folderPath = "";
+
+            if (referenceType == constants.common.DHITI) {
+              folderPath = "reports/"
+
+            } else {
+              folderPath = "survey/" + payloadIds[0] + "/" + userId + "/" + gen.utils.generateUniqueId();
+            }
             
             let imagePayload = await filesHelpers.preSignedUrls(
                 payloadData[payloadIds[0]].files,
