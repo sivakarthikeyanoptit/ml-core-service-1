@@ -22,7 +22,7 @@ const request = require('request');
 var assignedObservations = function ( token,search = "",filter = "" ) {
 
     let userAssignedUrl = 
-    process.env.ML_SURVEY_SERVICE_URL + "/api/v1" +
+    process.env.ML_SURVEY_SERVICE_URL + 
     constants.endpoints.GET_USER_ASSIGNED_OBSERVATION + "?search=" + search;
 
     if( filter !== "" ) {
@@ -83,7 +83,7 @@ var assignedObservations = function ( token,search = "",filter = "" ) {
 var assignedSurveys = function ( token,search = "",filter = "" ) {
 
     let userAssignedUrl = 
-    process.env.ML_SURVEY_SERVICE_URL + "/api/v1" +
+    process.env.ML_SURVEY_SERVICE_URL +
     constants.endpoints.GET_USER_ASSIGNED_SURVEY + "?search=" + search;
 
     if( filter !== "" ) {

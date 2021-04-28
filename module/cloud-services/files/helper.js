@@ -52,7 +52,8 @@ module.exports = class FilesHelper {
                 for( let pointerToPayload = 0; pointerToPayload < payloadIds.length; pointerToPayload++ ) {
                     
                     let payloadId = payloadIds[pointerToPayload];
-                    let folderPath = "project/" + payloadId + "/" + userId + "/" + gen.utils.generateUniqueId();
+                    let folderPath = "project/" + payloadId;
+                    
                     let imagePayload = 
                     await filesHelpers.preSignedUrls(
                         payloadData[payloadId].files,
@@ -77,7 +78,7 @@ module.exports = class FilesHelper {
                 }
 
           } else {
-            let folderPath = "survey/" + payloadIds[0] + "/" + userId + "/" + gen.utils.generateUniqueId();
+            let folderPath = "survey/" + payloadIds[0];
             
             let imagePayload = await filesHelpers.preSignedUrls(
                 payloadData[payloadIds[0]].files,
@@ -101,6 +102,66 @@ module.exports = class FilesHelper {
               message : constants.apiResponses.URL_GENERATED,
               data : result
           })
+      } catch (error) {
+        return reject(error)
+      }
+    })
+  }
+
+    /**
+   * Get downloadable url
+   * @method
+   * @name getDownloadableUrl
+   * @param  {filePath}  - File path.
+   * @return {String} - Downloadable url link
+   */
+
+  static getDownloadableUrl( filePath ) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        
+        let cloudStorage = process.env.CLOUD_STORAGE
+
+        if (storageName !== '') {
+          cloudStorage = storageName
+        }
+
+        if (Array.isArray(filePath) && filePath.length > 0) {
+          let result = []
+
+          await Promise.all(
+            filePath.map(async element => {
+              let responseObj = {}
+              responseObj.filePath = element
+              responseObj.url = await _getLinkFromCloudService(
+                element,
+                bucketName,
+                cloudStorage
+              )
+
+              responseObj["cloudStorage"] = cloudStorage;
+
+              result.push(responseObj)
+            })
+          )
+
+          return resolve(result)
+        } else {
+          let result
+
+          result = await _getLinkFromCloudService(
+            filePath,
+            bucketName,
+            cloudStorage
+          )
+
+          let responseObj = {
+            filePath: filePath,
+            url: result
+          }
+
+          return resolve(responseObj)
+        }
       } catch (error) {
         return reject(error)
       }
