@@ -98,7 +98,7 @@ module.exports = class Files {
             await filesHelpers.preSignedUrls(
                  req.body.request,
                  req.body.ref,
-                 req.userDetails.userId
+                 req.userDetails ? req.userDetails.userId : ""
             );
 
             signedUrl["result"] = signedUrl["data"];
@@ -159,14 +159,10 @@ module.exports = class Files {
 
                 let downloadableUrl =
                 await filesHelpers.getDownloadableUrl(
-                     req.body.filePaths, 
-                     process.env.DEFAULT_BUCKET_NAME
+                     req.body.filePaths
                 );
 
-                return resolve({
-                    message: constants.apiResponses.CLOUD_SERVICE_SUCCESS_MESSAGE,
-                    result: downloadableUrl
-                })
+                return resolve(downloadableUrl)
 
             } catch (error) {
 
