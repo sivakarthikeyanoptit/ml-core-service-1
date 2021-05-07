@@ -118,14 +118,3 @@ app.listen(config.port, () => {
 });
 
 module.exports = app;
-
-
-
-
-
-
-
-
-# Mongo db  configurations
-# Mongodb host
-ml_project_mongodb_url : "mongodb://172.31.0.3:27017"
